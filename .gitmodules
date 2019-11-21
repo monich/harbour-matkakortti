@@ -1,0 +1,9 @@
+[submodule "harbour-lib"]
+	path = harbour-lib
+	url = https://github.com/monich/harbour-lib.git
+[submodule "libglibutil"]
+	path = libglibutil
+	url = https://github.com/monich/libglibutil.git
+[submodule "libgnfcdc"]
+	path = libgnfcdc
+	url = https://github.com/monich/libgnfcdc.git
