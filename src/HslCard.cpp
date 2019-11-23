@@ -36,15 +36,18 @@
  */
 
 #include "nfcdc_isodep.h"
+#include "nfcdc_tag.h"
+
+#include "gutil_log.h"
 
 #include "HslCard.h"
 
 #include "HarbourDebug.h"
 
-enum isodep_events {
-    ISODEP_EVENT_VALID,
-    ISODEP_EVENT_PRESENT,
-    ISODEP_EVENT_COUNT
+enum tag_events {
+    TAG_EVENT_VALID,
+    TAG_EVENT_PRESENT,
+    TAG_EVENT_COUNT
 };
 
 // ==========================================================================
@@ -72,8 +75,11 @@ public:
 
     static QString toHexString(QByteArray aData);
     static QByteArray toByteArray(const GUtilData* aData);
-    static void validChanged(NfcIsoDepClient*, NFC_ISODEP_PROPERTY, void*);
-    static void presentChanged(NfcIsoDepClient*, NFC_ISODEP_PROPERTY, void*);
+    static void tagValidChanged(NfcTagClient*, NFC_TAG_PROPERTY, void*);
+    static void tagPresentChanged(NfcTagClient*, NFC_TAG_PROPERTY, void*);
+    static void isoDepValidChanged(NfcIsoDepClient*, NFC_ISODEP_PROPERTY, void*);
+    static void isoDepPresentChanged(NfcIsoDepClient*, NFC_ISODEP_PROPERTY, void*);
+    static void tagLockResp(NfcTagClient*, NfcTagClientLock*, const GError*, void*);
     static void selectResp(NfcIsoDepClient*, const GUtilData*, guint, const GError*, void*);
     static void readAppInfoResp(NfcIsoDepClient*, const GUtilData*, guint, const GError*, void*);
     static void readCtrlInfoResp(NfcIsoDepClient*, const GUtilData*, guint, const GError*, void*);
@@ -111,8 +117,11 @@ public:
 
 public:
     HslCard* iParent;
+    NfcTagClient* iTag;
+    NfcTagClientLock* iLock;
     NfcIsoDepClient* iIsoDep;
-    gulong iIsoDepEventId[ISODEP_EVENT_COUNT];
+    gulong iTagEventId[TAG_EVENT_COUNT];
+    gulong iIsoDepEventId[TAG_EVENT_COUNT];
     GCancellable* iCancel;
     bool iReadFailed;
     QByteArray iAppInfoData;
@@ -194,10 +203,13 @@ const NfcIsoDepApdu HslCard::Private::READ_MORE_CMD = {
 
 HslCard::Private::Private(HslCard* aParent) :
     iParent(aParent),
+    iTag(Q_NULLPTR),
+    iLock(Q_NULLPTR),
     iIsoDep(Q_NULLPTR),
     iCancel(Q_NULLPTR),
     iReadFailed(false)
 {
+    memset(iTagEventId, 0, sizeof(iTagEventId));
     memset(iIsoDepEventId, 0, sizeof(iIsoDepEventId));
 }
 
@@ -255,14 +267,24 @@ void HslCard::Private::setPath(const char* aPath)
 {
     dropTag();
     if (aPath) {
+        iTag = nfc_tag_client_new(aPath);
+        iTagEventId[TAG_EVENT_VALID] =
+            nfc_tag_client_add_property_handler(iTag,
+                NFC_TAG_PROPERTY_VALID, tagValidChanged, this);
+        iTagEventId[TAG_EVENT_PRESENT] =
+            nfc_tag_client_add_property_handler(iTag,
+                NFC_TAG_PROPERTY_PRESENT, tagPresentChanged, this);
+
         iIsoDep = nfc_isodep_client_new(aPath);
-        iIsoDepEventId[ISODEP_EVENT_VALID] =
-            nfc_isodep_client_add_property_handler(iIsoDep,
-                NFC_ISODEP_PROPERTY_VALID, validChanged, this);
-        iIsoDepEventId[ISODEP_EVENT_PRESENT] =
-            nfc_isodep_client_add_property_handler(iIsoDep,
-                NFC_ISODEP_PROPERTY_PRESENT, presentChanged, this);
         startReadingIfReady();
+        if (!iCancel) {
+            iIsoDepEventId[TAG_EVENT_VALID] =
+                nfc_isodep_client_add_property_handler(iIsoDep,
+                    NFC_ISODEP_PROPERTY_VALID, isoDepValidChanged, this);
+            iIsoDepEventId[TAG_EVENT_PRESENT] =
+                nfc_isodep_client_add_property_handler(iIsoDep,
+                    NFC_ISODEP_PROPERTY_PRESENT, isoDepPresentChanged, this);
+        }
     } else {
         iIsoDep = Q_NULLPTR;
     }
@@ -281,6 +303,15 @@ void HslCard::Private::dropTag()
         nfc_isodep_client_unref(iIsoDep);
         iIsoDep = Q_NULLPTR;
     }
+    if (iTag) {
+        nfc_tag_client_remove_all_handlers(iTag, iTagEventId);
+        nfc_tag_client_unref(iTag);
+        iTag = Q_NULLPTR;
+    }
+    if (iLock) {
+        nfc_tag_client_lock_unref(iLock);
+        iLock = Q_NULLPTR;
+    }
 }
 
 void HslCard::Private::readSucceeded()
@@ -292,6 +323,10 @@ void HslCard::Private::readSucceeded()
         g_cancellable_cancel(cancel);
         g_object_unref(cancel);
         iCancel = Q_NULLPTR;
+    }
+    if (iLock) {
+        nfc_tag_client_lock_unref(iLock);
+        iLock = Q_NULLPTR;
     }
     // Emit hslTravelCard first
     emitHslTravelCard(toHexString(iAppInfoData), toHexString(iCtrlInfoData),
@@ -313,7 +348,10 @@ void HslCard::Private::readFailed()
         g_object_unref(cancel);
         iCancel = Q_NULLPTR;
     }
-
+    if (iLock) {
+        nfc_tag_client_lock_unref(iLock);
+        iLock = Q_NULLPTR;
+    }
     // Emit failedChanged first
     emitFailedChanged();
     if (cancel) {
@@ -525,9 +563,27 @@ void HslCard::Private::selectResp(NfcIsoDepClient*, const GUtilData*,
     }
 }
 
+void HslCard::Private::tagLockResp(NfcTagClient*, NfcTagClientLock* aLock,
+    const GError* aError, void* aPrivate)
+{
+    Private* self = (Private*)aPrivate;
+
+    HASSERT(!self->iLock);
+    if (aLock) {
+        self->iLock = nfc_tag_client_lock_ref(aLock);
+    } else {
+        // This is not fatal, try to continue
+        HWARN("Failed to lock the tag:" << GERRMSG(aError));
+    }
+    HDEBUG("SELECT");
+    nfc_isodep_client_transmit(self->iIsoDep, &SELECT_CMD, self->iCancel,
+        selectResp, self, Q_NULLPTR);
+}
+
 void HslCard::Private::startReadingIfReady()
 {
-    if (iIsoDep->valid && iIsoDep->present && !iCancel) {
+    if (iTag->valid && iTag->present &&
+        iIsoDep->valid && iIsoDep->present && !iCancel) {
         iAppInfoData.clear();
         iCtrlInfoData.clear();
         iPeriodPassData.clear();
@@ -536,8 +592,7 @@ void HslCard::Private::startReadingIfReady()
         iHistoryData.clear();
         iCancel = g_cancellable_new();
         iReadFailed = false;
-        HDEBUG("SELECT");
-        nfc_isodep_client_transmit(iIsoDep, &SELECT_CMD, iCancel, selectResp,
+        nfc_tag_client_acquire_lock(iTag, TRUE, iCancel, tagLockResp,
             this, Q_NULLPTR);
     }
 }
@@ -556,16 +611,28 @@ void HslCard::Private::handleEvent(const char* aSignal)
     }
 }
 
-void HslCard::Private::validChanged(NfcIsoDepClient* aIsoDep,
+void HslCard::Private::isoDepValidChanged(NfcIsoDepClient*,
     NFC_ISODEP_PROPERTY, void* aPrivate)
 {
     ((Private*)aPrivate)->handleEvent("validChanged");
 }
 
-void HslCard::Private::presentChanged(NfcIsoDepClient* aIsoDep,
+void HslCard::Private::isoDepPresentChanged(NfcIsoDepClient*,
     NFC_ISODEP_PROPERTY, void* aPrivate)
 {
     ((Private*)aPrivate)->handleEvent("presentChanged");
+}
+
+void HslCard::Private::tagValidChanged(NfcTagClient*,
+    NFC_TAG_PROPERTY, void* aPrivate)
+{
+    ((Private*)aPrivate)->startReadingIfReady();
+}
+
+void HslCard::Private::tagPresentChanged(NfcTagClient*,
+    NFC_TAG_PROPERTY, void* aPrivate)
+{
+    ((Private*)aPrivate)->startReadingIfReady();
 }
 
 // ==========================================================================
