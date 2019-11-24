@@ -100,18 +100,22 @@ const QString HslArea::Private::getZoneName(int aCode)
 
 const QString HslArea::Private::getMultiZoneName(int aCode)
 {
-    switch (aCode) {
-    case 0: /* no break */
-    case 1: return QLatin1String("AB");
-    case 2: /* no break */
-    case 4: return QLatin1String("BC");
-    case 5: return QLatin1String("ABC");
-    case 6: /* no break */
-    case 9: return QLatin1String("D");
-    case 14: return QLatin1String("BCD");
-    case 15: return QLatin1String("ABCD");
-    default: return QString();
-    }
+    // Area mapping (3 bits X vs 3 bit Y):
+    //
+    // A AB ABC ABCD ABCDE ABCDEF ABCDEFG ABCDEFGH
+    //    B  BC  BCD  BCDE  BCDEF  BCDEFG  BCDEFGH
+    //        C   CD   CDE   CDEF   CDEFG   CDEFGH
+    //             D    DE    DEF    DEFG    DEFGH
+    //                   E     EF     EFG     EFGH
+    //                          F      FG      FGH
+    //                                  G       GH
+    //                                           H
+    const int x = aCode & 0x07;
+    const int y = aCode & 0x38;
+    static const char zones[] = "ABCDEFGH";
+    return (x >= y) ?
+        QString(QLatin1String(zones + y, (x - y) + 1)) :
+        QString();
 }
 
 // ==========================================================================
