@@ -140,6 +140,7 @@ HEADERS += \
     src/HslCard.h \
     src/HslCardAppInfo.h \
     src/HslCardEticket.h \
+    src/HslCardHistory.h \
     src/HslCardPeriodPass.h \
     src/HslCardStoredValue.h \
     src/HslData.h \
@@ -154,6 +155,7 @@ SOURCES += \
     src/HslCard.cpp \
     src/HslCardAppInfo.cpp \
     src/HslCardEticket.cpp \
+    src/HslCardHistory.cpp \
     src/HslCardPeriodPass.cpp \
     src/HslCardStoredValue.cpp \
     src/HslData.cpp \

@@ -39,6 +39,7 @@
 #include "HslCard.h"
 #include "HslCardAppInfo.h"
 #include "HslCardEticket.h"
+#include "HslCardHistory.h"
 #include "HslCardPeriodPass.h"
 #include "HslCardStoredValue.h"
 #include "HslData.h"
@@ -74,6 +75,7 @@ static void register_types(const char* uri, int v1 = 1, int v2 = 0)
     qmlRegisterType<HslCard>(uri, v1, v2, "HslCard");
     qmlRegisterType<HslCardAppInfo>(uri, v1, v2, "HslCardAppInfo");
     qmlRegisterType<HslCardEticket>(uri, v1, v2, "HslCardEticket");
+    qmlRegisterType<HslCardHistory>(uri, v1, v2, "HslCardHistory");
     qmlRegisterType<HslCardPeriodPass>(uri, v1, v2, "HslCardPeriodPass");
     qmlRegisterType<HslCardStoredValue>(uri, v1, v2, "HslCardStoredValue");
 }
