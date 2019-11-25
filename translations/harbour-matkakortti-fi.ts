@@ -11,7 +11,7 @@
     <message id="matkakortti-info-nfc_not_supported">
         <source>NFC not supported</source>
         <extracomment>Info label</extracomment>
-        <translation>Laittesta ei löytänyt NFC-toimintoa</translation>
+        <translation>Laitteesta ei löytynyt NFC-toimintoa</translation>
     </message>
     <message id="matkakortti-info-card_not_supported">
         <source>This is not an HSL travel card</source>
