@@ -26,7 +26,7 @@
     <message id="matkakortti-info-ready">
         <source>Ready</source>
         <extracomment>Info label</extracomment>
-        <translation>Valmis</translation>
+        <translation>Valmis lukemaan kortin</translation>
     </message>
     <message id="matkakortti-info-disabled">
         <source>NFC is disabled</source>
@@ -62,6 +62,16 @@
         <source>d</source>
         <extracomment>Time unit (abbreviated)</extracomment>
         <translation>pv</translation>
+    </message>
+    <message id="matkakortti-switcher-details">
+        <source>Details</source>
+        <extracomment>Switcher label</extracomment>
+        <translation>Tiedot</translation>
+    </message>
+    <message id="matkakortti-switcher-history">
+        <source>History</source>
+        <extracomment>Switcher label</extracomment>
+        <translation>Historia</translation>
     </message>
     <message id="matkakortti-details-section-season_tickets">
         <source>Season tickets</source>
@@ -142,6 +152,16 @@
         <source>No longer valid</source>
         <extracomment>Validity label</extracomment>
         <translation>Ei enää voimassa</translation>
+    </message>
+    <message id="matkakortti-history-section-previous_journeys">
+        <source>Previous journeys</source>
+        <extracomment>Section header</extracomment>
+        <translation>Edelliset matkat</translation>
+    </message>
+    <message id="matkakortti-history-transaction_type">
+        <source>Season ticket or boarding</source>
+        <extracomment>Label (transaction type)</extracomment>
+        <translation>Kausimatka tai nousu</translation>
     </message>
 </context>
 </TS>

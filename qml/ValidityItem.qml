@@ -13,7 +13,7 @@ Item {
     Rectangle {
         id: background
 
-        color: "white"
+        color: Theme.primaryColor
         opacity: HarbourTheme.opacityFaint
         radius: Theme.paddingMedium
         width: validityLabel.paintedWidth + 2 * Theme.paddingMedium

@@ -3,41 +3,17 @@ import Sailfish.Silica 1.0
 import harbour.matkakortti 1.0
 
 SilicaFlickable {
-    id: details
+    property var eTicket
+    property var storedValue
+    property var periodPass
 
-    property alias eTicket: hslCardEticket.data
-    property alias storedValue: hslCardStoredValue.data
-    property alias periodPass: hslCardPeriodPass.data
-
-    property alias moneyAmount: storedValueMoneyAmount.text
-    property alias ticketSecondsRemaining: hslCardEticket.secondsRemaining
-    property alias periodPassDaysRemaining: hslCardPeriodPass.daysRemaining
-    property alias periodPassEndDate: hslCardPeriodPass.periodEndDate
-
-    contentHeight: childrenRect.height
-
-    HslCardEticket {
-        id: hslCardEticket
-
-        readonly property bool haveLastTicket: HslData.isValidPeriod(validityStartTime, validityEndTime)
-    }
-
-    HslCardStoredValue {
-        id: hslCardStoredValue
-    }
-
-    HslCardPeriodPass {
-        id: hslCardPeriodPass
-
-        readonly property bool haveSeasonTicket: HslData.isValidPeriod(periodStartDate, periodEndDate)
-    }
+    contentHeight: column.height
 
     function moneyString(value) {
-        return (value/100.0).toFixed(2) + " €"
+        return value ? ((value/100.0).toFixed(2) + " €") : ""
     }
 
     function dateString(date) {
-        //return date.toLocaleDateString(Qt.locale(), Locale.NarrowFormat)
         return date.toLocaleDateString(Qt.locale(), "dd.MM.yyyy")
     }
 
@@ -72,20 +48,19 @@ SilicaFlickable {
     }
 
     Column {
+        id: column
+
         width: parent.width
 
         Column {
             width: parent.width
-            visible: hslCardPeriodPass.haveSeasonTicket
+            visible: HslData.isValidPeriod(periodPass.periodStartDate, periodPass.periodEndDate)
 
             SectionHeader {
                 //: Section header
                 //% "Season tickets"
                 text: qsTrId("matkakortti-details-section-season_tickets")
-                visible: hslCardPeriodPass.haveSeasonTicket
             }
-
-            VerticalSpace { height: Theme.paddingLarge }
 
             Item {
                 id: seasonTicketItem
@@ -108,7 +83,7 @@ SilicaFlickable {
                         //: Label
                         //% "Zone:"
                         title: qsTrId("matkakortti-details-zone")
-                        value: hslCardPeriodPass.validityAreaName
+                        value: periodPass.validityAreaName
                     }
 
                     Label {
@@ -116,14 +91,14 @@ SilicaFlickable {
                         horizontalAlignment: Text.AlignLeft
                         color: Theme.highlightColor
                         wrapMode: Text.Wrap
-                        text: dateString(hslCardPeriodPass.periodStartDate) + " - " + dateString(hslCardPeriodPass.periodEndDate)
+                        text: dateString(periodPass.periodStartDate) + " - " + dateString(periodPass.periodEndDate)
                     }
                 }
 
                 ValidityItem {
                     id: seasonTicketValidity
 
-                    valid: hslCardPeriodPass.daysRemaining
+                    valid: periodPass.daysRemaining
                     anchors {
                         top: parent.top
                         right: parent.right
@@ -156,20 +131,20 @@ SilicaFlickable {
 
                 ValueLabel {
                     width: parent.width
-                    visible: hslCardStoredValue.loadedValue > 0
+                    visible: storedValue.loadedValue > 0
                     //: Label
                     //% "Last loaded value:"
                     title: qsTrId("matkakortti-details-loaded_value-label")
-                    value: moneyString(hslCardStoredValue.loadedValue)
+                    value: moneyString(storedValue.loadedValue)
                 }
 
                 ValueLabel {
                     width: parent.width
-                    visible: HslData.isValidDate(hslCardStoredValue.loadingTime)
+                    visible: HslData.isValidDate(storedValue.loadingTime)
                     //: Label
                     //% "Loading time:"
                     title: qsTrId("matkakortti-details-loading_time-label")
-                    value: dateTimeString(hslCardStoredValue.loadingTime)
+                    value: dateTimeString(storedValue.loadingTime)
                 }
             }
 
@@ -183,7 +158,7 @@ SilicaFlickable {
                     bold: true
                 }
                 color: Theme.primaryColor
-                text: moneyString(hslCardStoredValue.moneyValue)
+                text: moneyString(storedValue.moneyValue)
             }
         }
 
@@ -191,7 +166,7 @@ SilicaFlickable {
 
         Column {
             width: parent.width
-            visible: hslCardEticket.haveLastTicket
+            visible: HslData.isValidPeriod(eTicket.validityStartTime, eTicket.validityEndTime)
 
             SectionHeader {
                 //: Section header
@@ -222,7 +197,7 @@ SilicaFlickable {
                         //: Label
                         //% "Zone:"
                         title: qsTrId("matkakortti-details-zone")
-                        value: hslCardEticket.validityAreaName
+                        value: eTicket.validityAreaName
                     }
 
                     ValueLabel {
@@ -230,7 +205,7 @@ SilicaFlickable {
                         //: Label
                         //% "Group size:"
                         title: qsTrId("matkakortti-details-ticket-group_size")
-                        value: hslCardEticket.groupSize
+                        value: eTicket.groupSize
                     }
 
                     ValueLabel {
@@ -238,7 +213,7 @@ SilicaFlickable {
                         //: Label
                         //% "Cost:"
                         title: qsTrId("matkakortti-details-ticket-cost")
-                        value: moneyString(hslCardEticket.ticketPrice)
+                        value: moneyString(eTicket.ticketPrice)
                     }
 
                     ValueLabel {
@@ -246,14 +221,14 @@ SilicaFlickable {
                         //: Label
                         //% "Validity time:"
                         title: qsTrId("matkakortti-details-ticket-validity_length")
-                        value: hslCardEticket.validityLength + " " + timeUnits(hslCardEticket.validityLengthType)
+                        value: eTicket.validityLength + " " + timeUnits(eTicket.validityLengthType)
                     }
                 }
 
                 ValidityItem {
                     id: lastTicketValidity
 
-                    valid: hslCardEticket.secondsRemaining
+                    valid: eTicket.secondsRemaining
                     anchors {
                         top: parent.top
                         right: parent.right
@@ -267,18 +242,18 @@ SilicaFlickable {
                 //: Label
                 //% "Valid from:"
                 title: qsTrId("matkakortti-details-ticket-valid_from")
-                value: dateTimeString(hslCardEticket.validityStartTime)
+                value: dateTimeString(eTicket.validityStartTime)
             }
 
             ValueLabel {
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2*x
-                visible: HslData.isValidDate(hslCardEticket.boardingTime) &&
-                    hslCardEticket.boardingTime.getTime() !== hslCardEticket.validityStartTime.getTime()
+                visible: HslData.isValidDate(eTicket.boardingTime) &&
+                    eTicket.boardingTime.getTime() !== eTicket.validityStartTime.getTime()
                 //: Label
                 //% "Boarding time:"
                 title: qsTrId("matkakortti-details-ticket-boarding_time")
-                value: dateTimeString(hslCardEticket.boardingTime)
+                value: dateTimeString(eTicket.boardingTime)
             }
 
             VerticalSpace { height: Theme.paddingLarge }
@@ -289,7 +264,7 @@ SilicaFlickable {
                 //: Label
                 //% "Valid until:"
                 title: qsTrId("matkakortti-details-ticket-valid_until")
-                value: dateTimeString(hslCardEticket.validityEndTime)
+                value: dateTimeString(eTicket.validityEndTime)
                 //: Suffix after the time ending the period
                 //% " "
                 suffix: qsTrId("matkakortti-details-ticket-valid_until-suffix").trim()
@@ -298,4 +273,6 @@ SilicaFlickable {
             VerticalSpace { height: Theme.paddingLarge }
         }
     }
+
+    VerticalScrollDecorator { }
 }

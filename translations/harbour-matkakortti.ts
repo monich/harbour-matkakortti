@@ -63,6 +63,16 @@
         <extracomment>Time unit (abbreviated)</extracomment>
         <translation>d</translation>
     </message>
+    <message id="matkakortti-switcher-details">
+        <source>Details</source>
+        <extracomment>Switcher label</extracomment>
+        <translation>Details</translation>
+    </message>
+    <message id="matkakortti-switcher-history">
+        <source>History</source>
+        <extracomment>Switcher label</extracomment>
+        <translation>History</translation>
+    </message>
     <message id="matkakortti-details-section-season_tickets">
         <source>Season tickets</source>
         <extracomment>Section header</extracomment>
@@ -142,6 +152,16 @@
         <source>No longer valid</source>
         <extracomment>Validity label</extracomment>
         <translation>No longer valid</translation>
+    </message>
+    <message id="matkakortti-history-section-previous_journeys">
+        <source>Previous journeys</source>
+        <extracomment>Section header</extracomment>
+        <translation>Previous journeys</translation>
+    </message>
+    <message id="matkakortti-history-transaction_type">
+        <source>Season ticket or boarding</source>
+        <extracomment>Label (transaction type)</extracomment>
+        <translation>Season ticket or boarding</translation>
     </message>
 </context>
 </TS>
