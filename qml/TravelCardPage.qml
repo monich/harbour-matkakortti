@@ -1,4 +1,5 @@
 import QtQuick 2.0
+import QtGraphicalEffects 1.0
 import Sailfish.Silica 1.0
 import harbour.matkakortti 1.0
 
@@ -56,6 +57,16 @@ Page {
         }
 
         Image {
+            id: headerImageMask
+
+            anchors.fill: headerImage
+            sourceSize: Qt.size(headerImage.width, headerImage.height)
+            source: "images/hsl-card-mask.svg"
+            smooth: true
+            visible: false
+        }
+
+        Image {
             id: headerImage
 
             anchors.centerIn: headerImageBackground
@@ -63,6 +74,13 @@ Page {
             sourceSize.height: height
             source: "images/hsl-card.svg"
             smooth: true
+            visible: false
+        }
+
+        OpacityMask {
+            anchors.fill: headerImage
+            source: headerImage
+            maskSource: headerImageMask
         }
     }
 

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="95pt"
+   height="60.037941pt"
+   viewBox="0 0 33.51389 21.180052"
+   version="1.1"
+   id="svg1095"
+   inkscape:version="0.92.4 (unknown)"
+   sodipodi:docname="hsl-card-mask.svg">
+  <metadata>
+    <rdf:RDF>
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title/>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+      inkscape:label="Layer 1"
+      inkscape:groupmode="layer"
+      transform="translate(-26.085035,21.515187)">
+    <path
+        inkscape:connector-curvature="0"
+        style="fill:#0f85d1;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.14032269"
+        d="m 27.270859,-21.515187 c 0,0 -1.185824,0 -1.185824,1.200831 v 18.7785289 c 0,0 0,1.20069127 1.185824,1.20069127 h 31.14224 c 0,0 1.185825,0 1.185825,-1.20069127 V -20.314356 c 0,0 0,-1.200831 -1.185825,-1.200831 z"/>
+  </g>
+</svg>
