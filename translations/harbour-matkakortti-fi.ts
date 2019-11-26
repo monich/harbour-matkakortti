@@ -21,7 +21,7 @@
     <message id="matkakortti-info-reading">
         <source>Reading the card</source>
         <extracomment>Info label</extracomment>
-        <translation>Kortin lukeminen</translation>
+        <translation>Luetaan korttia</translation>
     </message>
     <message id="matkakortti-info-ready">
         <source>Ready</source>
