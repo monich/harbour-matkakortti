@@ -38,14 +38,22 @@ CoverBackground {
 
     Image {
         anchors.centerIn: parent
+        sourceSize: Qt.size(parent.width, parent.height)
+        source: "image://harbour/" + Qt.resolvedUrl("images/cover-bg.svg") + "?" + Theme.primaryColor
+        smooth: true
+        fillMode: Image.PreserveAspectCrop
+    }
+
+    Image {
+        anchors.centerIn: parent
         width: Math.floor(3 * parent.width / 4)
         height: width
         sourceSize: Qt.size(width, height)
         source: unrecorgnizedCard ?
             "image://harbour/" + Qt.resolvedUrl("images/hmm.svg") + "?" + Theme.highlightColor :
-            Qt.resolvedUrl("images/app-icon.svg")
+            ""
         smooth: true
-        opacity: cardInfoPage ? 0 : 1
+        opacity: unrecorgnizedCard ? 1 : 0
         visible: opacity > 0
         Behavior on opacity { FadeAnimation {} }
     }
