@@ -96,7 +96,7 @@
     <message id="matkakortti-details-loading_time-label">
         <source>Loading time:</source>
         <extracomment>Label</extracomment>
-        <translation>Czas ładowania:</translation>
+        <translation>Data doładowania:</translation>
     </message>
     <message id="matkakortti-details-section-latest_ticket">
         <source>Latest value ticket</source>
@@ -106,7 +106,7 @@
     <message id="matkakortti-details-ticket-group_size">
         <source>Group size:</source>
         <extracomment>Label</extracomment>
-        <translation>Rozmiar grupy:</translation>
+        <translation>Wielkość grupy:</translation>
     </message>
     <message id="matkakortti-details-ticket-cost">
         <source>Cost:</source>
@@ -126,7 +126,7 @@
     <message id="matkakortti-details-ticket-boarding_time">
         <source>Boarding time:</source>
         <extracomment>Label</extracomment>
-        <translation>Czas wejścia na pokład:</translation>
+        <translation>Czas wejścia do pojazdu:</translation>
     </message>
     <message id="matkakortti-details-ticket-valid_until">
         <source>Valid until:</source>
@@ -161,7 +161,7 @@
     <message id="matkakortti-history-transaction_type">
         <source>Season ticket or boarding</source>
         <extracomment>Label (transaction type)</extracomment>
-        <translation>Bilet okresowy lub wejście na pokład</translation>
+        <translation>Bilet okresowy lub wejście do pojazdu</translation>
     </message>
 </context>
 </TS>
