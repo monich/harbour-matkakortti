@@ -141,8 +141,12 @@ void HslCardEticket::Private::setHexData(QString aHexData)
         HDEBUG("  SaleDeviceNumber =" << getInt(&data, 11, 3, 14));
         iTicketPrice = getInt(&data, 13, 1, 14);
         HDEBUG("  TicketFare =" << iTicketPrice);
-        HDEBUG("  TicketFareGroup =" << getInt(&data, 14, 7, 14));
+        const int groupFare = getInt(&data, 14, 7, 14);
+        HDEBUG("  TicketFareGroup =" << groupFare);
         iGroupSize = getInt(&data, 16, 5, 6);
+        if (iGroupSize > 1) {
+            iTicketPrice += groupFare;
+        }
         HDEBUG("  GroupSize =" << iGroupSize);
         HDEBUG("  ExtraZone =" << getInt(&data, 17, 3, 1));
         HDEBUG("  PeriodPassValidityArea =" << getInt(&data, 17, 4, 6));
