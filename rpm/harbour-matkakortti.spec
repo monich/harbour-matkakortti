@@ -1,6 +1,6 @@
 Name:           harbour-matkakortti
 Summary:        Application to read HSL travel card
-Version:        1.0.5
+Version:        1.0.6
 Release:        1
 License:        BSD
 Group:          Applications/System
