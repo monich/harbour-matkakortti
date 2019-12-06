@@ -20,6 +20,7 @@ SilicaListView {
         type: transactionType
         time: boardingTime
         price: ticketPrice
+        group: groupSize
     }
 
     VerticalScrollDecorator { }

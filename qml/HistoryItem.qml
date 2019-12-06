@@ -6,6 +6,7 @@ BackgroundItem {
     property int type
     property date time
     property int price
+    property int group
 
     height: column.height + Theme.paddingLarge
 
@@ -49,13 +50,24 @@ BackgroundItem {
             text: qsTrId("matkakortti-history-transaction_type")
         }
 
-        ValueLabel {
-            visible: type === HslCardHistory.TransactionPurchase
+        Row {
             width: parent.width
-            //: Label
-            //% "Cost:"
-            title: qsTrId("matkakortti-details-ticket-cost")
-            value: moneyString(price)
+            spacing: Theme.paddingMedium
+            visible: type === HslCardHistory.TransactionPurchase
+
+            ValueLabel {
+                width: Math.min(preferredWidth, parent.width)
+                //: Label
+                //% "Cost:"
+                title: qsTrId("matkakortti-details-ticket-cost")
+                value: moneyString(price)
+            }
+
+            Label {
+                visible: group > 1
+                color: Theme.secondaryHighlightColor
+                text: "(" + group + ")"
+            }
         }
     }
 }

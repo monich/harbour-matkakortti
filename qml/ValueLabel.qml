@@ -5,6 +5,7 @@ Column {
     property alias title: titleText.text
     property alias value: valueText.text
     property alias suffix: suffixText.text
+    readonly property real preferredWidth: titleText.preferredWidth + valueText.preferredWidth + suffixText.preferredWidth
 
     Flow {
         width: parent.width
@@ -12,7 +13,8 @@ Column {
         Label {
             id: titleText
 
-            width: Math.min(implicitWidth + Theme.paddingMedium, parent.width)
+            readonly property real preferredWidth: implicitWidth + Theme.paddingMedium
+            width: Math.min(preferredWidth, parent.width)
             color: Theme.secondaryHighlightColor
             horizontalAlignment: Text.AlignLeft
             truncationMode: TruncationMode.Fade
@@ -21,7 +23,8 @@ Column {
         Label {
             id: valueText
 
-            width: Math.min(implicitWidth + (suffix ? Theme.paddingMedium : 0), parent.width)
+            readonly property real preferredWidth: implicitWidth + (suffix ? Theme.paddingMedium : 0)
+            width: Math.min(preferredWidth, parent.width - x)
             color: Theme.highlightColor
             horizontalAlignment: Text.AlignLeft
             truncationMode: TruncationMode.Fade
@@ -30,7 +33,8 @@ Column {
         Label {
             id: suffixText
 
-            width: Math.min(implicitWidth, parent.width)
+            readonly property real preferredWidth: implicitWidth
+            width: Math.min(implicitWidth, parent.width - x)
             color: Theme.secondaryHighlightColor
             horizontalAlignment: Text.AlignLeft
             truncationMode: TruncationMode.Fade
