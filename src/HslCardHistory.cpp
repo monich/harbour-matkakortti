@@ -162,6 +162,7 @@ void HslCardHistory::Private::setHexData(QString aHexData)
                 QDateTime(boardingDate, boardingTime, HslData::HELSINKI_TIMEZONE),
                 ticketPrice, groupSize));
         }
+        g_bytes_unref(bytes);
     }
 }
 
