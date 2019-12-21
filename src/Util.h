@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2019 Jolla Ltd.
- * Copyright (C) 2019 Slava Monich <slava.monich@jolla.com>
+ * Copyright (C) 2019 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -35,25 +35,19 @@
  * any official policies, either expressed or implied.
  */
 
-#ifndef HSL_CARD_H
-#define HSL_CARD_H
+#ifndef UTIL_H
+#define UTIL_H
 
-#include "TravelCardImpl.h"
+#include "gutil_types.h"
 
-class HslCard : public TravelCardImpl {
-    Q_OBJECT
-    Q_DISABLE_COPY(HslCard)
+#include <QString>
+#include <QByteArray>
 
-public:
-    HslCard(QString aPath, QObject* aParent);
-    ~HslCard();
+namespace Util {
+    extern const QString CARD_TYPE_KEY;
+    QString toHex(const QByteArray aData);
+    inline QByteArray toByteArray(const GUtilData* aData)
+        { return QByteArray((const char*)aData->bytes, (int)aData->size); }
+}
 
-    static const char CardType[];
-    static TravelCardImpl* newTravelCard(QString aPath, QObject* aParent);
-
-private:
-    class Private;
-    Private* iPrivate;
-};
-
-#endif // HSL_CARD_H
+#endif // UTIL_H

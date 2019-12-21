@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2019 Jolla Ltd.
- * Copyright (C) 2019 Slava Monich <slava.monich@jolla.com>
+ * Copyright (C) 2019 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -35,25 +35,23 @@
  * any official policies, either expressed or implied.
  */
 
-#ifndef HSL_CARD_H
-#define HSL_CARD_H
+#include "Util.h"
 
-#include "TravelCardImpl.h"
+const QString Util::CARD_TYPE_KEY("cardType");
 
-class HslCard : public TravelCardImpl {
-    Q_OBJECT
-    Q_DISABLE_COPY(HslCard)
-
-public:
-    HslCard(QString aPath, QObject* aParent);
-    ~HslCard();
-
-    static const char CardType[];
-    static TravelCardImpl* newTravelCard(QString aPath, QObject* aParent);
-
-private:
-    class Private;
-    Private* iPrivate;
-};
-
-#endif // HSL_CARD_H
+QString Util::toHex(const QByteArray aData)
+{
+    static const char hex[] = "0123456789abcdef";
+    const int n = aData.size();
+    const uchar* data = (uchar*)aData.constData();
+    char* buf = (char*)malloc(2*n + 1);
+    for (int i = 0; i < n; i++) {
+        const uchar b = data[i];
+        buf[2*i] = hex[(b & 0xf0) >> 4];
+        buf[2*i+1] = hex[b & 0x0f];
+    }
+    buf[2*n] = 0;
+    QString str(QLatin1String(buf, 2*n));
+    free(buf);
+    return str;
+}

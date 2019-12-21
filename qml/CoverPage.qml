@@ -63,7 +63,7 @@ CoverBackground {
         height: parent.width
         anchors.centerIn: parent
         sourceSize.height: width
-        source: Qt.resolvedUrl("images/hsl-card.svg")
+        source: cardInfoPage ? cardInfoPage.cardImageUrl : ""
         smooth: true
         rotation: 90
         transformOrigin: Item.Center

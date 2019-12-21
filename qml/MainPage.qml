@@ -10,7 +10,8 @@ Page {
 
     readonly property url hmmImageUrl: "image://harbour/" + Qt.resolvedUrl("images/hmm.svg") + "?" + Theme.highlightColor
     readonly property bool targetPresent: NfcAdapter.targetPresent
-    readonly property bool unrecorgnizedCard: targetPresent && hslCard.valid && (!hslCard.present || hslCard.failed)
+    readonly property bool unrecorgnizedCard: targetPresent && travelCard.cardState === TravelCard.CardNone && !readTimer.running
+    readonly property bool readingCard: travelCard.cardState === TravelCard.CardReading || readTimer.running
     property bool showingCardInfo: !!cardInfoPage
     property Page cardInfoPage
 
@@ -27,49 +28,62 @@ Page {
         }
     }
 
-    HslCard {
-        id: hslCard
+    TravelCard {
+        id: travelCard
 
         path: NfcAdapter.tagPath
-        onFailedChanged: {
-            if (failed && cardInfoPage) {
-                cardInfoPage.backNavigation = true
-                pageStack.pop(page, PageStackAction.Animated)
-            }
-        }
-        onHslTravelCard: {
-            console.log("appInfo:",appInfo)
-            console.log("controlInfo:",controlInfo)
-            console.log("periodPass:",periodPass)
-            console.log("storedValue:",storedValue)
-            console.log("eTicket:",eTicket)
-            console.log("history:",history)
-            if (cardInfoPage) {
-                cardInfoPage.appInfo = appInfo
-                cardInfoPage.controlInfo = controlInfo
-                cardInfoPage.periodPass = periodPass
-                cardInfoPage.storedValue = storedValue
-                cardInfoPage.eTicket = eTicket
-                cardInfoPage.history = history
-            } else {
-                cardInfoPage = pageStack.push(Qt.resolvedUrl("TravelCardPage.qml"), {
-                    appInfo: appInfo,
-                    controlInfo: controlInfo,
-                    periodPass: periodPass,
-                    storedValue: storedValue,
-                    eTicket: eTicket,
-                    history: history
-                })
+        onCardStateChanged: {
+            console.log(cardState)
+            switch (cardState) {
+            case TravelCard.CardReading:
+                readTimer.start()
+                break
+
+            case TravelCard.CardRecognized:
                 if (cardInfoPage) {
-                    cardInfoPage.statusChanged.connect(function() {
-                        if (cardInfoPage.status === PageStatus.Inactive) {
-                            cardInfoPage.destroy()
-                            cardInfoPage = null
+                    if (cardInfoPage.cardInfo.cardType === cardInfo.cardType) {
+                        cardInfoPage.cardInfo = cardInfo
+                    } else {
+                        cardInfoPage = pageStack.replace(Qt.resolvedUrl(pageUrl),
+                            { cardInfo: cardInfo })
+                        if (cardInfoPage) {
+                            cardInfoPage.statusChanged.connect(function() {
+                                if (cardInfoPage.status === PageStatus.Inactive) {
+                                    cardInfoPage.destroy()
+                                    cardInfoPage = null
+                                }
+                            })
                         }
-                    })
+                    }
+                } else {
+                    cardInfoPage = pageStack.push(Qt.resolvedUrl(pageUrl),
+                        { cardInfo: cardInfo })
+                    if (cardInfoPage) {
+                        cardInfoPage.statusChanged.connect(function() {
+                            if (cardInfoPage.status === PageStatus.Inactive) {
+                                cardInfoPage.destroy()
+                                cardInfoPage = null
+                            }
+                        })
+                    }
                 }
+                break
+
+            case TravelCard.CardNone:
+                if (targetPresent && cardInfoPage) {
+                    // Unsupported card
+                    cardInfoPage.backNavigation = true
+                    pageStack.pop(page, PageStackAction.Animated)
+                }
+                break
             }
         }
+    }
+
+    Timer {
+        id: readTimer
+
+        interval: 500
     }
 
     onTargetPresentChanged: {
@@ -111,8 +125,6 @@ Page {
             opacity: (NfcSystem.valid && NfcSystem.present && NfcAdapter.present) ? 1 : 0
             visible: opacity > 0
 
-            readonly property bool unsupported: hslCard.valid && (!hslCard.present || hslCard.failed)
-
             Behavior on opacity { FadeAnimation {} }
 
             Image {
@@ -122,7 +134,7 @@ Page {
                 sourceSize.height: height
                 source: Qt.resolvedUrl("images/app-icon.svg")
                 smooth: true
-                opacity: targetPresent ? 0 : 1
+                opacity: (!readingCard && !targetPresent) ? 1 : 0
                 visible: opacity > 0
                 Behavior on opacity { FadeAnimation {} }
             }
@@ -132,7 +144,7 @@ Page {
                 anchors.horizontalCenter: parent.horizontalCenter
                 size: BusyIndicatorSize.Large
                 running: true
-                opacity: (targetPresent && !parent.unsupported) ? 1 : 0
+                opacity: readingCard ? 1 : 0
                 visible: opacity > 0
                 Behavior on opacity { FadeAnimation {} }
             }
@@ -144,7 +156,7 @@ Page {
                 sourceSize.height: height
                 source: visible ? hmmImageUrl : ""
                 smooth: true
-                opacity: (targetPresent && parent.unsupported) ? 1 : 0
+                opacity: (!readingCard && unrecorgnizedCard) ? 1 : 0
                 visible: opacity > 0
             }
 
@@ -153,21 +165,22 @@ Page {
 
                 y: parent.height/2
 
-                text: targetPresent ? (
-                    hslCard.valid ? ((!hslCard.present || hslCard.failed) ?
-                    //: Info label
-                    //% "This is not an HSL travel card"
-                    qsTrId("matkakortti-info-card_not_supported") :
+                text: readingCard ?
                     //: Info label
                     //% "Reading the card"
-                    qsTrId("matkakortti-info-reading")) : "") :
+                    qsTrId("matkakortti-info-reading") :
+                    targetPresent ? (
+                        travelCard.cardState === TravelCard.CardNone ?
+                        //: Info label
+                        //% "This is not an HSL travel card"
+                        qsTrId("matkakortti-info-card_not_supported") : "") :
                     (NfcSystem.enabled ?
-                    //: Info label
-                    //% "Ready"
-                    qsTrId("matkakortti-info-ready") :
-                    //: Info label
-                    //% "NFC is disabled"
-                    qsTrId("matkakortti-info-disabled"))
+                        //: Info label
+                        //% "Ready"
+                        qsTrId("matkakortti-info-ready") :
+                        //: Info label
+                        //% "NFC is disabled"
+                        qsTrId("matkakortti-info-disabled"))
             }
 
             Text {
@@ -184,7 +197,7 @@ Page {
                 //: Hint label
                 //% "Place the phone on the card"
                 text: qsTrId("matkakortti-info-touch_hint")
-                opacity: (NfcSystem.enabled && !targetPresent) ? HarbourTheme.opacityHigh : 0
+                opacity: (NfcSystem.enabled && !targetPresent && !readingCard) ? HarbourTheme.opacityHigh : 0
                 visible: opacity > 0
                 Behavior on opacity { FadeAnimation {} }
             }

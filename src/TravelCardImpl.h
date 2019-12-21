@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2019 Jolla Ltd.
- * Copyright (C) 2019 Slava Monich <slava.monich@jolla.com>
+ * Copyright (C) 2019 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -35,25 +35,27 @@
  * any official policies, either expressed or implied.
  */
 
-#ifndef HSL_CARD_H
-#define HSL_CARD_H
+#ifndef TRAVEL_CARD_IMPL_H
+#define TRAVEL_CARD_IMPL_H
 
-#include "TravelCardImpl.h"
+#include <QVariantMap>
+#include <QString>
+#include <QObject>
+#include <QUrl>
 
-class HslCard : public TravelCardImpl {
+class TravelCardImpl : public QObject {
     Q_OBJECT
-    Q_DISABLE_COPY(HslCard)
+    Q_DISABLE_COPY(TravelCardImpl)
+
+protected:
+    TravelCardImpl(QObject* aParent) : QObject(aParent) {}
 
 public:
-    HslCard(QString aPath, QObject* aParent);
-    ~HslCard();
+    typedef TravelCardImpl* (*Factory)(QString aPath, QObject* aParent);
 
-    static const char CardType[];
-    static TravelCardImpl* newTravelCard(QString aPath, QObject* aParent);
-
-private:
-    class Private;
-    Private* iPrivate;
+Q_SIGNALS:
+    void readFailed();
+    void readDone(QString aPageUrl, QVariantMap aCardInfo);
 };
 
-#endif // HSL_CARD_H
+#endif // TRAVEL_CARD_IMPL_H

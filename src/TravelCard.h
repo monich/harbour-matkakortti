@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2019 Jolla Ltd.
- * Copyright (C) 2019 Slava Monich <slava.monich@jolla.com>
+ * Copyright (C) 2019 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -35,25 +35,47 @@
  * any official policies, either expressed or implied.
  */
 
-#ifndef HSL_CARD_H
-#define HSL_CARD_H
+#ifndef TRAVEL_CARD_H
+#define TRAVEL_CARD_H
 
-#include "TravelCardImpl.h"
+#include <QtQml>
 
-class HslCard : public TravelCardImpl {
+class TravelCard : public QObject {
     Q_OBJECT
-    Q_DISABLE_COPY(HslCard)
+    Q_DISABLE_COPY(TravelCard)
+    Q_PROPERTY(QString path READ path WRITE setPath NOTIFY pathChanged)
+    Q_PROPERTY(CardState cardState READ cardState NOTIFY cardStateChanged)
+    Q_PROPERTY(QVariantMap cardInfo READ cardInfo NOTIFY cardInfoChanged)
+    Q_PROPERTY(QString pageUrl READ pageUrl NOTIFY pageUrlChanged)
+    Q_ENUMS(CardState)
 
 public:
-    HslCard(QString aPath, QObject* aParent);
-    ~HslCard();
+    enum CardState {
+        CardNone,
+        CardReading,
+        CardRecognized
+    };
 
-    static const char CardType[];
-    static TravelCardImpl* newTravelCard(QString aPath, QObject* aParent);
+    TravelCard(QObject* aParent = Q_NULLPTR);
+
+    QString path() const;
+    void setPath(QString aPath);
+
+    CardState cardState() const;
+    QVariantMap cardInfo() const;
+    QString pageUrl() const;
+
+Q_SIGNALS:
+    void pathChanged();
+    void cardStateChanged();
+    void cardInfoChanged();
+    void pageUrlChanged();
 
 private:
     class Private;
     Private* iPrivate;
 };
 
-#endif // HSL_CARD_H
+QML_DECLARE_TYPE(TravelCard)
+
+#endif // TRAVEL_CARD_H

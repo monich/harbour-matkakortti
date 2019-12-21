@@ -147,7 +147,10 @@ HEADERS += \
     src/NfcAdapter.h \
     src/NfcIsoDep.h \
     src/NfcSystem.h \
-    src/NfcTag.h
+    src/NfcTag.h \
+    src/TravelCard.h \
+    src/TravelCardImpl.h \
+    src/Util.h
 
 SOURCES += \
     src/main.cpp \
@@ -162,7 +165,9 @@ SOURCES += \
     src/NfcAdapter.cpp \
     src/NfcIsoDep.cpp \
     src/NfcSystem.cpp \
-    src/NfcTag.cpp
+    src/NfcTag.cpp \
+    src/TravelCard.cpp \
+    src/Util.cpp
 
 # Icons
 ICON_SIZES = 86 108 128 256

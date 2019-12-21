@@ -44,6 +44,8 @@
 #include "HslCardStoredValue.h"
 #include "HslData.h"
 
+#include "TravelCard.h"
+
 #include "NfcSystem.h"
 #include "NfcAdapter.h"
 #include "NfcIsoDep.h"
@@ -72,7 +74,7 @@ static void register_types(const char* uri, int v1 = 1, int v2 = 0)
     qmlRegisterSingletonType<HslData>(uri, v1, v2, "HslData", HslData::createSingleton);
     qmlRegisterType<NfcIsoDep>(uri, v1, v2, "NfcIsoDep");
     qmlRegisterType<NfcTag>(uri, v1, v2, "NfcTag");
-    qmlRegisterType<HslCard>(uri, v1, v2, "HslCard");
+    qmlRegisterType<TravelCard>(uri, v1, v2, "TravelCard");
     qmlRegisterType<HslCardAppInfo>(uri, v1, v2, "HslCardAppInfo");
     qmlRegisterType<HslCardEticket>(uri, v1, v2, "HslCardEticket");
     qmlRegisterType<HslCardHistory>(uri, v1, v2, "HslCardHistory");

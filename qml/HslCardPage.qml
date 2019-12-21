@@ -1,20 +1,15 @@
 import QtQuick 2.0
-import QtGraphicalEffects 1.0
 import Sailfish.Silica 1.0
 import harbour.matkakortti 1.0
 
 Page {
-    property alias appInfo: hslCardAppInfo.data
-    property string controlInfo
-    property alias periodPass: hslCardPeriodPass.data
-    property alias storedValue: hslCardStoredValue.data
-    property alias eTicket: hslCardEticket.data
-    property alias history: hslCardHistory.data
+    property var cardInfo
+    property alias cardImageUrl: header.cardImageUrl
 
-    property string  moneyAmount: moneyString(hslCardStoredValue.moneyValue)
-    property alias ticketSecondsRemaining: hslCardEticket.secondsRemaining
-    property alias periodPassDaysRemaining: hslCardPeriodPass.daysRemaining
-    property alias periodPassEndDate: hslCardPeriodPass.periodEndDate
+    property string  moneyAmount: moneyString(storedValueParser.moneyValue)
+    property alias ticketSecondsRemaining: eTicketParser.secondsRemaining
+    property alias periodPassDaysRemaining: periodPassParser.daysRemaining
+    property alias periodPassEndDate: periodPassParser.periodEndDate
 
     showNavigationIndicator: false
 
@@ -25,63 +20,21 @@ Page {
         }
     }
 
-    HslCardAppInfo { id: hslCardAppInfo }
-    HslCardEticket { id: hslCardEticket }
-    HslCardStoredValue { id: hslCardStoredValue }
-    HslCardPeriodPass { id: hslCardPeriodPass }
-    HslCardHistory { id: hslCardHistory }
+    HslCardAppInfo { id: appInfoParser; data: cardInfo.appInfo }
+    HslCardEticket { id: eTicketParser; data: cardInfo.eTicket }
+    HslCardStoredValue { id: storedValueParser; data: cardInfo.storedValue }
+    HslCardPeriodPass { id: periodPassParser; data: cardInfo.periodPass }
+    HslCardHistory { id: historyParser; data: cardInfo.history }
 
     function moneyString(value) {
         return (value/100.0).toFixed(2) + " €"
     }
 
-    PageHeader {
+    TravelCardHeader {
         id: header
 
-        //: Page title
-        //% "Travel card"
-        title: qsTrId("matkakortti-card-header")
-        description: hslCardAppInfo.cardNumber
-
-        Rectangle {
-            id: headerImageBackground
-
-            color: Theme.rgba(Theme.highlightColor, HarbourTheme.opacityOverlay)
-            height: headerImage.height + Theme.paddingSmall
-            width: headerImage.width + Theme.paddingSmall
-            radius: Theme.paddingSmall
-            anchors {
-                left: header.extraContent.left
-                verticalCenter: header.verticalCenter
-            }
-        }
-
-        Image {
-            id: headerImageMask
-
-            anchors.fill: headerImage
-            sourceSize: Qt.size(headerImage.width, headerImage.height)
-            source: "images/hsl-card-mask.svg"
-            smooth: true
-            visible: false
-        }
-
-        Image {
-            id: headerImage
-
-            anchors.centerIn: headerImageBackground
-            height: header.height/2
-            sourceSize.height: height
-            source: "images/hsl-card.svg"
-            smooth: true
-            visible: false
-        }
-
-        OpacityMask {
-            anchors.fill: headerImage
-            source: headerImage
-            maskSource: headerImageMask
-        }
+        description: appInfoParser.cardNumber
+        cardImageUrl: Qt.resolvedUrl("images/hsl-card.svg")
     }
 
     Item {
@@ -200,9 +153,9 @@ Page {
 
         TravelCardDetails {
             anchors.fill: parent
-            eTicket: hslCardEticket
-            storedValue: hslCardStoredValue
-            periodPass: hslCardPeriodPass
+            eTicket: eTicketParser
+            storedValue: storedValueParser
+            periodPass: periodPassParser
         }
     }
 
@@ -211,7 +164,7 @@ Page {
 
         TravelCardHistory {
             anchors.fill: parent
-            model: hslCardHistory
+            model: historyParser
         }
     }
 }
