@@ -1,6 +1,6 @@
 Name:           harbour-matkakortti
-Summary:        Application to read HSL travel card
-Version:        1.0.6
+Summary:        Application for reading HSL travel cards
+Version:        1.0.7
 Release:        1
 License:        BSD
 Group:          Applications/System
@@ -15,8 +15,9 @@ BuildRequires:  pkgconfig(sailfishapp)
 %define qt_version 5.2
 
 BuildRequires:  pkgconfig(Qt5Core) >= %{qt_version}
-BuildRequires:  pkgconfig(Qt5Qml) >= %{qt_version}
-BuildRequires:  pkgconfig(Qt5Quick) >= %{qt_version}
+BuildRequires:  pkgconfig(Qt5Quick)
+BuildRequires:  pkgconfig(Qt5DBus)
+BuildRequires:  pkgconfig(Qt5Qml)
 BuildRequires:  qt5-qttools-linguist
 Requires: qt5-qtcore >= %{qt_version}
 
