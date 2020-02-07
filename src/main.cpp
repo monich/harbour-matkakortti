@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2019 Jolla Ltd.
- * Copyright (C) 2019 Slava Monich <slava@monich.com>
+ * Copyright (C) 2019-2020 Jolla Ltd.
+ * Copyright (C) 2019-2020 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -53,6 +53,7 @@
 
 #include "HarbourDebug.h"
 #include "HarbourTheme.h"
+#include "HarbourSystemTime.h"
 #include "HarbourImageProvider.h"
 
 #include "gutil_log.h"
@@ -68,6 +69,7 @@
 static void register_types(const char* uri, int v1 = 1, int v2 = 0)
 {
     qRegisterMetaType<HslArea>("HslArea");
+    qmlRegisterSingletonType<HarbourSystemTime>(uri, v1, v2, "HarbourSystemTime", HarbourSystemTime::createSingleton);
     qmlRegisterSingletonType<HarbourTheme>(uri, v1, v2, "HarbourTheme", HarbourTheme::createSingleton);
     qmlRegisterSingletonType<NfcAdapter>(uri, v1, v2, "NfcAdapter", NfcAdapter::createSingleton);
     qmlRegisterSingletonType<NfcSystem>(uri, v1, v2, "NfcSystem", NfcSystem::createSingleton);

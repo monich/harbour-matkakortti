@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import harbour.matkakortti 1.0
+import "Utils.js" as Utils
 
 SilicaFlickable {
     property var eTicket
@@ -9,23 +10,7 @@ SilicaFlickable {
 
     contentHeight: column.height
 
-    function moneyString(value) {
-        return value ? ((value/100.0).toFixed(2) + " €") : ""
-    }
-
-    function dateString(date) {
-        return date.toLocaleDateString(Qt.locale(), "dd.MM.yyyy")
-    }
-
-    function timeString(date) {
-        return date.toLocaleTimeString(Qt.locale(), "hh:mm")
-    }
-
-    function dateTimeString(date) {
-        return dateString(date) + " " + timeString(date)
-    }
-
-    function timeUnits(unit) {
+        function timeUnits(unit) {
         switch (unit) {
         case HslData.ValidityLengthMinute:
             //: Time unit (abbreviated)
@@ -91,7 +76,7 @@ SilicaFlickable {
                         horizontalAlignment: Text.AlignLeft
                         color: Theme.highlightColor
                         wrapMode: Text.Wrap
-                        text: dateString(periodPass.periodStartDate) + " - " + dateString(periodPass.periodEndDate)
+                        text: Utils.dateString(periodPass.periodStartDate) + " - " + Utils.dateString(periodPass.periodEndDate)
                     }
                 }
 
@@ -135,7 +120,7 @@ SilicaFlickable {
                     //: Label
                     //% "Last loaded value:"
                     title: qsTrId("matkakortti-details-loaded_value-label")
-                    value: moneyString(storedValue.loadedValue)
+                    value: Utils.moneyString(storedValue.loadedValue)
                 }
 
                 ValueLabel {
@@ -144,7 +129,7 @@ SilicaFlickable {
                     //: Label
                     //% "Loading time:"
                     title: qsTrId("matkakortti-details-loading_time-label")
-                    value: dateTimeString(storedValue.loadingTime)
+                    value: Utils.dateTimeString(storedValue.loadingTime)
                 }
             }
 
@@ -158,7 +143,7 @@ SilicaFlickable {
                     bold: true
                 }
                 color: Theme.primaryColor
-                text: moneyString(storedValue.moneyValue)
+                text: Utils.moneyString(storedValue.moneyValue)
             }
         }
 
@@ -242,7 +227,7 @@ SilicaFlickable {
                 //: Label
                 //% "Valid from:"
                 title: qsTrId("matkakortti-details-ticket-valid_from")
-                value: dateTimeString(eTicket.validityStartTime)
+                value: Utils.dateTimeString(eTicket.validityStartTime)
             }
 
             ValueLabel {
@@ -253,7 +238,7 @@ SilicaFlickable {
                 //: Label
                 //% "Boarding time:"
                 title: qsTrId("matkakortti-details-ticket-boarding_time")
-                value: dateTimeString(eTicket.boardingTime)
+                value: Utils.dateTimeString(eTicket.boardingTime)
             }
 
             VerticalSpace { height: Theme.paddingLarge }
@@ -264,7 +249,7 @@ SilicaFlickable {
                 //: Label
                 //% "Valid until:"
                 title: qsTrId("matkakortti-details-ticket-valid_until")
-                value: dateTimeString(eTicket.validityEndTime)
+                value: Utils.dateTimeString(eTicket.validityEndTime)
                 //: Suffix after the time ending the period
                 //% " "
                 suffix: qsTrId("matkakortti-details-ticket-valid_until-suffix").trim()

@@ -1,5 +1,6 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
+import harbour.matkakortti 1.0
 
 ApplicationWindow {
     id: appWindow
@@ -8,6 +9,10 @@ ApplicationWindow {
 
     property bool cardInfoShown
 
+    //: Application title
+    //% "Matkakortti"
+    readonly property string title: qsTrId("matkakortti-app_name")
+
     initialPage: MainPage { id: mainPage }
     cover: CoverPage {
         cardInfoPage: mainPage.cardInfoPage
@@ -15,7 +20,8 @@ ApplicationWindow {
         onPopCardInfo: pageStack.pop(mainPage, PageStackAction.Immediate)
     }
 
-    //: Application title
-    //% "Matkakortti"
-    readonly property string title: qsTrId("matkakortti-app_name")
+    Connections {
+        target: HarbourSystemTime
+        onPreNotify: Date.timeZoneUpdated()
+    }
 }

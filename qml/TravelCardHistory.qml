@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import harbour.matkakortti 1.0
+import "Utils.js" as Utils
 
 SilicaListView {
     header: Column {
@@ -18,7 +19,7 @@ SilicaListView {
     delegate: HistoryItem {
         width: parent.width
         type: transactionType
-        time: boardingTime
+        time: Utils.dateTimeString(boardingTime)
         price: ticketPrice
         group: groupSize
     }

@@ -4,7 +4,7 @@ PREFIX = harbour
 TARGET = $${PREFIX}-$${NAME}
 CONFIG += sailfishapp link_pkgconfig
 PKGCONFIG += sailfishapp glib-2.0 gobject-2.0 gio-unix-2.0
-QT += qml quick
+QT += qml quick dbus
 
 QMAKE_CXXFLAGS += -Wno-unused-parameter -Wno-psabi
 QMAKE_CFLAGS += -Wno-unused-parameter
@@ -34,6 +34,7 @@ OTHER_FILES += \
     README.md \
     rpm/*.spec \
     *.desktop \
+    qml/*.js \
     qml/*.qml \
     qml/images/*.svg \
     icons/*.svg \
@@ -116,10 +117,12 @@ INCLUDEPATH += \
 HEADERS += \
     $${HARBOUR_LIB_INCLUDE}/HarbourDebug.h \
     $${HARBOUR_LIB_INCLUDE}/HarbourImageProvider.h \
+    $${HARBOUR_LIB_INCLUDE}/HarbourSystemTime.h \
     $${HARBOUR_LIB_INCLUDE}/HarbourTheme.h
 
 SOURCES += \
     $${HARBOUR_LIB_SRC}/HarbourImageProvider.cpp \
+    $${HARBOUR_LIB_SRC}/HarbourSystemTime.cpp \
     $${HARBOUR_LIB_SRC}/HarbourTheme.cpp
 
 HARBOUR_QML_COMPONENTS =
