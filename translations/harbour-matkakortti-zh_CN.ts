@@ -163,5 +163,10 @@
         <extracomment>Label (transaction type)</extracomment>
         <translation>季卡或单次登车</translation>
     </message>
+    <message id="matkakortti-history-remaining_balance">
+        <source>Remaining balance:</source>
+        <extracomment>Label</extracomment>
+        <translation type="unfinished">保持平衡：</translation>
+    </message>
 </context>
 </TS>

@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2019 Jolla Ltd.
- * Copyright (C) 2019 Slava Monich <slava.monich@jolla.com>
+ * Copyright (C) 2019-2020 Jolla Ltd.
+ * Copyright (C) 2019-2020 Slava Monich <slava.monich@jolla.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -47,7 +47,8 @@
     first(TransactionType,transactionType) \
     role(BoardingTime,boardingTime) \
     role(TicketPrice,ticketPrice) \
-    last(GroupSize,groupSize)
+    role(GroupSize,groupSize) \
+    last(RemainingValue,remainingValue)
 
 #define MODEL_ROLES(role) \
     MODEL_ROLES_(role,role,role)
@@ -70,7 +71,7 @@ public:
     };
 
     ModelData(TransactionType aType, QDateTime aBoardingTime,
-        int aTicketPrice, int aGroupSize);
+        int aTicketPrice, int aGroupSize, int aRemainingValue);
 
     QVariant get(Role aRole) const;
 
@@ -79,14 +80,17 @@ public:
     QDateTime iBoardingTime;
     int iTicketPrice;
     int iGroupSize;
+    int iRemainingValue;
 };
 
 HslCardHistory::ModelData::ModelData(TransactionType aType,
-    QDateTime aBoardingTime, int aTicketPrice, int aGroupSize) :
+    QDateTime aBoardingTime, int aTicketPrice, int aGroupSize,
+    int aRemainingValue) :
     iTransactionType(aType),
     iBoardingTime(aBoardingTime),
     iTicketPrice(aTicketPrice),
-    iGroupSize(aGroupSize)
+    iGroupSize(aGroupSize),
+    iRemainingValue(aRemainingValue)
 {
 }
 
@@ -97,6 +101,7 @@ QVariant HslCardHistory::ModelData::get(Role aRole) const
     case BoardingTimeRole: return iBoardingTime;
     case TicketPriceRole: return iTicketPrice;
     case GroupSizeRole: return iGroupSize;
+    case RemainingValueRole: return iRemainingValue;
     }
     return QVariant();
 }
@@ -156,11 +161,13 @@ void HslCardHistory::Private::setHexData(QString aHexData)
             HDEBUG("  TicketFare =" << ticketPrice);
             const int groupSize = HslData::getInt(&data, off + 8, 1, 6);
             HDEBUG("  GroupSize =" << groupSize);
+            const int remainingValue = HslData::getInt(&data, off + 8, 7, 20);
+            HDEBUG("  RemainingValue =" << remainingValue);
             // 0=Kauden leimaus, 1=Arvon veloitus
             iData.append(new ModelData((type == 0) ? TransactionBoarding :
                 (type == 1) ? TransactionPurchase : TransactionUnknown,
                 QDateTime(boardingDate, boardingTime, HslData::HELSINKI_TIMEZONE),
-                ticketPrice, groupSize));
+                ticketPrice, groupSize, remainingValue));
         }
         g_bytes_unref(bytes);
     }

@@ -163,5 +163,10 @@
         <extracomment>Label (transaction type)</extracomment>
         <translation>Kausimatka tai nousu</translation>
     </message>
+    <message id="matkakortti-history-remaining_balance">
+        <source>Remaining balance:</source>
+        <extracomment>Label</extracomment>
+        <translation type="unfinished">Jäljellä oleva arvo:</translation>
+    </message>
 </context>
 </TS>

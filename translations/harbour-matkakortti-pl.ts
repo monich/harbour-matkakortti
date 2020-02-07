@@ -163,5 +163,10 @@
         <extracomment>Label (transaction type)</extracomment>
         <translation>Bilet okresowy lub wejście do pojazdu</translation>
     </message>
+    <message id="matkakortti-history-remaining_balance">
+        <source>Remaining balance:</source>
+        <extracomment>Label</extracomment>
+        <translation type="unfinished">Pozostałe saldo:</translation>
+    </message>
 </context>
 </TS>

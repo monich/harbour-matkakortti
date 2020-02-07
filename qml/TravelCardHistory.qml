@@ -22,6 +22,7 @@ SilicaListView {
         time: Utils.dateTimeString(boardingTime)
         price: ticketPrice
         group: groupSize
+        saldo: remainingValue
     }
 
     VerticalScrollDecorator { }

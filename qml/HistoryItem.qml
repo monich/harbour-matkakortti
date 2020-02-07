@@ -5,9 +5,10 @@ import "Utils.js" as Utils
 
 BackgroundItem {
     property int type
-    property alias time: timeLabel.value
+    property alias time: boardingTime.value
     property int price
     property int group
+    property int saldo
 
     height: column.height + Theme.paddingLarge
 
@@ -18,6 +19,15 @@ BackgroundItem {
         width: parent.width - 2*x
         anchors.verticalCenter: parent.verticalCenter
 
+        ValueLabel {
+            id: boardingTime
+
+            width: parent.width
+            //: Label
+            //% "Boarding time:"
+            title: qsTrId("matkakortti-details-ticket-boarding_time")
+        }
+
         Label {
             visible: type === HslCardHistory.TransactionBoarding
             width: parent.width
@@ -26,15 +36,6 @@ BackgroundItem {
             //: Label (transaction type)
             //% "Season ticket or boarding"
             text: qsTrId("matkakortti-history-transaction_type")
-        }
-
-        ValueLabel {
-            id: timeLabel
-
-            width: parent.width
-            //: Label
-            //% "Boarding time:"
-            title: qsTrId("matkakortti-details-ticket-boarding_time")
         }
 
         Row {
@@ -55,6 +56,15 @@ BackgroundItem {
                 color: Theme.secondaryHighlightColor
                 text: "(" + group + ")"
             }
+        }
+
+        ValueLabel {
+            width: parent.width
+            visible: saldo > 0
+            //: Label
+            //% "Remaining balance:"
+            title: qsTrId("matkakortti-history-remaining_balance")
+            value: Utils.moneyString(saldo)
         }
     }
 }
