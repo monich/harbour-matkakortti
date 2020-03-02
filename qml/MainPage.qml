@@ -33,7 +33,6 @@ Page {
 
         path: NfcAdapter.tagPath
         onCardStateChanged: {
-            console.log(cardState)
             switch (cardState) {
             case TravelCard.CardReading:
                 readTimer.start()
