@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2019 Jolla Ltd.
- * Copyright (C) 2019 Slava Monich <slava.monich@jolla.com>
+ * Copyright (C) 2019-2020 Jolla Ltd.
+ * Copyright (C) 2019-2020 Slava Monich <slava.monich@jolla.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -65,6 +65,8 @@ public:
     HslArea iValidityArea;
     int iTicketPrice;
     int iGroupSize;
+    bool iExtraZone;
+    int iExtensionFare;
     QDateTime iValidityStartTime;
     QDateTime iValidityEndTime;
     QDateTime iValidityEndTimeGroup;
@@ -83,6 +85,8 @@ HslCardEticket::Private::Private(HslCardEticket* aTicket) :
     iValidityLength(0),
     iTicketPrice(0),
     iGroupSize(0),
+    iExtraZone(false),
+    iExtensionFare(0),
     iBoardingVehicle(0),
     iSecondsRemaining(0),
     iTimeNotify(gutil_time_notify_new()),
@@ -109,6 +113,8 @@ void HslCardEticket::Private::setHexData(QString aHexData)
     iValidityArea = HslArea();
     iTicketPrice = 0;
     iGroupSize = 0;
+    iExtraZone = false;
+    iExtensionFare = 0;
     iValidityStartTime = QDateTime();
     iValidityEndTime = QDateTime();
     iValidityEndTimeGroup = QDateTime();
@@ -148,11 +154,13 @@ void HslCardEticket::Private::setHexData(QString aHexData)
             iTicketPrice += groupFare;
         }
         HDEBUG("  GroupSize =" << iGroupSize);
-        HDEBUG("  ExtraZone =" << getInt(&data, 17, 3, 1));
+        iExtraZone = (getInt(&data, 17, 3, 1) != 0);
+        HDEBUG("  ExtraZone =" << iExtraZone);
         HDEBUG("  PeriodPassValidityArea =" << getInt(&data, 17, 4, 6));
         HDEBUG("  ExtensionProductCode =" << getInt(&data, 18, 2, 14));
         HDEBUG("  Extension1ValidityArea =" << getInt(&data, 20, 0, 6));
-        HDEBUG("  Extension1Fare =" << getInt(&data, 20, 6, 14));
+        iExtensionFare = getInt(&data, 20, 6, 14);
+        HDEBUG("  Extension1Fare =" << iExtensionFare);
         HDEBUG("  Extension2ValidityArea =" << getInt(&data, 22, 4, 6));
         HDEBUG("  Extension2Fare =" << getInt(&data, 23, 2, 14));
         HDEBUG("  SaleStatus =" << getInt(&data, 25, 0, 1));
@@ -264,6 +272,8 @@ void HslCardEticket::setData(QString aData)
         const HslArea prevValidityArea = iPrivate->iValidityArea;
         const int prevTicketPrice = iPrivate->iTicketPrice;
         const int prevGroupSize = iPrivate->iGroupSize;
+        const bool prevExtraZone = iPrivate->iExtraZone;
+        const int prevExtensionFare = iPrivate->iExtensionFare;
         const QDateTime prevValidityStartTime(iPrivate->iValidityStartTime);
         const QDateTime prevValidityEndTime(iPrivate->iValidityEndTime);
         const QDateTime prevValidityEndTimeGroup(iPrivate->iValidityEndTimeGroup);
@@ -289,6 +299,12 @@ void HslCardEticket::setData(QString aData)
         }
         if (prevGroupSize != iPrivate->iGroupSize) {
             Q_EMIT groupSizeChanged();
+        }
+        if (prevExtraZone != iPrivate->iExtraZone) {
+            Q_EMIT extraZoneChanged();
+        }
+        if (prevExtensionFare != iPrivate->iExtensionFare) {
+            Q_EMIT extensionFareChanged();
         }
         if (prevValidityStartTime != iPrivate->iValidityStartTime) {
             Q_EMIT validityStartTimeChanged();
@@ -348,6 +364,16 @@ int HslCardEticket::ticketPrice() const
 int HslCardEticket::groupSize() const
 {
     return iPrivate->iGroupSize;
+}
+
+bool HslCardEticket::extraZone() const
+{
+    return iPrivate->iExtraZone;
+}
+
+int HslCardEticket::extensionFare() const
+{
+    return iPrivate->iExtensionFare;
 }
 
 QDateTime HslCardEticket::validityStartTime() const
