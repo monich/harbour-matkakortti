@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2019 Jolla Ltd.
- * Copyright (C) 2019 Slava Monich <slava.monich@jolla.com>
+ * Copyright (C) 2019-2020 Jolla Ltd.
+ * Copyright (C) 2019-2020 Slava Monich <slava.monich@jolla.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -51,6 +51,8 @@ class HslCardEticket : public HslData {
     Q_PROPERTY(QString validityAreaName READ validityAreaName NOTIFY validityAreaChanged)
     Q_PROPERTY(int ticketPrice READ ticketPrice NOTIFY ticketPriceChanged)
     Q_PROPERTY(int groupSize READ groupSize NOTIFY groupSizeChanged)
+    Q_PROPERTY(bool extraZone READ extraZone NOTIFY extraZoneChanged)
+    Q_PROPERTY(int extensionFare READ extensionFare NOTIFY extensionFareChanged)
     Q_PROPERTY(QDateTime validityStartTime READ validityStartTime NOTIFY validityStartTimeChanged)
     Q_PROPERTY(QDateTime validityEndTime READ validityEndTime NOTIFY validityEndTimeChanged)
     Q_PROPERTY(QDateTime validityEndTimeGroup READ validityEndTimeGroup NOTIFY validityEndTimeGroupChanged)
@@ -74,6 +76,8 @@ public:
     QString validityAreaName() const;
     int ticketPrice() const;
     int groupSize() const;
+    bool extraZone() const;
+    int extensionFare() const;
     QDateTime validityStartTime() const;
     QDateTime validityEndTime() const;
     QDateTime validityEndTimeGroup() const;
@@ -94,6 +98,8 @@ Q_SIGNALS:
     void validityAreaChanged();
     void ticketPriceChanged();
     void groupSizeChanged();
+    void extraZoneChanged();
+    void extensionFareChanged();
     void validityStartTimeChanged();
     void validityEndTimeChanged();
     void validityEndTimeGroupChanged();
