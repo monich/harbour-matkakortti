@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2019 Jolla Ltd.
- * Copyright (C) 2019 Slava Monich <slava.monich@jolla.com>
+ * Copyright (C) 2019-2020 Jolla Ltd.
+ * Copyright (C) 2019-2020 Slava Monich <slava.monich@jolla.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -41,6 +41,11 @@
 #include "gutil_log.h"
 
 #include "HslCard.h"
+#include "HslCardAppInfo.h"
+#include "HslCardEticket.h"
+#include "HslCardHistory.h"
+#include "HslCardPeriodPass.h"
+#include "HslCardStoredValue.h"
 #include "Util.h"
 
 #include "HarbourDebug.h"
@@ -497,4 +502,14 @@ HslCard::~HslCard()
 TravelCardImpl* HslCard::newTravelCard(QString aPath, QObject* aParent)
 {
     return new HslCard(aPath, aParent);
+}
+
+void HslCard::registerTypes(const char* aUri, int v1, int v2)
+{
+    qRegisterMetaType<HslArea>("HslArea");
+    qmlRegisterType<HslCardAppInfo>(aUri, v1, v2, "HslCardAppInfo");
+    qmlRegisterType<HslCardEticket>(aUri, v1, v2, "HslCardEticket");
+    qmlRegisterType<HslCardHistory>(aUri, v1, v2, "HslCardHistory");
+    qmlRegisterType<HslCardPeriodPass>(aUri, v1, v2, "HslCardPeriodPass");
+    qmlRegisterType<HslCardStoredValue>(aUri, v1, v2, "HslCardStoredValue");
 }

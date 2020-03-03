@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2019 Jolla Ltd.
- * Copyright (C) 2019 Slava Monich <slava@monich.com>
+ * Copyright (C) 2019-2020 Jolla Ltd.
+ * Copyright (C) 2019-2020 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -64,6 +64,8 @@ public:
     CardState cardState() const;
     QVariantMap cardInfo() const;
     QString pageUrl() const;
+
+    static void registerTypes(const char* aUri, int v1, int v2);
 
 Q_SIGNALS:
     void pathChanged();

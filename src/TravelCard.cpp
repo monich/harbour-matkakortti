@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2019 Jolla Ltd.
- * Copyright (C) 2019 Slava Monich <slava@monich.com>
+ * Copyright (C) 2019-2020 Jolla Ltd.
+ * Copyright (C) 2019-2020 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -55,6 +55,7 @@ public:
     struct CardDesc {
         const char* iName;
         TravelCardImpl::Factory iFactory;
+        TravelCardImpl::RegisterTypes iRegisterTypes;
     };
 
     static const CardDesc gCardTypes[];
@@ -89,7 +90,7 @@ TravelCard::Private::Private(TravelCard* aParent) :
 }
 
 const TravelCard::Private::CardDesc TravelCard::Private::gCardTypes[] = {
-    { HslCard::CardType, HslCard::newTravelCard }
+    { HslCard::CardType, HslCard::newTravelCard, HslCard::registerTypes }
 };
 
 TravelCard::Private::~Private()
@@ -180,6 +181,13 @@ TravelCard::TravelCard(QObject* aParent) :
     QObject(aParent),
     iPrivate(new Private(this))
 {
+}
+
+void TravelCard::registerTypes(const char* aUri, int v1, int v2)
+{
+    for (int i = 0; i < (int)G_N_ELEMENTS(Private::gCardTypes); i++) {
+        Private::gCardTypes[i].iRegisterTypes(aUri, v1, v2);
+    }
 }
 
 TravelCard::CardState TravelCard::cardState() const

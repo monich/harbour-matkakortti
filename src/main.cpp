@@ -35,13 +35,6 @@
  * any official policies, either expressed or implied.
  */
 
-#include "HslArea.h"
-#include "HslCard.h"
-#include "HslCardAppInfo.h"
-#include "HslCardEticket.h"
-#include "HslCardHistory.h"
-#include "HslCardPeriodPass.h"
-#include "HslCardStoredValue.h"
 #include "HslData.h"
 
 #include "TravelCard.h"
@@ -68,7 +61,6 @@
 
 static void register_types(const char* uri, int v1 = 1, int v2 = 0)
 {
-    qRegisterMetaType<HslArea>("HslArea");
     qmlRegisterSingletonType<HarbourSystemTime>(uri, v1, v2, "HarbourSystemTime", HarbourSystemTime::createSingleton);
     qmlRegisterSingletonType<HarbourTheme>(uri, v1, v2, "HarbourTheme", HarbourTheme::createSingleton);
     qmlRegisterSingletonType<NfcAdapter>(uri, v1, v2, "NfcAdapter", NfcAdapter::createSingleton);
@@ -77,11 +69,7 @@ static void register_types(const char* uri, int v1 = 1, int v2 = 0)
     qmlRegisterType<NfcIsoDep>(uri, v1, v2, "NfcIsoDep");
     qmlRegisterType<NfcTag>(uri, v1, v2, "NfcTag");
     qmlRegisterType<TravelCard>(uri, v1, v2, "TravelCard");
-    qmlRegisterType<HslCardAppInfo>(uri, v1, v2, "HslCardAppInfo");
-    qmlRegisterType<HslCardEticket>(uri, v1, v2, "HslCardEticket");
-    qmlRegisterType<HslCardHistory>(uri, v1, v2, "HslCardHistory");
-    qmlRegisterType<HslCardPeriodPass>(uri, v1, v2, "HslCardPeriodPass");
-    qmlRegisterType<HslCardStoredValue>(uri, v1, v2, "HslCardStoredValue");
+    TravelCard::registerTypes(uri, v1, v2);
 }
 
 int main(int argc, char *argv[])
