@@ -51,8 +51,11 @@ protected:
     TravelCardImpl(QObject* aParent) : QObject(aParent) {}
 
 public:
-    typedef TravelCardImpl* (*Factory)(QString aPath, QObject* aParent);
-    typedef void (*RegisterTypes)(const char* aUri, int v1, int v2);
+    struct CardDesc {
+        const char* iName;
+        TravelCardImpl* (*iNewCard)(QString aPath, QObject* aParent);
+        void (*iRegisterTypes)(const char* aUri, int v1, int v2);
+    };
 
 Q_SIGNALS:
     void readFailed();

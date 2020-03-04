@@ -52,13 +52,7 @@ class TravelCard::Private : public QObject {
     Q_OBJECT
 
 public:
-    struct CardDesc {
-        const char* iName;
-        TravelCardImpl::Factory iFactory;
-        TravelCardImpl::RegisterTypes iRegisterTypes;
-    };
-
-    static const CardDesc gCardTypes[];
+    static const TravelCardImpl::CardDesc * const gCardTypes[];
 
     Private(TravelCard* aParent);
     ~Private();
@@ -89,8 +83,8 @@ TravelCard::Private::Private(TravelCard* aParent) :
 {
 }
 
-const TravelCard::Private::CardDesc TravelCard::Private::gCardTypes[] = {
-    { HslCard::CardType, HslCard::newTravelCard, HslCard::registerTypes }
+const TravelCardImpl::CardDesc* const TravelCard::Private::gCardTypes[] = {
+    &HslCard::Desc
 };
 
 TravelCard::Private::~Private()
@@ -132,7 +126,7 @@ void TravelCard::Private::tryNext()
     if (++iImplIndex < (int)G_N_ELEMENTS(gCardTypes)) {
         iCardInfo.clear();
         iCardState = CardReading;
-        iCardImpl = gCardTypes[iImplIndex].iFactory(iPath, this);
+        iCardImpl = gCardTypes[iImplIndex]->iNewCard(iPath, this);
         connect(iCardImpl, SIGNAL(readFailed()), SLOT(onReadFailed()));
         connect(iCardImpl,
             SIGNAL(readDone(QString,QVariantMap)),
@@ -151,13 +145,13 @@ void TravelCard::Private::tryNext()
 
 void TravelCard::Private::onReadFailed()
 {
-    HDEBUG(gCardTypes[iImplIndex].iName);
+    HDEBUG(gCardTypes[iImplIndex]->iName);
     tryNext();
 }
 
 void TravelCard::Private::onReadDone(QString aPageUrl, QVariantMap aCardInfo)
 {
-    HDEBUG(gCardTypes[iImplIndex].iName << aPageUrl << aCardInfo);
+    HDEBUG(gCardTypes[iImplIndex]->iName << aPageUrl << aCardInfo);
     iCardImpl->disconnect(this);
     deleteObjectLater(iCardImpl);
     iCardImpl = Q_NULLPTR;
@@ -186,7 +180,7 @@ TravelCard::TravelCard(QObject* aParent) :
 void TravelCard::registerTypes(const char* aUri, int v1, int v2)
 {
     for (int i = 0; i < (int)G_N_ELEMENTS(Private::gCardTypes); i++) {
-        Private::gCardTypes[i].iRegisterTypes(aUri, v1, v2);
+        Private::gCardTypes[i]->iRegisterTypes(aUri, v1, v2);
     }
 }
 

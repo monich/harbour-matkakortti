@@ -70,6 +70,9 @@ public:
     void readSucceeded();
     void startReadingIfReady();
 
+    static TravelCardImpl* newTravelCard(QString aPath, QObject* aParent);
+    static void registerTypes(const char* aUri, int v1, int v2);
+
     static void tagEventHandler(NfcTagClient*, NFC_TAG_PROPERTY, void*);
     static void isoDepEventHandler(NfcIsoDepClient*, NFC_ISODEP_PROPERTY, void*);
     static void tagLockResp(NfcTagClient*, NfcTagClientLock*, const GError*, void*);
@@ -258,7 +261,7 @@ void HslCard::Private::readSucceeded()
     HDEBUG("Read done");
     readDone();
     QVariantMap cardInfo;
-    cardInfo.insert(Util::CARD_TYPE_KEY, CardType);
+    cardInfo.insert(Util::CARD_TYPE_KEY, Desc.iName);
     cardInfo.insert(APP_INFO_KEY, Util::toHex(iAppInfoData));
     cardInfo.insert(PERIOD_PASS_KEY, Util::toHex(iPeriodPassData));
     cardInfo.insert(STORED_VALUE_KEY, Util::toHex(iStoredValueData));
@@ -483,10 +486,33 @@ void HslCard::Private::tagEventHandler(NfcTagClient*,
 }
 
 // ==========================================================================
-// HslCard
+// HslCard::Desc
 // ==========================================================================
 
-const char HslCard::CardType[] = "HSL";
+TravelCardImpl* HslCard::Private::newTravelCard(QString aPath, QObject* aParent)
+{
+    return new HslCard(aPath, aParent);
+}
+
+void HslCard::Private::registerTypes(const char* aUri, int v1, int v2)
+{
+    qRegisterMetaType<HslArea>("HslArea");
+    qmlRegisterType<HslCardAppInfo>(aUri, v1, v2, "HslCardAppInfo");
+    qmlRegisterType<HslCardEticket>(aUri, v1, v2, "HslCardEticket");
+    qmlRegisterType<HslCardHistory>(aUri, v1, v2, "HslCardHistory");
+    qmlRegisterType<HslCardPeriodPass>(aUri, v1, v2, "HslCardPeriodPass");
+    qmlRegisterType<HslCardStoredValue>(aUri, v1, v2, "HslCardStoredValue");
+}
+
+const TravelCardImpl::CardDesc HslCard::Desc = {
+    "HSL",
+    HslCard::Private::newTravelCard,
+    HslCard::Private::registerTypes
+};
+
+// ==========================================================================
+// HslCard
+// ==========================================================================
 
 HslCard::HslCard(QString aPath, QObject* aParent) :
     TravelCardImpl(aParent),
@@ -497,19 +523,4 @@ HslCard::HslCard(QString aPath, QObject* aParent) :
 HslCard::~HslCard()
 {
     delete iPrivate;
-}
-
-TravelCardImpl* HslCard::newTravelCard(QString aPath, QObject* aParent)
-{
-    return new HslCard(aPath, aParent);
-}
-
-void HslCard::registerTypes(const char* aUri, int v1, int v2)
-{
-    qRegisterMetaType<HslArea>("HslArea");
-    qmlRegisterType<HslCardAppInfo>(aUri, v1, v2, "HslCardAppInfo");
-    qmlRegisterType<HslCardEticket>(aUri, v1, v2, "HslCardEticket");
-    qmlRegisterType<HslCardHistory>(aUri, v1, v2, "HslCardHistory");
-    qmlRegisterType<HslCardPeriodPass>(aUri, v1, v2, "HslCardPeriodPass");
-    qmlRegisterType<HslCardStoredValue>(aUri, v1, v2, "HslCardStoredValue");
 }

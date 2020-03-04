@@ -45,12 +45,10 @@ class HslCard : public TravelCardImpl {
     Q_DISABLE_COPY(HslCard)
 
 public:
+    static const CardDesc Desc;
+
     HslCard(QString aPath, QObject* aParent);
     ~HslCard();
-
-    static const char CardType[];
-    static TravelCardImpl* newTravelCard(QString aPath, QObject* aParent);
-    static void registerTypes(const char* aUri, int v1, int v2);
 
 private:
     class Private;
