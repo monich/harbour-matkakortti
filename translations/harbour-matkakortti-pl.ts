@@ -166,7 +166,7 @@
     <message id="matkakortti-history-remaining_balance">
         <source>Remaining balance:</source>
         <extracomment>Label</extracomment>
-        <translation type="unfinished">Pozostałe saldo:</translation>
+        <translation>Pozostałe saldo:</translation>
     </message>
 </context>
 </TS>
