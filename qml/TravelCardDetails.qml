@@ -198,7 +198,7 @@ SilicaFlickable {
                         //: Label
                         //% "Cost:"
                         title: qsTrId("matkakortti-details-ticket-cost")
-                        value: moneyString(eTicket.extraZone ? eTicket.extensionFare : eTicket.ticketPrice)
+                        value: Utils.moneyString(eTicket.extraZone ? eTicket.extensionFare : eTicket.ticketPrice)
                     }
 
                     ValueLabel {

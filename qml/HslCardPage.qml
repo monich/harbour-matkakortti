@@ -1,12 +1,12 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import harbour.matkakortti 1.0
+import "Utils.js" as Utils
 
 Page {
     property var cardInfo
     property alias cardImageUrl: header.cardImageUrl
-
-    property string  moneyAmount: moneyString(storedValueParser.moneyValue)
+    readonly property string remainingBalance: Utils.moneyString(storedValueParser.moneyValue)
     property alias ticketSecondsRemaining: eTicketParser.secondsRemaining
     property alias periodPassDaysRemaining: periodPassParser.daysRemaining
     property alias periodPassEndDate: periodPassParser.periodEndDate
@@ -25,10 +25,6 @@ Page {
     HslCardStoredValue { id: storedValueParser; data: cardInfo.storedValue }
     HslCardPeriodPass { id: periodPassParser; data: cardInfo.periodPass }
     HslCardHistory { id: historyParser; data: cardInfo.history }
-
-    function moneyString(value) {
-        return (value/100.0).toFixed(2) + " €"
-    }
 
     TravelCardHeader {
         id: header

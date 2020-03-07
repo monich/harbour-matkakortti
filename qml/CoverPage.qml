@@ -10,8 +10,8 @@ CoverBackground {
     readonly property int ticketSecondsRemaining: cardInfoPage ? cardInfoPage.ticketSecondsRemaining : HslData.PeriodInvalid
     readonly property int periodPassDaysRemaining: cardInfoPage ? cardInfoPage.periodPassDaysRemaining : HslData.PeriodInvalid
     readonly property var periodPassEndDate: cardInfoPage ? cardInfoPage.periodPassEndDate : undefined
-    readonly property string moneyAmount: (cardInfoPage && cardInfoPage.moneyAmount) ?
-        cardInfoPage.moneyAmount : ""
+    readonly property string remainingBalance: (cardInfoPage && cardInfoPage.remainingBalance) ?
+        cardInfoPage.remainingBalance : ""
 
     signal popCardInfo()
 
@@ -72,27 +72,27 @@ CoverBackground {
     }
 
     Item {
-        visible: ticketSecondsRemaining  > 0 || periodPassDaysRemaining > 0 || moneyAmount.length > 0
-        width: moneyAmountBackground.width
-        height: moneyAmountBackground.height
+        visible: ticketSecondsRemaining  > 0 || periodPassDaysRemaining > 0 || remainingBalance.length > 0
+        width: remainingBalanceBackground.width
+        height: remainingBalanceBackground.height
         anchors.centerIn: parent
 
         Rectangle {
-            id: moneyAmountBackground
+            id: remainingBalanceBackground
             readonly property real maxWidth: cover.width - 2 * Theme.paddingMedium
 
             border {
                 color: Theme.rgba(Theme.primaryColor, HarbourTheme.opacityLow)
                 width: Theme.paddingSmall
             }
-            width: Math.min(maxWidth, Math.floor(moneyAmountLabel.width + 2 * height/3))
+            width: Math.min(maxWidth, Math.floor(remainingBalanceLabel.width + 2 * height/3))
             height: Theme.itemSizeSmall
             radius: height/2
             color: Theme.rgba(HarbourTheme.invertedPrimaryColor, HarbourTheme.opacityOverlay)
         }
 
         Text {
-            id: moneyAmountLabel
+            id: remainingBalanceLabel
 
             font {
                 pixelSize: Theme.fontSizeLarge
@@ -101,7 +101,7 @@ CoverBackground {
             anchors.centerIn: parent
             color: Theme.primaryColor
             text: ticketSecondsRemaining > 0 ? timeRemainingString(ticketSecondsRemaining) :
-                periodPassDaysRemaining > 0 ? dateString(periodPassEndDate) : moneyAmount
+                periodPassDaysRemaining > 0 ? dateString(periodPassEndDate) : remainingBalance
         }
     }
 
