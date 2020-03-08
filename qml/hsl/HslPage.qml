@@ -57,7 +57,7 @@ Page {
             id: highlighter
 
             readonly property real padding: Theme.paddingMedium
-            x: detailsButton.x - padding + (historyButton.x -  detailsButton.x) * scroller.contentX / scroller.width
+            x: detailsButton.x - padding + (historyButton.x -  detailsButton.x) * (scroller.contentX - scroller.originX) / scroller.width
             anchors.verticalCenter: parent.verticalCenter
             radius: Theme.paddingMedium
             width: switcher.buttonWidth + 2 * padding
@@ -80,9 +80,9 @@ Page {
             text: qsTrId("matkakortti-switcher-details")
             highlighted: scroller.currentIndex === 0
             onClicked: { // Animate positionViewAtBeginning()
-                if (!scrollAnimation.running && scroller.contentX > 0) {
+                if (!scrollAnimation.running && scroller.contentX > scroller.originX) {
                     scrollAnimation.from = scroller.contentX
-                    scrollAnimation.to = 0
+                    scrollAnimation.to = scroller.originX
                     scrollAnimation.start()
                 }
             }
@@ -129,7 +129,7 @@ Page {
         interactive: !scrollAnimation.running
         clip: true
 
-        readonly property real maxContentX: Math.max(0, contentWidth - width)
+        readonly property real maxContentX: scroller.originX + Math.max(0, contentWidth - width)
 
         anchors {
             top: switcher.bottom
