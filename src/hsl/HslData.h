@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2019 Jolla Ltd.
- * Copyright (C) 2019 Slava Monich <slava@monich.com>
+ * Copyright (C) 2019-2020 Jolla Ltd.
+ * Copyright (C) 2019-2020 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -67,19 +67,11 @@ public:
         ValidityLengthDay
     };
 
-    enum PeriodValidity {
-        PeriodInvalid = -2,
-        PeriodNotYetStarted,
-        PeriodEnded,
-        PeriodValid
-    };
-
     static const int DATE_BITS = 14;
     static const int TIME_BITS = 11;
 
     static const QDate START_DATE; // 1.1.1997
     static const QTime START_TIME; // 00:00
-    static const QTimeZone HELSINKI_TIMEZONE; // Europe/Helsinki
 
     HslData(QObject* aParent = Q_NULLPTR);
 

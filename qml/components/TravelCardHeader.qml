@@ -30,7 +30,7 @@ PageHeader {
 
         anchors.fill: headerImage
         sourceSize: Qt.size(headerImage.width, headerImage.height)
-        source: "images/card-mask.svg"
+        source: Qt.resolvedUrl("../images/card-mask.svg")
         smooth: true
         visible: false
     }

@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2019 Jolla Ltd.
- * Copyright (C) 2019 Slava Monich <slava.monich@jolla.com>
+ * Copyright (C) 2019-2020 Jolla Ltd.
+ * Copyright (C) 2019-2020 Slava Monich <slava.monich@jolla.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -36,6 +36,7 @@
  */
 
 #include "HslCardStoredValue.h"
+#include "Util.h"
 
 #include <gutil_misc.h>
 
@@ -80,7 +81,7 @@ void HslCardStoredValue::Private::setHexData(QString aHexData)
         HDEBUG("  ValueCounter =" << iMoneyValue);
         const QDate loadingDate(getDate(&data, 2, 4));
         const QTime loadingTime(getTime(&data, 4, 2));
-        iLoadingTime = QDateTime(loadingDate, loadingTime, HELSINKI_TIMEZONE);
+        iLoadingTime = QDateTime(loadingDate, loadingTime, Util::FINLAND_TIMEZONE);
         HDEBUG("  LoadingDate =" << getInt(&data, 2, 4, 14) << loadingDate);
         HDEBUG("  LoadingTime =" << getInt(&data, 4, 2, 11) << loadingTime);
         iLoadedValue = getInt(&data, 5, 5, 20);

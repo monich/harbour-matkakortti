@@ -38,9 +38,9 @@ Item {
         text: (valid > 0) ? qsTrId("matkakortti-card-validity-valid") :
             //: Validity label
             //% "Not yet valid"
-            (valid === HslData.PeriodNotYetStarted) ? qsTrId("matkakortti-card-validity-not_yet_valid") :
+            (valid === TravelCard.PeriodNotYetStarted) ? qsTrId("matkakortti-card-validity-not_yet_valid") :
             //: Validity label
             //% "No longer valid"
-            (valid === HslData.PeriodEnded) ? qsTrId("matkakortti-card-validity-no_longer_valid") : ""
+            (valid === TravelCard.PeriodEnded) ? qsTrId("matkakortti-card-validity-no_longer_valid") : ""
     }
 }

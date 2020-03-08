@@ -7,8 +7,8 @@ CoverBackground {
 
     property Page cardInfoPage
     property bool unrecorgnizedCard
-    readonly property int ticketSecondsRemaining: cardInfoPage ? cardInfoPage.ticketSecondsRemaining : HslData.PeriodInvalid
-    readonly property int periodPassDaysRemaining: cardInfoPage ? cardInfoPage.periodPassDaysRemaining : HslData.PeriodInvalid
+    readonly property int ticketSecondsRemaining: cardInfoPage ? cardInfoPage.ticketSecondsRemaining : TravelCard.PeriodInvalid
+    readonly property int periodPassDaysRemaining: cardInfoPage ? cardInfoPage.periodPassDaysRemaining : TravelCard.PeriodInvalid
     readonly property var periodPassEndDate: cardInfoPage ? cardInfoPage.periodPassEndDate : undefined
     readonly property string remainingBalance: (cardInfoPage && cardInfoPage.remainingBalance) ?
         cardInfoPage.remainingBalance : ""

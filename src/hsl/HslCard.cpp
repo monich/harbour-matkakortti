@@ -46,6 +46,7 @@
 #include "HslCardHistory.h"
 #include "HslCardPeriodPass.h"
 #include "HslCardStoredValue.h"
+#include "HslData.h"
 #include "Util.h"
 
 #include "HarbourDebug.h"
@@ -129,7 +130,7 @@ public:
     QByteArray iHistoryData;
 };
 
-const QString HslCard::Private::PAGE_URL("HslCardPage.qml");
+const QString HslCard::Private::PAGE_URL("hsl/HslPage.qml");
 
 const QString HslCard::Private::APP_INFO_KEY("appInfo");
 const QString HslCard::Private::PERIOD_PASS_KEY("periodPass");
@@ -502,6 +503,7 @@ void HslCard::Private::registerTypes(const char* aUri, int v1, int v2)
     qmlRegisterType<HslCardHistory>(aUri, v1, v2, "HslCardHistory");
     qmlRegisterType<HslCardPeriodPass>(aUri, v1, v2, "HslCardPeriodPass");
     qmlRegisterType<HslCardStoredValue>(aUri, v1, v2, "HslCardStoredValue");
+    qmlRegisterSingletonType<HslData>(aUri, v1, v2, "HslData", HslData::createSingleton);
 }
 
 const TravelCardImpl::CardDesc HslCard::Desc = {

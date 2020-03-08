@@ -39,6 +39,7 @@
 
 #include "HslCardHistory.h"
 #include "HslData.h"
+#include "Util.h"
 
 #include "HarbourDebug.h"
 
@@ -166,7 +167,7 @@ void HslCardHistory::Private::setHexData(QString aHexData)
             // 0=Kauden leimaus, 1=Arvon veloitus
             iData.append(new ModelData((type == 0) ? TransactionBoarding :
                 (type == 1) ? TransactionPurchase : TransactionUnknown,
-                QDateTime(boardingDate, boardingTime, HslData::HELSINKI_TIMEZONE),
+                QDateTime(boardingDate, boardingTime, Util::FINLAND_TIMEZONE),
                 ticketPrice, groupSize, remainingValue));
         }
         g_bytes_unref(bytes);
@@ -219,10 +220,16 @@ void HslCardHistory::setData(QString aData)
             beginRemoveRows(QModelIndex(), count, prevCount - 1);
             iPrivate->iData = newData;
             endRemoveRows();
+            if (count > 0) {
+                QAbstractListModel::dataChanged(index(0), index(count - 1));
+            }
         } else if (count > prevCount) {
             beginInsertRows(QModelIndex(), prevCount, count - 1);
             iPrivate->iData = newData;
             endInsertRows();
+            if (prevCount > 0) {
+                QAbstractListModel::dataChanged(index(0), index(prevCount - 1));
+            }
         } else if (count > 0) {
             iPrivate->iData = newData;
             QAbstractListModel::dataChanged(index(0), index(count - 1));

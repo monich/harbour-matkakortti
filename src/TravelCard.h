@@ -47,9 +47,17 @@ class TravelCard : public QObject {
     Q_PROPERTY(CardState cardState READ cardState NOTIFY cardStateChanged)
     Q_PROPERTY(QVariantMap cardInfo READ cardInfo NOTIFY cardInfoChanged)
     Q_PROPERTY(QString pageUrl READ pageUrl NOTIFY pageUrlChanged)
+    Q_ENUMS(PeriodValidity)
     Q_ENUMS(CardState)
 
 public:
+    enum PeriodValidity {
+        PeriodInvalid = -2,
+        PeriodNotYetStarted,
+        PeriodEnded,
+        PeriodValid
+    };
+
     enum CardState {
         CardNone,
         CardReading,

@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2019 Jolla Ltd.
- * Copyright (C) 2019 Slava Monich <slava@monich.com>
+ * Copyright (C) 2019-2020 Jolla Ltd.
+ * Copyright (C) 2019-2020 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -36,12 +36,12 @@
  */
 
 #include "HslData.h"
+#include "Util.h"
 
 #include "HarbourDebug.h"
 
 const QDate HslData::START_DATE(1997, 1, 1);
 const QTime HslData::START_TIME(0, 0);
-const QTimeZone HslData::HELSINKI_TIMEZONE("Europe/Helsinki");
 
 HslData::HslData(QObject* aParent) :
     QObject(aParent)
@@ -70,12 +70,12 @@ bool HslData::isValidTimePeriod(QDateTime aStart, QDateTime aEnd)
 
 QDateTime HslData::startDateTime(QDate aDate)
 {
-    return QDateTime(aDate, QTime(0,0), HELSINKI_TIMEZONE);
+    return QDateTime(aDate, QTime(0,0), Util::FINLAND_TIMEZONE);
 }
 
 QDateTime HslData::endDateTime(QDate aDate)
 {
-    return QDateTime(aDate, QTime(23,59,59,999), HELSINKI_TIMEZONE);
+    return QDateTime(aDate, QTime(23,59,59,999), Util::FINLAND_TIMEZONE);
 }
 
 uint HslData::getInt(const GUtilData* aData, uint aByteOffset,

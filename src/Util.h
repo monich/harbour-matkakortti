@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2019 Jolla Ltd.
- * Copyright (C) 2019 Slava Monich <slava@monich.com>
+ * Copyright (C) 2019-2020 Jolla Ltd.
+ * Copyright (C) 2019-2020 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -42,9 +42,12 @@
 
 #include <QString>
 #include <QByteArray>
+#include <QTimeZone>
 
 namespace Util {
     extern const QString CARD_TYPE_KEY;
+    extern const QTimeZone FINLAND_TIMEZONE; // Europe/Helsinki
+
     QString toHex(const QByteArray aData);
     inline QByteArray toByteArray(const GUtilData* aData)
         { return QByteArray((const char*)aData->bytes, (int)aData->size); }

@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2019 Jolla Ltd.
- * Copyright (C) 2019 Slava Monich <slava.monich@jolla.com>
+ * Copyright (C) 2019-2020 Jolla Ltd.
+ * Copyright (C) 2019-2020 Slava Monich <slava.monich@jolla.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -36,6 +36,8 @@
  */
 
 #include "HslCardPeriodPass.h"
+#include "TravelCard.h"
+#include "Util.h"
 
 #include <gutil_misc.h>
 #include <gutil_timenotify.h>
@@ -125,7 +127,7 @@ void HslCardPeriodPass::Private::setHexData(QString aHexData)
         HDEBUG("  ProductCode =" << getInt(&data, 14, 1, 14));
         const QDate loadingDate(getDate(&data, 15, 7));
         const QTime loadingTime(getTime(&data, 17, 5));
-        iLoadingTime = QDateTime(loadingDate, loadingTime, HELSINKI_TIMEZONE);
+        iLoadingTime = QDateTime(loadingDate, loadingTime, Util::FINLAND_TIMEZONE);
         HDEBUG("  LoadingDate =" << getInt(&data, 15, 7, 14) << loadingDate);
         HDEBUG("  LoadingTime =" << getInt(&data, 17, 5, 11) << loadingTime);
         iLoadedPeriodDays = getInt(&data, 19, 0, 9);
@@ -179,18 +181,18 @@ void HslCardPeriodPass::Private::updateDaysRemaining()
         const QDateTime now = QDateTime::currentDateTime();
         const QDate today = now.date();
         if (today < firstDay) {
-            iDaysRemaining = PeriodNotYetStarted;
+            iDaysRemaining = TravelCard::PeriodNotYetStarted;
         } else if (today > lastDay) {
-            iDaysRemaining = PeriodEnded;
+            iDaysRemaining = TravelCard::PeriodEnded;
         } else {
-            const QDateTime nextMidnight(today.addDays(1), QTime(0,0), HELSINKI_TIMEZONE);
+            const QDateTime nextMidnight(today.addDays(1), QTime(0,0), Util::FINLAND_TIMEZONE);
             iDaysRemaining = today.daysTo(lastDay) + 1;
             HDEBUG(now.secsTo(nextMidnight) << "sec until midnight");
             QTimer::singleShot(now.msecsTo(nextMidnight) + 1000, iPass,
                 SLOT(updateDaysRemaining()));
         }
     } else {
-        iDaysRemaining = PeriodInvalid;
+        iDaysRemaining = TravelCard::PeriodInvalid;
     }
 }
 

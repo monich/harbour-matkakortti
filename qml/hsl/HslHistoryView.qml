@@ -1,7 +1,9 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import harbour.matkakortti 1.0
-import "Utils.js" as Utils
+
+import "../components"
+import "../components/Utils.js" as Utils
 
 SilicaListView {
     header: Column {
@@ -16,7 +18,7 @@ SilicaListView {
         VerticalSpace { height: Theme.paddingLarge/2 }
     }
 
-    delegate: HistoryItem {
+    delegate: HslHistoryItem {
         width: parent.width
         type: transactionType
         time: Utils.dateTimeString(boardingTime)

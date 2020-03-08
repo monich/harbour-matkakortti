@@ -36,6 +36,8 @@
  */
 
 #include "HslCardEticket.h"
+#include "TravelCard.h"
+#include "Util.h"
 
 #include <gutil_misc.h>
 #include <gutil_timenotify.h>
@@ -166,23 +168,23 @@ void HslCardEticket::Private::setHexData(QString aHexData)
         HDEBUG("  SaleStatus =" << getInt(&data, 25, 0, 1));
         const QDate validityStartDate(getDate(&data, 25, 5));
         const QTime validityStartTime(getTime(&data, 27, 3));
-        iValidityStartTime = QDateTime(validityStartDate, validityStartTime, HELSINKI_TIMEZONE);
+        iValidityStartTime = QDateTime(validityStartDate, validityStartTime, Util::FINLAND_TIMEZONE);
         HDEBUG("  ValidityStartDate =" << getInt(&data, 25, 5, DATE_BITS) << validityStartDate);
         HDEBUG("  ValidityStartTime =" << getInt(&data, 27, 3, TIME_BITS) << validityStartTime);
         const QDate validityEndDate(getDate(&data, 28, 6));
         const QTime validityEndTime(getTime(&data, 30, 4));
-        iValidityEndTime = QDateTime(validityEndDate, validityEndTime, HELSINKI_TIMEZONE);
+        iValidityEndTime = QDateTime(validityEndDate, validityEndTime, Util::FINLAND_TIMEZONE);
         HDEBUG("  ValidityEndDate =" << getInt(&data, 28, 6, DATE_BITS) << validityEndDate);
         HDEBUG("  ValidityEndTime =" << getInt(&data, 30, 4, TIME_BITS) << validityEndTime);
         const QDate validityEndDateGroup(getDate(&data, 31, 7));
         const QTime validityEndTimeGroup(getTime(&data, 33, 5));
-        iValidityEndTimeGroup = QDateTime(validityEndDateGroup, validityEndTimeGroup, HELSINKI_TIMEZONE);
+        iValidityEndTimeGroup = QDateTime(validityEndDateGroup, validityEndTimeGroup, Util::FINLAND_TIMEZONE);
         HDEBUG("  ValidityEndDateGroup =" << getInt(&data, 31, 7, DATE_BITS) << validityEndDateGroup);
         HDEBUG("  ValidityEndTimeGroup =" << getInt(&data, 33, 5, TIME_BITS) << validityEndTimeGroup);
         HDEBUG("  ValidityStatus =" << getInt(&data, 35, 5, 1));
         const QDate boardingDate(getDate(&data, 35, 6));
         const QTime boardingTime(getTime(&data, 37, 4));
-        iBoardingTime = QDateTime(boardingDate, boardingTime, HELSINKI_TIMEZONE);
+        iBoardingTime = QDateTime(boardingDate, boardingTime, Util::FINLAND_TIMEZONE);
         HDEBUG("  BoardingDate =" << getInt(&data, 35, 6, DATE_BITS) << boardingDate);
         HDEBUG("  BoardingTime =" << getInt(&data, 37, 4, TIME_BITS) << boardingTime);
         iBoardingVehicle = getInt(&data, 38, 7, 14);
@@ -226,9 +228,9 @@ void HslCardEticket::Private::updateSecondsRemaining()
     if (HslData::isValidTimePeriod(iValidityStartTime, iValidityEndTime)) {
         const QDateTime now = QDateTime::currentDateTime();
         if (now < iValidityStartTime) {
-            iSecondsRemaining = PeriodNotYetStarted;
+            iSecondsRemaining = TravelCard::PeriodNotYetStarted;
         } else if (now > iValidityEndTime) {
-            iSecondsRemaining = PeriodEnded;
+            iSecondsRemaining = TravelCard::PeriodEnded;
         } else {
             qint64 msecsRemaining = now.msecsTo(iValidityEndTime);
             iSecondsRemaining = (int)(msecsRemaining/1000) + 1;
@@ -238,7 +240,7 @@ void HslCardEticket::Private::updateSecondsRemaining()
             QTimer::singleShot(nextInterval, iTicket, SLOT(updateSecondsRemaining()));
         }
     } else {
-        iSecondsRemaining = PeriodInvalid;
+        iSecondsRemaining = TravelCard::PeriodInvalid;
     }
 }
 

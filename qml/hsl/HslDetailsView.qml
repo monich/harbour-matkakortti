@@ -1,7 +1,9 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import harbour.matkakortti 1.0
-import "Utils.js" as Utils
+
+import "../components"
+import "../components/Utils.js" as Utils
 
 SilicaFlickable {
     property var eTicket
@@ -240,8 +242,6 @@ SilicaFlickable {
                 title: qsTrId("matkakortti-details-ticket-boarding_time")
                 value: Utils.dateTimeString(eTicket.boardingTime)
             }
-
-            VerticalSpace { height: Theme.paddingLarge }
 
             ValueLabel {
                 x: Theme.horizontalPageMargin

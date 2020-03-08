@@ -35,8 +35,6 @@
  * any official policies, either expressed or implied.
  */
 
-#include "HslData.h"
-
 #include "TravelCard.h"
 
 #include "NfcSystem.h"
@@ -65,7 +63,6 @@ static void register_types(const char* uri, int v1 = 1, int v2 = 0)
     qmlRegisterSingletonType<HarbourTheme>(uri, v1, v2, "HarbourTheme", HarbourTheme::createSingleton);
     qmlRegisterSingletonType<NfcAdapter>(uri, v1, v2, "NfcAdapter", NfcAdapter::createSingleton);
     qmlRegisterSingletonType<NfcSystem>(uri, v1, v2, "NfcSystem", NfcSystem::createSingleton);
-    qmlRegisterSingletonType<HslData>(uri, v1, v2, "HslData", HslData::createSingleton);
     qmlRegisterType<NfcIsoDep>(uri, v1, v2, "NfcIsoDep");
     qmlRegisterType<NfcTag>(uri, v1, v2, "NfcTag");
     qmlRegisterType<TravelCard>(uri, v1, v2, "TravelCard");

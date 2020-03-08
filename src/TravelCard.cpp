@@ -40,7 +40,7 @@
 #include "TravelCard.h"
 #include "TravelCardImpl.h"
 
-#include "HslCard.h"
+#include "hsl/HslCard.h"
 
 #include "HarbourDebug.h"
 

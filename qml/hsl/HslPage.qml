@@ -1,7 +1,9 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import harbour.matkakortti 1.0
-import "Utils.js" as Utils
+
+import "../components"
+import "../components/Utils.js" as Utils
 
 Page {
     property var cardInfo
@@ -147,7 +149,7 @@ Page {
     Component {
         id: detailsViewComponent
 
-        TravelCardDetails {
+        HslDetailsView {
             anchors.fill: parent
             eTicket: eTicketParser
             storedValue: storedValueParser
@@ -158,7 +160,7 @@ Page {
     Component {
         id: historyViewComponent
 
-        TravelCardHistory {
+        HslHistoryView {
             anchors.fill: parent
             model: historyParser
         }

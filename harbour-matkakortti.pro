@@ -29,14 +29,17 @@ HARBOUR_LIB_DIR = $${_PRO_FILE_PWD_}/harbour-lib
 LIBGLIBUTIL_DIR = $${_PRO_FILE_PWD_}/libglibutil
 LIBGNFCDC_DIR = $${_PRO_FILE_PWD_}/libgnfcdc
 
+# Files
+
 OTHER_FILES += \
     LICENSE \
     README.md \
     rpm/*.spec \
     *.desktop \
-    qml/*.js \
     qml/*.qml \
     qml/images/*.svg \
+    qml/components/*.js \
+    qml/components/*.qml \
     icons/*.svg \
     translations/*.ts
 
@@ -139,14 +142,6 @@ INCLUDEPATH += \
     src
 
 HEADERS += \
-    src/HslArea.h \
-    src/HslCard.h \
-    src/HslCardAppInfo.h \
-    src/HslCardEticket.h \
-    src/HslCardHistory.h \
-    src/HslCardPeriodPass.h \
-    src/HslCardStoredValue.h \
-    src/HslData.h \
     src/NfcAdapter.h \
     src/NfcIsoDep.h \
     src/NfcSystem.h \
@@ -157,20 +152,38 @@ HEADERS += \
 
 SOURCES += \
     src/main.cpp \
-    src/HslArea.cpp \
-    src/HslCard.cpp \
-    src/HslCardAppInfo.cpp \
-    src/HslCardEticket.cpp \
-    src/HslCardHistory.cpp \
-    src/HslCardPeriodPass.cpp \
-    src/HslCardStoredValue.cpp \
-    src/HslData.cpp \
     src/NfcAdapter.cpp \
     src/NfcIsoDep.cpp \
     src/NfcSystem.cpp \
     src/NfcTag.cpp \
     src/TravelCard.cpp \
     src/Util.cpp
+
+# HSL
+
+OTHER_FILES += \
+    qml/hsl/*.qml \
+    qml/hsl/images/*.svg
+
+HEADERS += \
+    src/hsl/HslArea.h \
+    src/hsl/HslCard.h \
+    src/hsl/HslCardAppInfo.h \
+    src/hsl/HslCardEticket.h \
+    src/hsl/HslCardHistory.h \
+    src/hsl/HslCardPeriodPass.h \
+    src/hsl/HslCardStoredValue.h \
+    src/hsl/HslData.h
+
+SOURCES += \
+    src/hsl/HslArea.cpp \
+    src/hsl/HslCard.cpp \
+    src/hsl/HslCardAppInfo.cpp \
+    src/hsl/HslCardEticket.cpp \
+    src/hsl/HslCardHistory.cpp \
+    src/hsl/HslCardPeriodPass.cpp \
+    src/hsl/HslCardStoredValue.cpp \
+    src/hsl/HslData.cpp
 
 # Icons
 ICON_SIZES = 86 108 128 256
