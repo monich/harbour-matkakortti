@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2019 Jolla Ltd.
- * Copyright (C) 2019 Slava Monich <slava@monich.com>
+ * Copyright (C) 2019-2020 Jolla Ltd.
+ * Copyright (C) 2019-2020 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -72,36 +72,34 @@ public:
         NFC_DEFAULT_ADAPTER_PROPERTY aProperty, void* aTarget);
 
 public:
-    NfcAdapter* iParent;
     NfcDefaultAdapter* iAdapter;
     gulong iAdapterEventId[ADAPTER_EVENT_COUNT];
 };
 
 NfcAdapter::Private::Private(NfcAdapter* aParent) :
-    iParent(aParent),
     iAdapter(nfc_default_adapter_new())
 {
     memset(iAdapterEventId, 0, sizeof(iAdapterEventId));
     iAdapterEventId[ADAPTER_EVENT_PRESENT] =
         nfc_default_adapter_add_property_handler(iAdapter,
             NFC_DEFAULT_ADAPTER_PROPERTY_ADAPTER,
-            presentChanged, iParent);
+            presentChanged, aParent);
     iAdapterEventId[ADAPTER_EVENT_ENABLED] =
         nfc_default_adapter_add_property_handler(iAdapter,
             NFC_DEFAULT_ADAPTER_PROPERTY_ENABLED,
-            enabledChanged, iParent);
+            enabledChanged, aParent);
     iAdapterEventId[ADAPTER_EVENT_POWERED] =
         nfc_default_adapter_add_property_handler(iAdapter,
             NFC_DEFAULT_ADAPTER_PROPERTY_POWERED,
-            poweredChanged, iParent);
+            poweredChanged, aParent);
     iAdapterEventId[ADAPTER_EVENT_TARGET_PRESENT] =
         nfc_default_adapter_add_property_handler(iAdapter,
             NFC_DEFAULT_ADAPTER_PROPERTY_TARGET_PRESENT,
-            targetPresentChanged, iParent);
+            targetPresentChanged, aParent);
     iAdapterEventId[ADAPTER_EVENT_TAGS] =
         nfc_default_adapter_add_property_handler(iAdapter,
             NFC_DEFAULT_ADAPTER_PROPERTY_TAGS,
-            tagsChanged, iParent);
+            tagsChanged, aParent);
 }
 
 NfcAdapter::Private::~Private()

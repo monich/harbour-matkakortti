@@ -39,7 +39,6 @@
 
 #include "NfcSystem.h"
 #include "NfcAdapter.h"
-#include "NfcIsoDep.h"
 #include "NfcTag.h"
 
 #include "HarbourDebug.h"
@@ -63,7 +62,6 @@ static void register_types(const char* uri, int v1 = 1, int v2 = 0)
     qmlRegisterSingletonType<HarbourTheme>(uri, v1, v2, "HarbourTheme", HarbourTheme::createSingleton);
     qmlRegisterSingletonType<NfcAdapter>(uri, v1, v2, "NfcAdapter", NfcAdapter::createSingleton);
     qmlRegisterSingletonType<NfcSystem>(uri, v1, v2, "NfcSystem", NfcSystem::createSingleton);
-    qmlRegisterType<NfcIsoDep>(uri, v1, v2, "NfcIsoDep");
     qmlRegisterType<NfcTag>(uri, v1, v2, "NfcTag");
     qmlRegisterType<TravelCard>(uri, v1, v2, "TravelCard");
     TravelCard::registerTypes(uri, v1, v2);

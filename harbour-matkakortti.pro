@@ -143,7 +143,6 @@ INCLUDEPATH += \
 
 HEADERS += \
     src/NfcAdapter.h \
-    src/NfcIsoDep.h \
     src/NfcSystem.h \
     src/NfcTag.h \
     src/TravelCard.h \
@@ -153,7 +152,6 @@ HEADERS += \
 SOURCES += \
     src/main.cpp \
     src/NfcAdapter.cpp \
-    src/NfcIsoDep.cpp \
     src/NfcSystem.cpp \
     src/NfcTag.cpp \
     src/TravelCard.cpp \

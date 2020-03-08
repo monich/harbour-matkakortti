@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2019 Jolla Ltd.
- * Copyright (C) 2019 Slava Monich <slava@monich.com>
+ * Copyright (C) 2019-2020 Jolla Ltd.
+ * Copyright (C) 2019-2020 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -66,25 +66,23 @@ public:
         NFC_DAEMON_PROPERTY aProperty, void* aTarget);
 
 public:
-    NfcSystem* iParent;
     NfcDaemonClient* iDaemon;
     gulong iDaemonEventId[DAEMON_EVENT_COUNT];
 };
 
 NfcSystem::Private::Private(NfcSystem* aParent) :
-    iParent(aParent),
     iDaemon(nfc_daemon_client_new())
 {
     memset(iDaemonEventId, 0, sizeof(iDaemonEventId));
     iDaemonEventId[DAEMON_EVENT_VALID] =
         nfc_daemon_client_add_property_handler(iDaemon,
-            NFC_DAEMON_PROPERTY_VALID, validChanged, iParent);
+            NFC_DAEMON_PROPERTY_VALID, validChanged, aParent);
     iDaemonEventId[DAEMON_EVENT_PRESENT] =
         nfc_daemon_client_add_property_handler(iDaemon,
-            NFC_DAEMON_PROPERTY_PRESENT, presentChanged, iParent);
+            NFC_DAEMON_PROPERTY_PRESENT, presentChanged, aParent);
     iDaemonEventId[DAEMON_EVENT_ENABLED] =
         nfc_daemon_client_add_property_handler(iDaemon,
-            NFC_DAEMON_PROPERTY_ENABLED, enabledChanged, iParent);
+            NFC_DAEMON_PROPERTY_ENABLED, enabledChanged, aParent);
 }
 
 NfcSystem::Private::~Private()
