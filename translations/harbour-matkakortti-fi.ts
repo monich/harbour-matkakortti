@@ -138,6 +138,11 @@
         <extracomment>Suffix after the time ending the period</extracomment>
         <translation type="unfinished">asti</translation>
     </message>
+    <message id="matkakortti-details-ticket-balance">
+        <source>Balance:</source>
+        <extracomment>Label (available amount of money)</extracomment>
+        <translation>Saldo:</translation>
+    </message>
     <message id="matkakortti-card-validity-valid">
         <source>Valid</source>
         <extracomment>Validity label</extracomment>
@@ -167,6 +172,11 @@
         <source>Remaining balance:</source>
         <extracomment>Label</extracomment>
         <translation type="unfinished">Jäljellä oleva arvo:</translation>
+    </message>
+    <message id="matkakortti-history-time">
+        <source>Time:</source>
+        <extracomment>Label (generic timestamp, date + time)</extracomment>
+        <translation>Aika:</translation>
     </message>
 </context>
 </TS>

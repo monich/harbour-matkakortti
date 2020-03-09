@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2019-2020 Jolla Ltd.
- * Copyright (C) 2019-2020 Slava Monich <slava@monich.com>
+ * Copyright (C) 2020 Jolla Ltd.
+ * Copyright (C) 2020 Slava Monich <slava.monich@jolla.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -35,50 +35,18 @@
  * any official policies, either expressed or implied.
  */
 
+#include "NysseUtil.h"
 #include "Util.h"
 
-const QString Util::CARD_TYPE_KEY("cardType");
-const QTimeZone Util::FINLAND_TIMEZONE("Europe/Helsinki");
-
-guint32 Util::uint32le(const guint8* data)
+QDateTime NysseUtil::toDateTime(uint aDate, uint aTime)
 {
-    return (((guint32)data[3]) << 24) +
-        (((guint32)data[2]) << 16) +
-        (((guint32)data[1]) << 8) +
-        data[0];
-}
-
-guint32 Util::uint32be(const guint8* data)
-{
-    return (((guint32)data[0]) << 24) +
-        (((guint32)data[1]) << 16) +
-        (((guint32)data[2]) << 8) +
-        data[3];
-}
-
-guint16 Util::uint16le(const guint8* data)
-{
-    return (((guint16)data[1]) << 8) + data[0];
-}
-
-guint16 Util::uint16be(const guint8* data)
-{
-    return (((guint16)data[0]) << 8) + data[1];
-}
-
-QString Util::toHex(const QByteArray aData)
-{
-    static const char hex[] = "0123456789abcdef";
-    const int n = aData.size();
-    const uchar* data = (uchar*)aData.constData();
-    char* buf = (char*)malloc(2*n + 1);
-    for (int i = 0; i < n; i++) {
-        const uchar b = data[i];
-        buf[2*i] = hex[(b & 0xf0) >> 4];
-        buf[2*i+1] = hex[b & 0x0f];
-    }
-    buf[2*n] = 0;
-    QString str(QLatin1String(buf, 2*n));
-    free(buf);
-    return str;
+    const qint64 msec = (qint64)
+        ((gint64)(aDate - 25567) * 24 * 3600 +
+        (aTime >> 4) * 30) * 1000;
+    // This is slightly weird. We convert timestamp to UTC and
+    // then use UTC date and time as a local time. If we don't
+    // do that, the time is ahead (not behind!) of the correct
+    // time by the amount which apears to be equal to UTC offset.
+    QDateTime t(QDateTime::fromMSecsSinceEpoch(msec, Util::FINLAND_TIMEZONE).toUTC());
+    return QDateTime(t.date(), t.time(), Util::FINLAND_TIMEZONE);
 }

@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2019-2020 Jolla Ltd.
- * Copyright (C) 2019-2020 Slava Monich <slava@monich.com>
+ * Copyright (C) 2020 Jolla Ltd.
+ * Copyright (C) 2020 Slava Monich <slava.monich@jolla.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -35,50 +35,76 @@
  * any official policies, either expressed or implied.
  */
 
-#include "Util.h"
+#include "gutil_misc.h"
 
-const QString Util::CARD_TYPE_KEY("cardType");
-const QTimeZone Util::FINLAND_TIMEZONE("Europe/Helsinki");
+#include "NysseCardBalance.h"
 
-guint32 Util::uint32le(const guint8* data)
+#include "HarbourDebug.h"
+
+// ==========================================================================
+// NysseCardBalance::Private
+// ==========================================================================
+
+class NysseCardBalance::Private {
+public:
+    Private() : iBalance(0) {}
+
+    void setHexData(QString aHexData);
+
+public:
+    QString iHexData;
+    uint iBalance;
+};
+
+void NysseCardBalance::Private::setHexData(QString aHexData)
 {
-    return (((guint32)data[3]) << 24) +
-        (((guint32)data[2]) << 16) +
-        (((guint32)data[1]) << 8) +
-        data[0];
-}
-
-guint32 Util::uint32be(const guint8* data)
-{
-    return (((guint32)data[0]) << 24) +
-        (((guint32)data[1]) << 16) +
-        (((guint32)data[2]) << 8) +
-        data[3];
-}
-
-guint16 Util::uint16le(const guint8* data)
-{
-    return (((guint16)data[1]) << 8) + data[0];
-}
-
-guint16 Util::uint16be(const guint8* data)
-{
-    return (((guint16)data[0]) << 8) + data[1];
-}
-
-QString Util::toHex(const QByteArray aData)
-{
-    static const char hex[] = "0123456789abcdef";
-    const int n = aData.size();
-    const uchar* data = (uchar*)aData.constData();
-    char* buf = (char*)malloc(2*n + 1);
-    for (int i = 0; i < n; i++) {
-        const uchar b = data[i];
-        buf[2*i] = hex[(b & 0xf0) >> 4];
-        buf[2*i+1] = hex[b & 0x0f];
+    iHexData = aHexData;
+    HDEBUG(qPrintable(iHexData));
+    guint32 data;
+    QByteArray hex(iHexData.toLatin1());
+    if (hex.size() == sizeof(data) * 2 &&
+        gutil_hex2bin(hex.constData(), hex.size(), &data)) {
+        iBalance = GINT32_FROM_LE(data);
+        HDEBUG("  Balance =" << iBalance);
+    } else {
+        iBalance = 0;
     }
-    buf[2*n] = 0;
-    QString str(QLatin1String(buf, 2*n));
-    free(buf);
-    return str;
+}
+
+// ==========================================================================
+// NysseCardBalance
+// ==========================================================================
+
+NysseCardBalance::NysseCardBalance(QObject* aParent) :
+    QObject(aParent),
+    iPrivate(new Private)
+{
+}
+
+NysseCardBalance::~NysseCardBalance()
+{
+    delete iPrivate;
+}
+
+QString NysseCardBalance::data() const
+{
+    return iPrivate->iHexData;
+}
+
+void NysseCardBalance::setData(QString aData)
+{
+    QString data(aData.toLower());
+    if (iPrivate->iHexData != data) {
+        const uint prevBalance(iPrivate->iBalance);
+        iPrivate->setHexData(data);
+        if (prevBalance != iPrivate->iBalance) {
+            Q_EMIT balanceChanged();
+        }
+        Q_EMIT dataChanged();
+    }
+}
+
+uint NysseCardBalance::balance() const
+{
+    return iPrivate->iBalance;
 }

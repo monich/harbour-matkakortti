@@ -41,6 +41,7 @@
 #include "TravelCardImpl.h"
 
 #include "hsl/HslCard.h"
+#include "nysse/NysseCard.h"
 
 #include "HarbourDebug.h"
 
@@ -84,7 +85,7 @@ TravelCard::Private::Private(TravelCard* aParent) :
 }
 
 const TravelCardImpl::CardDesc* const TravelCard::Private::gCardTypes[] = {
-    &HslCard::Desc
+    &HslCard::Desc, &NysseCard::Desc
 };
 
 TravelCard::Private::~Private()
@@ -124,6 +125,7 @@ void TravelCard::Private::tryNext()
         iCardImpl = Q_NULLPTR;
     }
     if (++iImplIndex < (int)G_N_ELEMENTS(gCardTypes)) {
+        HDEBUG(gCardTypes[iImplIndex]->iName);
         iCardInfo.clear();
         iCardState = CardReading;
         iCardImpl = gCardTypes[iImplIndex]->iNewCard(iPath, this);

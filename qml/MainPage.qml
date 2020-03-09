@@ -1,6 +1,9 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
+import org.nemomobile.configuration 1.0
 import harbour.matkakortti 1.0
+
+import "components"
 
 Page {
     id: page
@@ -8,6 +11,7 @@ Page {
     backNavigation: false
     showNavigationIndicator: false
 
+    readonly property string settingsPath: "/apps/harbour-matkakortti/"
     readonly property url hmmImageUrl: "image://harbour/" + Qt.resolvedUrl("images/hmm.svg") + "?" + Theme.highlightColor
     readonly property bool targetPresent: NfcAdapter.targetPresent
     readonly property bool unrecorgnizedCard: targetPresent && travelCard.cardState === TravelCard.CardNone && !readTimer.running
@@ -28,6 +32,12 @@ Page {
         }
     }
 
+    ConfigurationValue {
+        id: lastCardType
+
+        key: settingsPath + "lastCardType"
+    }
+
     TravelCard {
         id: travelCard
 
@@ -39,6 +49,7 @@ Page {
                 break
 
             case TravelCard.CardRecognized:
+                lastCardType.value = cardInfo.cardType
                 if (cardInfoPage) {
                     if (cardInfoPage.cardInfo.cardType === cardInfo.cardType) {
                         cardInfoPage.cardInfo = cardInfo
@@ -126,16 +137,31 @@ Page {
 
             Behavior on opacity { FadeAnimation {} }
 
-            Image {
-                y: (parent.height/2 - height)/2
-                anchors.horizontalCenter: parent.horizontalCenter
-                height: page.width/2
-                sourceSize.height: height
-                source: Qt.resolvedUrl("images/app-icon.svg")
-                smooth: true
+            Item {
+                width: parent.width
+                height: parent.height/2
                 opacity: (!readingCard && !targetPresent) ? 1 : 0
                 visible: opacity > 0
+
+                property real cardImageHeight: Math.round(2*width/5)
+
                 Behavior on opacity { FadeAnimation {} }
+
+                CardImage {
+                    anchors.centerIn: parent
+                    sourceSize.height: parent.cardImageHeight
+                    source: Qt.resolvedUrl("nysse/images/nysse-card.svg")
+                    rotation: 105
+                    z: (lastCardType.value === "Nysse") ? 1 : 0
+                }
+
+                CardImage {
+                    anchors.centerIn: parent
+                    sourceSize.height: parent.cardImageHeight
+                    source: Qt.resolvedUrl("hsl/images/hsl-card.svg")
+                    rotation: 60
+                    z: (lastCardType.value === "HSL") ? 1 : 0
+                }
             }
 
             BusyIndicator {
@@ -169,7 +195,7 @@ Page {
                     //% "Reading the card"
                     qsTrId("matkakortti-info-reading") :
                     targetPresent ? (
-                        travelCard.cardState === TravelCard.CardNone ?
+                    travelCard.cardState === TravelCard.CardNone ?
                         //: Info label
                         //% "This is not an HSL travel card"
                         qsTrId("matkakortti-info-card_not_supported") : "") :

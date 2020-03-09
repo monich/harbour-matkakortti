@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2019-2020 Jolla Ltd.
- * Copyright (C) 2019-2020 Slava Monich <slava@monich.com>
+ * Copyright (C) 2020 Jolla Ltd.
+ * Copyright (C) 2020 Slava Monich <slava.monich@jolla.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -35,50 +35,65 @@
  * any official policies, either expressed or implied.
  */
 
-#include "Util.h"
+#include "NysseCardAppInfo.h"
 
-const QString Util::CARD_TYPE_KEY("cardType");
-const QTimeZone Util::FINLAND_TIMEZONE("Europe/Helsinki");
+#include "HarbourDebug.h"
 
-guint32 Util::uint32le(const guint8* data)
+// ==========================================================================
+// NysseCardAppInfo::Private
+// ==========================================================================
+
+class NysseCardAppInfo::Private {
+public:
+    void setHexData(QString aHexData);
+
+public:
+    QString iHexData;
+    QString iCardNumber;
+};
+
+void NysseCardAppInfo::Private::setHexData(QString aHexData)
 {
-    return (((guint32)data[3]) << 24) +
-        (((guint32)data[2]) << 16) +
-        (((guint32)data[1]) << 8) +
-        data[0];
+    HDEBUG(qPrintable(aHexData));
+    iHexData = aHexData;
+    iCardNumber = iHexData.mid(2, 18);
+    HDEBUG("  CardNumber =" << iCardNumber);
 }
 
-guint32 Util::uint32be(const guint8* data)
+// ==========================================================================
+// NysseCardAppInfo
+// ==========================================================================
+
+NysseCardAppInfo::NysseCardAppInfo(QObject* aParent) :
+    QObject(aParent),
+    iPrivate(new Private)
 {
-    return (((guint32)data[0]) << 24) +
-        (((guint32)data[1]) << 16) +
-        (((guint32)data[2]) << 8) +
-        data[3];
 }
 
-guint16 Util::uint16le(const guint8* data)
+NysseCardAppInfo::~NysseCardAppInfo()
 {
-    return (((guint16)data[1]) << 8) + data[0];
+    delete iPrivate;
 }
 
-guint16 Util::uint16be(const guint8* data)
+QString NysseCardAppInfo::data() const
 {
-    return (((guint16)data[0]) << 8) + data[1];
+    return iPrivate->iHexData;
 }
 
-QString Util::toHex(const QByteArray aData)
+void NysseCardAppInfo::setData(QString aData)
 {
-    static const char hex[] = "0123456789abcdef";
-    const int n = aData.size();
-    const uchar* data = (uchar*)aData.constData();
-    char* buf = (char*)malloc(2*n + 1);
-    for (int i = 0; i < n; i++) {
-        const uchar b = data[i];
-        buf[2*i] = hex[(b & 0xf0) >> 4];
-        buf[2*i+1] = hex[b & 0x0f];
+    QString data(aData.toLower());
+    if (iPrivate->iHexData != data) {
+        const QString prevCardNumber(iPrivate->iCardNumber);
+        iPrivate->setHexData(data);
+        if (prevCardNumber != iPrivate->iCardNumber) {
+            Q_EMIT cardNumberChanged();
+        }
+        Q_EMIT dataChanged();
     }
-    buf[2*n] = 0;
-    QString str(QLatin1String(buf, 2*n));
-    free(buf);
-    return str;
+}
+
+QString NysseCardAppInfo::cardNumber() const
+{
+    return iPrivate->iCardNumber;
 }

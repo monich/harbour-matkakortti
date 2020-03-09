@@ -183,6 +183,30 @@ SOURCES += \
     src/hsl/HslCardStoredValue.cpp \
     src/hsl/HslData.cpp
 
+# Nysse
+
+OTHER_FILES += \
+    qml/nysse/*.qml \
+    qml/nysse/images/*.svg
+
+HEADERS += \
+    src/nysse/NysseCard.h \
+    src/nysse/NysseCardAppInfo.h \
+    src/nysse/NysseCardBalance.h \
+    src/nysse/NysseCardHistory.h \
+    src/nysse/NysseCardOwnerInfo.h \
+    src/nysse/NysseCardSeasonPass.h \
+    src/nysse/NysseUtil.h
+
+SOURCES += \
+    src/nysse/NysseCard.cpp \
+    src/nysse/NysseCardAppInfo.cpp \
+    src/nysse/NysseCardBalance.cpp \
+    src/nysse/NysseCardHistory.cpp \
+    src/nysse/NysseCardOwnerInfo.cpp \
+    src/nysse/NysseCardSeasonPass.cpp \
+    src/nysse/NysseUtil.cpp
+
 # Icons
 ICON_SIZES = 86 108 128 256
 for(s, ICON_SIZES) {

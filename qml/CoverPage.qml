@@ -7,6 +7,7 @@ CoverBackground {
 
     property Page cardInfoPage
     property bool unrecorgnizedCard
+    readonly property real extraSize: Theme.paddingMedium
     readonly property int ticketSecondsRemaining: cardInfoPage ? cardInfoPage.ticketSecondsRemaining : TravelCard.PeriodInvalid
     readonly property int periodPassDaysRemaining: cardInfoPage ? cardInfoPage.periodPassDaysRemaining : TravelCard.PeriodInvalid
     readonly property var periodPassEndDate: cardInfoPage ? cardInfoPage.periodPassEndDate : undefined
@@ -38,7 +39,7 @@ CoverBackground {
 
     Image {
         anchors.centerIn: parent
-        sourceSize: Qt.size(parent.width, parent.height)
+        sourceSize: Qt.size(parent.width + extraSize, parent.height + extraSize)
         source: "image://harbour/" + Qt.resolvedUrl("images/cover-bg.svg") + "?" + Theme.primaryColor
         smooth: true
         fillMode: Image.PreserveAspectCrop
@@ -59,10 +60,8 @@ CoverBackground {
     }
 
     Image {
-        width: parent.height
-        height: parent.width
         anchors.centerIn: parent
-        sourceSize.height: width
+        sourceSize: Qt.size(cover.height + extraSize, cover.width + extraSize)
         source: cardInfoPage ? cardInfoPage.cardImageUrl : ""
         smooth: true
         rotation: 90

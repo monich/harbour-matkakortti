@@ -48,6 +48,10 @@ namespace Util {
     extern const QString CARD_TYPE_KEY;
     extern const QTimeZone FINLAND_TIMEZONE; // Europe/Helsinki
 
+    guint32 uint32le(const guint8* data);
+    guint32 uint32be(const guint8* data);
+    guint16 uint16le(const guint8* data);
+    guint16 uint16be(const guint8* data);
     QString toHex(const QByteArray aData);
     inline QByteArray toByteArray(const GUtilData* aData)
         { return QByteArray((const char*)aData->bytes, (int)aData->size); }

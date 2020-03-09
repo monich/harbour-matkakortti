@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2019-2020 Jolla Ltd.
- * Copyright (C) 2019-2020 Slava Monich <slava@monich.com>
+ * Copyright (C) 2020 Jolla Ltd.
+ * Copyright (C) 2020 Slava Monich <slava.monich@jolla.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -35,50 +35,35 @@
  * any official policies, either expressed or implied.
  */
 
-#include "Util.h"
+#ifndef NYSSE_CARD_APP_INFO_H
+#define NYSSE_CARD_APP_INFO_H
 
-const QString Util::CARD_TYPE_KEY("cardType");
-const QTimeZone Util::FINLAND_TIMEZONE("Europe/Helsinki");
+#include <QtQml>
 
-guint32 Util::uint32le(const guint8* data)
-{
-    return (((guint32)data[3]) << 24) +
-        (((guint32)data[2]) << 16) +
-        (((guint32)data[1]) << 8) +
-        data[0];
-}
+class NysseCardAppInfo : public QObject {
+    Q_OBJECT
+    Q_DISABLE_COPY(NysseCardAppInfo)
+    Q_PROPERTY(QString data READ data WRITE setData NOTIFY dataChanged)
+    Q_PROPERTY(QString cardNumber READ cardNumber NOTIFY cardNumberChanged)
 
-guint32 Util::uint32be(const guint8* data)
-{
-    return (((guint32)data[0]) << 24) +
-        (((guint32)data[1]) << 16) +
-        (((guint32)data[2]) << 8) +
-        data[3];
-}
+public:
+    NysseCardAppInfo(QObject* aParent = Q_NULLPTR);
+    ~NysseCardAppInfo();
 
-guint16 Util::uint16le(const guint8* data)
-{
-    return (((guint16)data[1]) << 8) + data[0];
-}
+    QString data() const;
+    void setData(QString aData);
 
-guint16 Util::uint16be(const guint8* data)
-{
-    return (((guint16)data[0]) << 8) + data[1];
-}
+    QString cardNumber() const;
 
-QString Util::toHex(const QByteArray aData)
-{
-    static const char hex[] = "0123456789abcdef";
-    const int n = aData.size();
-    const uchar* data = (uchar*)aData.constData();
-    char* buf = (char*)malloc(2*n + 1);
-    for (int i = 0; i < n; i++) {
-        const uchar b = data[i];
-        buf[2*i] = hex[(b & 0xf0) >> 4];
-        buf[2*i+1] = hex[b & 0x0f];
-    }
-    buf[2*n] = 0;
-    QString str(QLatin1String(buf, 2*n));
-    free(buf);
-    return str;
-}
+Q_SIGNALS:
+    void dataChanged();
+    void cardNumberChanged();
+
+private:
+    class Private;
+    Private* iPrivate;
+};
+
+QML_DECLARE_TYPE(NysseCardAppInfo)
+
+#endif // NYSSE_CARD_APP_INFO_H
