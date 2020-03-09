@@ -35,88 +35,23 @@ Page {
         cardImageUrl: Qt.resolvedUrl("images/hsl-card.svg")
     }
 
-    Item {
+    ListSwitcher {
         id: switcher
 
         anchors {
             top: header.bottom
             topMargin: Theme.paddingLarge
-            left: parent.left
-            leftMargin: Theme.horizontalPageMargin
             right: parent.right
             rightMargin: Theme.horizontalPageMargin
         }
 
-        height: highlighter.height
-
-        readonly property real maxButtonWidth: width - Theme.paddingLarge
-        readonly property real buttonWidth: Math.min(maxButtonWidth,
-                Math.max(detailsButton.implicitWidth, historyButton.implicitWidth) + 2 * Theme.paddingSmall)
-
-        Rectangle {
-            id: highlighter
-
-            readonly property real padding: Theme.paddingMedium
-            x: detailsButton.x - padding + (historyButton.x -  detailsButton.x) * (scroller.contentX - scroller.originX) / scroller.width
-            anchors.verticalCenter: parent.verticalCenter
-            radius: Theme.paddingMedium
-            width: switcher.buttonWidth + 2 * padding
-            height: Math.max(detailsButton.height, historyButton.height)
-            color: Theme.primaryColor
-            opacity: HarbourTheme.opacityFaint
-        }
-
-        PressableLabel {
-            id: detailsButton
-
-            anchors {
-                verticalCenter: parent.verticalCenter
-                right: historyButton.left
-                rightMargin: Theme.paddingLarge
-            }
-            width: switcher.buttonWidth
-            //: Switcher label
-            //% "Details"
-            text: qsTrId("matkakortti-switcher-details")
-            highlighted: scroller.currentIndex === 0
-            onClicked: { // Animate positionViewAtBeginning()
-                if (!scrollAnimation.running && scroller.contentX > scroller.originX) {
-                    scrollAnimation.from = scroller.contentX
-                    scrollAnimation.to = scroller.originX
-                    scrollAnimation.start()
-                }
-            }
-        }
-
-        PressableLabel {
-            id: historyButton
-
-            anchors {
-                verticalCenter: parent.verticalCenter
-                right: parent.right
-            }
-            width: switcher.buttonWidth
-            //: Switcher label
-            //% "History"
-            text: qsTrId("matkakortti-switcher-history")
-            highlighted: scroller.currentIndex === 1
-            onClicked: { // Animate positionViewAtEnd()
-                if (!scrollAnimation.running && scroller.contentX < scroller.maxContentX) {
-                    scrollAnimation.from = scroller.contentX
-                    scrollAnimation.to = scroller.maxContentX
-                    scrollAnimation.start()
-                }
-            }
-        }
-
-        NumberAnimation {
-            id: scrollAnimation
-
-            target: scroller
-            property: "contentX"
-            duration: 200
-            easing.type: Easing.InOutQuad
-        }
+        //: Switcher label
+        //% "Details"
+        leftLabel: qsTrId("matkakortti-switcher-details")
+        //: Switcher label
+        //% "History"
+        rightLabel: qsTrId("matkakortti-switcher-history")
+        list: scroller
     }
 
     SilicaListView {
@@ -126,10 +61,10 @@ Page {
         snapMode: ListView.SnapOneItem
         highlightRangeMode: ListView.StrictlyEnforceRange
         flickDeceleration: maximumFlickVelocity
-        interactive: !scrollAnimation.running
+        interactive: !switcher.animating
         clip: true
 
-        readonly property real maxContentX: scroller.originX + Math.max(0, contentWidth - width)
+        readonly property real maxContentX: originX + Math.max(0, contentWidth - width)
 
         anchors {
             top: switcher.bottom
