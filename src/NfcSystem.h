@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2019 Jolla Ltd.
- * Copyright (C) 2019 Slava Monich <slava@monich.comslava@monich.com>
+ * Copyright (C) 2019-2020 Jolla Ltd.
+ * Copyright (C) 2019-2020 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -46,8 +46,15 @@ class NfcSystem : public QObject {
     Q_PROPERTY(bool valid READ valid NOTIFY validChanged)
     Q_PROPERTY(bool present READ present NOTIFY presentChanged)
     Q_PROPERTY(bool enabled READ enabled NOTIFY enabledChanged)
+    Q_PROPERTY(int version READ version NOTIFY versionChanged)
+    Q_ENUMS(DaemonVersions)
 
 public:
+    enum DaemonVersions {
+        Version_1_0_26 = 0x0100001a,
+        MinimumVersionForNysseSupport = Version_1_0_26
+    };
+
     NfcSystem(QObject* aParent = Q_NULLPTR);
     ~NfcSystem();
 
@@ -57,11 +64,13 @@ public:
     bool valid() const;
     bool present() const;
     bool enabled() const;
+    int version() const;
 
 Q_SIGNALS:
     void validChanged();
     void presentChanged();
     void enabledChanged();
+    void versionChanged();
 
 private:
     class Private;

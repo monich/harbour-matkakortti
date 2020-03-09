@@ -41,12 +41,7 @@
 
 #include "HarbourDebug.h"
 
-enum daemon_events {
-    DAEMON_EVENT_VALID,
-    DAEMON_EVENT_PRESENT,
-    DAEMON_EVENT_ENABLED,
-    DAEMON_EVENT_COUNT
-};
+G_STATIC_ASSERT(NfcSystem::Version_1_0_26 == NFC_DAEMON_VERSION(1,0,26));
 
 // ==========================================================================
 // NfcSystem::Private
@@ -58,31 +53,39 @@ public:
     Private(NfcSystem* aParent);
     ~Private();
 
-    static void validChanged(NfcDaemonClient* aDaemon,
-        NFC_DAEMON_PROPERTY aProperty, void* aTarget);
-    static void presentChanged(NfcDaemonClient* aDaemon,
-        NFC_DAEMON_PROPERTY aProperty, void* aTarget);
-    static void enabledChanged(NfcDaemonClient* aDaemon,
+    static const char* SIGNAL_NAME[];
+    static void propertyChanged(NfcDaemonClient* aDaemon,
         NFC_DAEMON_PROPERTY aProperty, void* aTarget);
 
 public:
     NfcDaemonClient* iDaemon;
-    gulong iDaemonEventId[DAEMON_EVENT_COUNT];
+    gulong iDaemonEventId[4]; // Must match number of non-NULLs below:
+};
+
+const char* NfcSystem::Private::SIGNAL_NAME[] = {
+    NULL,               // NFC_DAEMON_PROPERTY_ANY
+    "validChanged",     // NFC_DAEMON_PROPERTY_VALID
+    "presentChanged",   // NFC_DAEMON_PROPERTY_PRESENT
+    NULL,               // NFC_DAEMON_PROPERTY_ERROR
+    "enabledChanged",   // NFC_DAEMON_PROPERTY_ENABLED
+    NULL,               // NFC_DAEMON_PROPERTY_ADAPTERS
+    "versionChanged"    // NFC_DAEMON_PROPERTY_VERSION
 };
 
 NfcSystem::Private::Private(NfcSystem* aParent) :
     iDaemon(nfc_daemon_client_new())
 {
-    memset(iDaemonEventId, 0, sizeof(iDaemonEventId));
-    iDaemonEventId[DAEMON_EVENT_VALID] =
-        nfc_daemon_client_add_property_handler(iDaemon,
-            NFC_DAEMON_PROPERTY_VALID, validChanged, aParent);
-    iDaemonEventId[DAEMON_EVENT_PRESENT] =
-        nfc_daemon_client_add_property_handler(iDaemon,
-            NFC_DAEMON_PROPERTY_PRESENT, presentChanged, aParent);
-    iDaemonEventId[DAEMON_EVENT_ENABLED] =
-        nfc_daemon_client_add_property_handler(iDaemon,
-            NFC_DAEMON_PROPERTY_ENABLED, enabledChanged, aParent);
+    int k = 0;
+    for (int i = 0; i < NFC_DAEMON_PROPERTY_COUNT; i++) {
+        if (SIGNAL_NAME[i]) {
+            iDaemonEventId[k++] =
+                nfc_daemon_client_add_property_handler(iDaemon,
+                    (NFC_DAEMON_PROPERTY)i, propertyChanged, aParent);
+        }
+    }
+    HASSERT(k == G_N_ELEMENTS(iDaemonEventId));
+    G_STATIC_ASSERT(G_N_ELEMENTS(NfcSystem::Private::SIGNAL_NAME) ==
+        NFC_DAEMON_PROPERTY_COUNT);
 }
 
 NfcSystem::Private::~Private()
@@ -94,22 +97,10 @@ NfcSystem::Private::~Private()
 // Qt calls from glib callbacks better go through QMetaObject::invokeMethod
 // See https://bugreports.qt.io/browse/QTBUG-18434 for details
 
-void NfcSystem::Private::validChanged(NfcDaemonClient*,
-    NFC_DAEMON_PROPERTY, void* aTarget)
+void NfcSystem::Private::propertyChanged(NfcDaemonClient*,
+    NFC_DAEMON_PROPERTY aProperty, void* aTarget)
 {
-    QMetaObject::invokeMethod((QObject*)aTarget, "validChanged");
-}
-
-void NfcSystem::Private::presentChanged(NfcDaemonClient*,
-    NFC_DAEMON_PROPERTY, void* aTarget)
-{
-    QMetaObject::invokeMethod((QObject*)aTarget, "presentChanged");
-}
-
-void NfcSystem::Private::enabledChanged(NfcDaemonClient*,
-    NFC_DAEMON_PROPERTY, void* aTarget)
-{
-    QMetaObject::invokeMethod((QObject*)aTarget, "enabledChanged");
+    QMetaObject::invokeMethod((QObject*)aTarget, SIGNAL_NAME[aProperty]);
 }
 
 // ==========================================================================
@@ -145,4 +136,9 @@ bool NfcSystem::present() const
 bool NfcSystem::enabled() const
 {
     return iPrivate->iDaemon->enabled;
+}
+
+int NfcSystem::version() const
+{
+    return iPrivate->iDaemon->version;
 }

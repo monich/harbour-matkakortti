@@ -16,6 +16,7 @@ Page {
     readonly property bool targetPresent: NfcAdapter.targetPresent
     readonly property bool unrecorgnizedCard: targetPresent && travelCard.cardState === TravelCard.CardNone && !readTimer.running
     readonly property bool readingCard: travelCard.cardState === TravelCard.CardReading || readTimer.running
+    readonly property bool nysseSupported: NfcSystem.version >= NfcSystem.MinimumVersionForNysseSupport
     property bool showingCardInfo: !!cardInfoPage
     property Page cardInfoPage
 
@@ -152,6 +153,7 @@ Page {
                     sourceSize.height: parent.cardImageHeight
                     source: Qt.resolvedUrl("nysse/images/nysse-card.svg")
                     rotation: 105
+                    visible: nysseSupported
                     z: (lastCardType.value === "Nysse") ? 1 : 0
                 }
 
@@ -159,7 +161,7 @@ Page {
                     anchors.centerIn: parent
                     sourceSize.height: parent.cardImageHeight
                     source: Qt.resolvedUrl("hsl/images/hsl-card.svg")
-                    rotation: 60
+                    rotation: nysseSupported ? 60 : 90
                     z: (lastCardType.value === "HSL") ? 1 : 0
                 }
             }
