@@ -199,7 +199,7 @@ Page {
                     targetPresent ? (
                     travelCard.cardState === TravelCard.CardNone ?
                         //: Info label
-                        //% "This is not an HSL travel card"
+                        //% "This is not a supported travel card"
                         qsTrId("matkakortti-info-card_not_supported") : "") :
                     (NfcSystem.enabled ?
                         //: Info label

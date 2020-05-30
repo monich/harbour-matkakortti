@@ -14,9 +14,9 @@
         <translation>NFC nie jest wpierane</translation>
     </message>
     <message id="matkakortti-info-card_not_supported">
-        <source>This is not an HSL travel card</source>
+        <source>This is not a supported travel card</source>
         <extracomment>Info label</extracomment>
-        <translation>To nie jest HSL travel card</translation>
+        <translation>Ta karta nie jest obsługiwana</translation>
     </message>
     <message id="matkakortti-info-reading">
         <source>Reading the card</source>
