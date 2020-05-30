@@ -136,7 +136,7 @@
     <message id="matkakortti-details-ticket-valid_until-suffix">
         <source> </source>
         <extracomment>Suffix after the time ending the period</extracomment>
-        <translation type="unfinished">asti</translation>
+        <translation>asti</translation>
     </message>
     <message id="matkakortti-details-ticket-balance">
         <source>Balance:</source>
@@ -171,7 +171,7 @@
     <message id="matkakortti-history-remaining_balance">
         <source>Remaining balance:</source>
         <extracomment>Label</extracomment>
-        <translation type="unfinished">Jäljellä oleva arvo:</translation>
+        <translation>Jäljellä oleva arvo:</translation>
     </message>
     <message id="matkakortti-history-time">
         <source>Time:</source>
