@@ -193,6 +193,7 @@ SilicaFlickable {
                         //% "Group size:"
                         title: qsTrId("matkakortti-details-ticket-group_size")
                         value: eTicket.groupSize
+                        visible: eTicket.groupSize > 1
                     }
 
                     ValueLabel {
