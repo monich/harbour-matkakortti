@@ -16,7 +16,7 @@
     <message id="matkakortti-info-card_not_supported">
         <source>This is not a supported travel card</source>
         <extracomment>Info label</extracomment>
-        <translation type="unfinished">这不是受支持的旅行卡</translation>
+        <translation>这不是受支持的旅行卡</translation>
     </message>
     <message id="matkakortti-info-reading">
         <source>Reading the card</source>
@@ -141,7 +141,7 @@
     <message id="matkakortti-details-ticket-balance">
         <source>Balance:</source>
         <extracomment>Label (available amount of money)</extracomment>
-        <translation type="unfinished">结余：</translation>
+        <translation>结余：</translation>
     </message>
     <message id="matkakortti-card-validity-valid">
         <source>Valid</source>
@@ -166,7 +166,7 @@
     <message id="matkakortti-history-transaction_type">
         <source>Season ticket or boarding</source>
         <extracomment>Label (transaction type)</extracomment>
-        <translation>季卡或单次登车</translation>
+        <translation>季卡或单次乘车</translation>
     </message>
     <message id="matkakortti-history-remaining_balance">
         <source>Remaining balance:</source>
@@ -176,7 +176,7 @@
     <message id="matkakortti-history-time">
         <source>Time:</source>
         <extracomment>Label (generic timestamp, date + time)</extracomment>
-        <translation type="unfinished">时间：</translation>
+        <translation>时间：</translation>
     </message>
 </context>
 </TS>
