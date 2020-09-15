@@ -121,11 +121,13 @@ HEADERS += \
     $${HARBOUR_LIB_INCLUDE}/HarbourDebug.h \
     $${HARBOUR_LIB_INCLUDE}/HarbourImageProvider.h \
     $${HARBOUR_LIB_INCLUDE}/HarbourSystemTime.h \
+    $${HARBOUR_LIB_INCLUDE}/HarbourSystem.h \
     $${HARBOUR_LIB_INCLUDE}/HarbourTheme.h
 
 SOURCES += \
     $${HARBOUR_LIB_SRC}/HarbourImageProvider.cpp \
     $${HARBOUR_LIB_SRC}/HarbourSystemTime.cpp \
+    $${HARBOUR_LIB_SRC}/HarbourSystem.cpp \
     $${HARBOUR_LIB_SRC}/HarbourTheme.cpp
 
 HARBOUR_QML_COMPONENTS =
