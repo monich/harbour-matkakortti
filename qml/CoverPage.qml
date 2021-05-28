@@ -2,6 +2,8 @@ import QtQuick 2.0
 import Sailfish.Silica 1.0
 import harbour.matkakortti 1.0
 
+import "harbour"
+
 CoverBackground {
     id: cover
 
@@ -30,29 +32,31 @@ CoverBackground {
             var m = Math.floor((secs % 3600) / 60)
             return h + ":" + int2(m) + ":" + int2(secs % 60)
         } else if (secs >= 60) {
-            var m = Math.floor(secs / 60)
-            return m + ":" + int2(secs % 60)
+            var min = Math.floor(secs / 60)
+            return min + ":" + int2(secs % 60)
         } else {
             return "0:" + int2(secs % 60)
         }
     }
 
-    Image {
+    HarbourHighlightIcon {
         anchors.centerIn: parent
         sourceSize: Qt.size(parent.width + extraSize, parent.height + extraSize)
-        source: "image://harbour/" + Qt.resolvedUrl("images/cover-bg.svg") + "?" + Theme.primaryColor
+        source: "images/cover-bg.svg"
         smooth: true
         fillMode: Image.PreserveAspectCrop
+        highlightColor: Theme.primaryColor
+        opacity: unrecorgnizedCard ? 0 : 1
+        visible: opacity > 0
+        Behavior on opacity { FadeAnimation {} }
     }
 
-    Image {
+    HarbourHighlightIcon {
         anchors.centerIn: parent
         width: Math.floor(3 * parent.width / 4)
         height: width
         sourceSize: Qt.size(width, height)
-        source: unrecorgnizedCard ?
-            "image://harbour/" + Qt.resolvedUrl("images/hmm.svg") + "?" + Theme.highlightColor :
-            ""
+        source: unrecorgnizedCard ? "images/hmm.svg" : ""
         smooth: true
         opacity: unrecorgnizedCard ? 1 : 0
         visible: opacity > 0

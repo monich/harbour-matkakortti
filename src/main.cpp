@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2019-2020 Jolla Ltd.
- * Copyright (C) 2019-2020 Slava Monich <slava@monich.com>
+ * Copyright (C) 2019-2021 Jolla Ltd.
+ * Copyright (C) 2019-2021 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -44,7 +44,6 @@
 #include "HarbourDebug.h"
 #include "HarbourTheme.h"
 #include "HarbourSystemTime.h"
-#include "HarbourImageProvider.h"
 
 #include "gutil_log.h"
 
@@ -98,10 +97,6 @@ int main(int argc, char *argv[])
 
     // Create the view
     QQuickView* view = SailfishApp::createView();
-    QQmlContext* context = view->rootContext();
-    QQmlEngine* engine = context->engine();
-
-    engine->addImageProvider("harbour", new HarbourImageProvider);
 
     // Initialize the view and show it
     view->setTitle(qtTrId("matkakortti-app_name"));

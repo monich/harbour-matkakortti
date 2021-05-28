@@ -4,6 +4,7 @@ import org.nemomobile.configuration 1.0
 import harbour.matkakortti 1.0
 
 import "components"
+import "harbour"
 
 Page {
     id: page
@@ -12,7 +13,6 @@ Page {
     showNavigationIndicator: false
 
     readonly property string settingsPath: "/apps/harbour-matkakortti/"
-    readonly property url hmmImageUrl: "image://harbour/" + Qt.resolvedUrl("images/hmm.svg") + "?" + Theme.highlightColor
     readonly property bool targetPresent: NfcAdapter.targetPresent
     readonly property bool unrecorgnizedCard: targetPresent && travelCard.cardState === TravelCard.CardNone && !readTimer.running
     readonly property bool readingCard: travelCard.cardState === TravelCard.CardReading || readTimer.running
@@ -113,12 +113,12 @@ Page {
 
             Behavior on opacity { FadeAnimation {} }
 
-            Image {
+            HarbourHighlightIcon {
                 y: (parent.height/2 - height)/2
                 anchors.horizontalCenter: parent.horizontalCenter
                 height: page.width/2
                 sourceSize.height: height
-                source: parent.visible ? hmmImageUrl : ""
+                source: parent.visible ? "images/hmm.svg" : ""
                 smooth: true
             }
 
@@ -176,12 +176,12 @@ Page {
                 Behavior on opacity { FadeAnimation {} }
             }
 
-            Image {
+            HarbourHighlightIcon {
                 y: (parent.height/2 - height)/2
                 anchors.horizontalCenter: parent.horizontalCenter
                 height: page.width/2
                 sourceSize.height: height
-                source: visible ? hmmImageUrl : ""
+                source: visible ? "images/hmm.svg" : ""
                 smooth: true
                 opacity: (!readingCard && unrecorgnizedCard) ? 1 : 0
                 visible: opacity > 0
