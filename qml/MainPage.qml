@@ -3,6 +3,7 @@ import Sailfish.Silica 1.0
 import org.nemomobile.configuration 1.0
 import harbour.matkakortti 1.0
 
+import "components/Utils.js" as Matkakortti
 import "components"
 import "harbour"
 
@@ -12,7 +13,6 @@ Page {
     backNavigation: false
     showNavigationIndicator: false
 
-    readonly property string settingsPath: "/apps/harbour-matkakortti/"
     readonly property bool targetPresent: NfcAdapter.targetPresent
     readonly property bool unrecorgnizedCard: targetPresent && travelCard.cardState === TravelCard.CardNone && !readTimer.running
     readonly property bool readingCard: travelCard.cardState === TravelCard.CardReading || readTimer.running
@@ -36,7 +36,7 @@ Page {
     ConfigurationValue {
         id: lastCardType
 
-        key: settingsPath + "lastCardType"
+        key: Matkakortti.configLastCardType
     }
 
     TravelCard {

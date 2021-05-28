@@ -1,7 +1,9 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
+import org.nemomobile.configuration 1.0
 import harbour.matkakortti 1.0
 
+import "components/Utils.js" as Matkakortti
 import "harbour"
 
 CoverBackground {
@@ -26,6 +28,12 @@ CoverBackground {
         return i < 10 ? ("0" + i) : i
     }
 
+    ConfigurationValue {
+        id: lastCardType
+
+        key: Matkakortti.configLastCardType
+    }
+
     function timeRemainingString(secs) {
         if (secs >= 3600) {
             var h = Math.floor(secs / 3600)
@@ -42,7 +50,7 @@ CoverBackground {
     HarbourHighlightIcon {
         anchors.centerIn: parent
         sourceSize: Qt.size(parent.width + extraSize, parent.height + extraSize)
-        source: "images/cover-bg.svg"
+        source: (lastCardType.value === "Nysse") ? "nysse/images/nysse-cover.svg" : "hsl/images/hsl-cover.svg"
         smooth: true
         fillMode: Image.PreserveAspectCrop
         highlightColor: Theme.primaryColor

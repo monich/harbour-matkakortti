@@ -1,6 +1,9 @@
 .pragma library
 .import harbour.matkakortti 1.0 as MatkaKortti
 
+var configRoot = "/apps/harbour-matkakortti/"
+var configLastCardType = configRoot + "lastCardType"
+
 function moneyString(value) {
     return value ? ((value/100.0).toFixed(2) + " €") : ""
 }
