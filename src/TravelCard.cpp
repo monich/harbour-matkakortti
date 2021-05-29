@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2019-2020 Jolla Ltd.
- * Copyright (C) 2019-2020 Slava Monich <slava@monich.com>
+ * Copyright (C) 2019-2021 Jolla Ltd.
+ * Copyright (C) 2019-2021 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -61,6 +61,9 @@ public:
     static void deleteObjectLater(QObject* aObject);
     TravelCard* parentObject() const;
     void setPath(QString aPath);
+    bool setDefaultCardType(QString aType);
+    int currentCardTypeIndex() const;
+    const TravelCardImpl::CardDesc* currentCardDesc() const;
     void tryNext();
 
 private Q_SLOTS:
@@ -70,23 +73,25 @@ private Q_SLOTS:
 public:
     QString iPath;
     TravelCardImpl* iCardImpl;
-    int iImplIndex;
+    int iCurrentStep;
+    int iDefaultCardTypeIndex;
     CardState iCardState;
     QVariantMap iCardInfo;
     QString iPageUrl;
 };
 
-TravelCard::Private::Private(TravelCard* aParent) :
-    QObject(aParent),
-    iCardImpl(Q_NULLPTR),
-    iImplIndex(-1),
-    iCardState(CardNone)
-{
-}
-
 const TravelCardImpl::CardDesc* const TravelCard::Private::gCardTypes[] = {
     &HslCard::Desc, &NysseCard::Desc
 };
+
+TravelCard::Private::Private(TravelCard* aParent) :
+    QObject(aParent),
+    iCardImpl(Q_NULLPTR),
+    iCurrentStep(-1),
+    iDefaultCardTypeIndex(0),
+    iCardState(CardNone)
+{
+}
 
 TravelCard::Private::~Private()
 {
@@ -96,6 +101,18 @@ TravelCard::Private::~Private()
 inline TravelCard* TravelCard::Private::parentObject() const
 {
     return qobject_cast<TravelCard*>(parent());
+}
+
+inline int TravelCard::Private::currentCardTypeIndex() const
+{
+    return (iCurrentStep >= 0 && iCurrentStep < (int) G_N_ELEMENTS(gCardTypes)) ?
+        ((iCurrentStep + iDefaultCardTypeIndex) % G_N_ELEMENTS(gCardTypes)) : (-1);
+}
+
+const TravelCardImpl::CardDesc* TravelCard::Private::currentCardDesc() const
+{
+    const int typeIndex = currentCardTypeIndex();
+    return (typeIndex >= 0) ? gCardTypes[typeIndex] : Q_NULLPTR;
 }
 
 void TravelCard::Private::deleteObjectLater(QObject* aObject)
@@ -109,10 +126,27 @@ void TravelCard::Private::setPath(QString aPath)
     if (iPath != aPath) {
         iPath = aPath;
         HDEBUG(aPath);
-        iImplIndex = aPath.isEmpty() ? G_N_ELEMENTS(gCardTypes) : (-1);
+        iCurrentStep = aPath.isEmpty() ? G_N_ELEMENTS(gCardTypes) : (-1);
         tryNext();
         parentObject()->pathChanged();
     }
+}
+
+bool TravelCard::Private::setDefaultCardType(QString aType)
+{
+    for (int i = 0; i < (int) G_N_ELEMENTS(gCardTypes); i++) {
+        if (gCardTypes[i]->iName == aType) {
+            HDEBUG(aType);
+            if (iDefaultCardTypeIndex != i) {
+                iDefaultCardTypeIndex = i;
+                return true; // Emit the change event
+            } else {
+                return false;
+            }
+        }
+    }
+    HWARN("Unknown card type" << aType);
+    return false;
 }
 
 void TravelCard::Private::tryNext()
@@ -124,11 +158,12 @@ void TravelCard::Private::tryNext()
         deleteObjectLater(iCardImpl);
         iCardImpl = Q_NULLPTR;
     }
-    if (++iImplIndex < (int)G_N_ELEMENTS(gCardTypes)) {
-        HDEBUG(gCardTypes[iImplIndex]->iName);
+    if (++iCurrentStep < (int)G_N_ELEMENTS(gCardTypes)) {
+        const int typeIndex = currentCardTypeIndex();
+        HDEBUG(gCardTypes[typeIndex]->iName);
         iCardInfo.clear();
         iCardState = CardReading;
-        iCardImpl = gCardTypes[iImplIndex]->iNewCard(iPath, this);
+        iCardImpl = gCardTypes[typeIndex]->iNewCard(iPath, this);
         connect(iCardImpl, SIGNAL(readFailed()), SLOT(onReadFailed()));
         connect(iCardImpl,
             SIGNAL(readDone(QString,QVariantMap)),
@@ -147,19 +182,19 @@ void TravelCard::Private::tryNext()
 
 void TravelCard::Private::onReadFailed()
 {
-    HDEBUG(gCardTypes[iImplIndex]->iName);
+    HDEBUG(currentCardDesc()->iName);
     tryNext();
 }
 
 void TravelCard::Private::onReadDone(QString aPageUrl, QVariantMap aCardInfo)
 {
-    HDEBUG(gCardTypes[iImplIndex]->iName << aPageUrl << aCardInfo);
+    HDEBUG(currentCardDesc()->iName << aPageUrl << aCardInfo);
     iCardImpl->disconnect(this);
     deleteObjectLater(iCardImpl);
     iCardImpl = Q_NULLPTR;
     iCardState = CardRecognized;
     iCardInfo = aCardInfo;
-    iImplIndex = -1;
+    iCurrentStep = -1;
     TravelCard* obj = parentObject();
     if (iPageUrl != aPageUrl) {
         iPageUrl = aPageUrl;
@@ -209,6 +244,18 @@ QString TravelCard::path() const
 void TravelCard::setPath(QString aPath)
 {
     iPrivate->setPath(aPath);
+}
+
+QString TravelCard::defaultCardType() const
+{
+    return Private::gCardTypes[iPrivate->iDefaultCardTypeIndex]->iName;
+}
+
+void TravelCard::setDefaultCardType(QString aName)
+{
+    if (iPrivate->setDefaultCardType(aName)) {
+        Q_EMIT defaultCardTypeChanged();
+    }
 }
 
 #include "TravelCard.moc"

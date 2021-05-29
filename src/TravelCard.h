@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2019-2020 Jolla Ltd.
- * Copyright (C) 2019-2020 Slava Monich <slava@monich.com>
+ * Copyright (C) 2019-2021 Jolla Ltd.
+ * Copyright (C) 2019-2021 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -44,6 +44,7 @@ class TravelCard : public QObject {
     Q_OBJECT
     Q_DISABLE_COPY(TravelCard)
     Q_PROPERTY(QString path READ path WRITE setPath NOTIFY pathChanged)
+    Q_PROPERTY(QString defaultCardType READ defaultCardType WRITE setDefaultCardType NOTIFY defaultCardTypeChanged)
     Q_PROPERTY(CardState cardState READ cardState NOTIFY cardStateChanged)
     Q_PROPERTY(QVariantMap cardInfo READ cardInfo NOTIFY cardInfoChanged)
     Q_PROPERTY(QString pageUrl READ pageUrl NOTIFY pageUrlChanged)
@@ -69,6 +70,9 @@ public:
     QString path() const;
     void setPath(QString aPath);
 
+    QString defaultCardType() const;
+    void setDefaultCardType(QString aType);
+
     CardState cardState() const;
     QVariantMap cardInfo() const;
     QString pageUrl() const;
@@ -77,6 +81,7 @@ public:
 
 Q_SIGNALS:
     void pathChanged();
+    void defaultCardTypeChanged();
     void cardStateChanged();
     void cardInfoChanged();
     void pageUrlChanged();

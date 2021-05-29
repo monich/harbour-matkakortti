@@ -43,6 +43,7 @@ Page {
         id: travelCard
 
         path: NfcAdapter.tagPath
+        defaultCardType: lastCardType.value
         onCardStateChanged: {
             switch (cardState) {
             case TravelCard.CardReading:
