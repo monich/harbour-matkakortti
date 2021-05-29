@@ -2,40 +2,33 @@ import QtQuick 2.0
 import Sailfish.Silica 1.0
 import QtGraphicalEffects 1.0
 
-ShaderEffectSource {
+Item {
     property alias source: image.source
     property alias sourceSize: image.sourceSize
 
-    height: item.height
-    width: item.width
+    height: image.height + 2 * Theme.paddingLarge
+    width: image.width + 2 * Theme.paddingLarge
 
-    sourceItem: Item {
-        id: item
+    Image {
+        id: shadow
 
-        height: image.height + 2 * Theme.paddingLarge
-        width: image.width + 2 * Theme.paddingLarge
+        anchors.centerIn: parent
+        sourceSize: Qt.size(image.width, image.height)
+        source: Qt.resolvedUrl("../images/card-mask.svg")
+        smooth: true
+        visible: false
+    }
 
-        Image {
-            id: shadow
+    FastBlur {
+        source: shadow
+        anchors.fill: shadow
+        radius: 32
+        transparentBorder: true
+    }
 
-            anchors.centerIn: parent
-            sourceSize: Qt.size(image.width, image.height)
-            source: Qt.resolvedUrl("../images/card-mask.svg")
-            smooth: true
-            visible: false
-        }
+    CardImage {
+        id: image
 
-        FastBlur {
-            source: shadow
-            anchors.fill: shadow
-            radius: 32
-            transparentBorder: true
-        }
-
-        CardImage {
-            id: image
-
-            anchors.centerIn: parent
-        }
+        anchors.centerIn: parent
     }
 }

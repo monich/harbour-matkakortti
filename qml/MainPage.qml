@@ -108,7 +108,6 @@ Page {
         anchors.fill: parent
         opacity: (NfcSystem.valid && (!NfcSystem.present || !NfcAdapter.present)) ? 1 : 0
         visible: opacity > 0
-
         Behavior on opacity { FadeAnimation {} }
 
         HarbourHighlightIcon {
@@ -131,41 +130,41 @@ Page {
 
     Item {
         anchors.fill: parent
-        opacity: (NfcSystem.valid && NfcSystem.present && NfcAdapter.present) ? 1 : 0
-        visible: opacity > 0
+        visible: (NfcSystem.valid && NfcSystem.present && NfcAdapter.present)
 
-        Behavior on opacity { FadeAnimation {} }
-
-        Item {
-            id: cardImages
-
-            width: parent.width
-            height: parent.height/2
+        ShaderEffectSource {
+            width: cardImages.width
+            height: cardImages.height
             opacity: (!readingCard && !targetPresent) ? 1 : 0
             visible: opacity > 0
+            sourceItem: Item {
+                id: cardImages
 
-            property real cardImageHeight: Math.round(2*width/5)
+                width: page.width
+                height: page.height/2
 
+                property real cardImageHeight: Math.round(2*width/5)
+
+                CardImageWithShadow {
+                    anchors.centerIn: parent
+                    sourceSize.height: parent.cardImageHeight
+                    source: Qt.resolvedUrl("nysse/images/nysse-card.svg")
+                    rotation: 105
+                    visible: nysseSupported
+                    z: (lastCardType.value === "Nysse") ? 1 : 0
+                }
+
+                CardImageWithShadow {
+                    id: hslImage
+
+                    anchors.centerIn: parent
+                    sourceSize.height: parent.cardImageHeight
+                    source: Qt.resolvedUrl("hsl/images/hsl-card.svg")
+                    rotation: nysseSupported ? 60 : 90
+                    z: (lastCardType.value === "HSL") ? 1 : 0
+                }
+            }
             Behavior on opacity { FadeAnimation {} }
-
-            CardImageWithShadow {
-                anchors.centerIn: parent
-                sourceSize.height: parent.cardImageHeight
-                source: Qt.resolvedUrl("nysse/images/nysse-card.svg")
-                rotation: 105
-                visible: nysseSupported
-                z: (lastCardType.value === "Nysse") ? 1 : 0
-            }
-
-            CardImageWithShadow {
-                id: hslImage
-
-                anchors.centerIn: parent
-                sourceSize.height: parent.cardImageHeight
-                source: Qt.resolvedUrl("hsl/images/hsl-card.svg")
-                rotation: nysseSupported ? 60 : 90
-                z: (lastCardType.value === "HSL") ? 1 : 0
-            }
         }
 
         BusyIndicator {
@@ -187,6 +186,7 @@ Page {
             smooth: true
             opacity: (!readingCard && unrecorgnizedCard) ? 1 : 0
             visible: opacity > 0
+            Behavior on opacity { FadeAnimation {} }
         }
 
         InfoLabel {
@@ -231,7 +231,10 @@ Page {
             text: qsTrId("matkakortti-info-touch_hint")
             opacity: (NfcSystem.enabled && !targetPresent && !readingCard) ? HarbourTheme.opacityHigh : 0
             visible: opacity > 0
-            Behavior on opacity { FadeAnimation {} }
+            Behavior on opacity {
+                enabled: NfcSystem.valid
+                FadeAnimation {}
+            }
         }
     }
 }
