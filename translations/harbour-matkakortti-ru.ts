@@ -23,11 +23,6 @@
         <extracomment>Info label</extracomment>
         <translation>Подождите, не убирайте карточку</translation>
     </message>
-    <message id="matkakortti-info-ready">
-        <source>Ready</source>
-        <extracomment>Info label</extracomment>
-        <translation>Приложение готово</translation>
-    </message>
     <message id="matkakortti-info-disabled">
         <source>NFC is disabled</source>
         <extracomment>Info label</extracomment>

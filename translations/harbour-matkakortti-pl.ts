@@ -23,11 +23,6 @@
         <extracomment>Info label</extracomment>
         <translation>Czytanie karty</translation>
     </message>
-    <message id="matkakortti-info-ready">
-        <source>Ready</source>
-        <extracomment>Info label</extracomment>
-        <translation>Gotowy</translation>
-    </message>
     <message id="matkakortti-info-disabled">
         <source>NFC is disabled</source>
         <extracomment>Info label</extracomment>

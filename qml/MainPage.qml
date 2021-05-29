@@ -103,131 +103,134 @@ Page {
         }
     }
 
-    SilicaFlickable {
+    Item {
         anchors.fill: parent
+        opacity: (NfcSystem.valid && (!NfcSystem.present || !NfcAdapter.present)) ? 1 : 0
+        visible: opacity > 0
+
+        Behavior on opacity { FadeAnimation {} }
+
+        HarbourHighlightIcon {
+            y: (parent.height/2 - height)/2
+            anchors.horizontalCenter: parent.horizontalCenter
+            height: page.width/2
+            sourceSize.height: height
+            source: parent.visible ? "images/hmm.svg" : ""
+            smooth: true
+        }
+
+        InfoLabel {
+            y: parent.height/2
+            //: Info label
+            //% "NFC not supported"
+            text: qsTrId("matkakortti-info-nfc_not_supported")
+            visible: !NfcSystem.present
+        }
+    }
+
+    Item {
+        anchors.fill: parent
+        opacity: (NfcSystem.valid && NfcSystem.present && NfcAdapter.present) ? 1 : 0
+        visible: opacity > 0
+
+        Behavior on opacity { FadeAnimation {} }
 
         Item {
-            anchors.fill: parent
-            opacity: (NfcSystem.valid && (!NfcSystem.present || !NfcAdapter.present)) ? 1 : 0
+            id: cardImages
+
+            width: parent.width
+            height: parent.height/2
+            opacity: (!readingCard && !targetPresent) ? 1 : 0
             visible: opacity > 0
+
+            property real cardImageHeight: Math.round(2*width/5)
 
             Behavior on opacity { FadeAnimation {} }
 
-            HarbourHighlightIcon {
-                y: (parent.height/2 - height)/2
-                anchors.horizontalCenter: parent.horizontalCenter
-                height: page.width/2
-                sourceSize.height: height
-                source: parent.visible ? "images/hmm.svg" : ""
-                smooth: true
+            CardImageWithShadow {
+                anchors.centerIn: parent
+                sourceSize.height: parent.cardImageHeight
+                source: Qt.resolvedUrl("nysse/images/nysse-card.svg")
+                rotation: 105
+                visible: nysseSupported
+                z: (lastCardType.value === "Nysse") ? 1 : 0
             }
 
-            InfoLabel {
-                y: parent.height/2
-                //: Info label
-                //% "NFC not supported"
-                text: qsTrId("matkakortti-info-nfc_not_supported")
-                visible: !NfcSystem.present
+            CardImageWithShadow {
+                id: hslImage
+
+                anchors.centerIn: parent
+                sourceSize.height: parent.cardImageHeight
+                source: Qt.resolvedUrl("hsl/images/hsl-card.svg")
+                rotation: nysseSupported ? 60 : 90
+                z: (lastCardType.value === "HSL") ? 1 : 0
             }
         }
 
-        Item {
-            anchors.fill: parent
-            opacity: (NfcSystem.valid && NfcSystem.present && NfcAdapter.present) ? 1 : 0
+        BusyIndicator {
+            y: (parent.height/2 - height)/2
+            anchors.horizontalCenter: parent.horizontalCenter
+            size: BusyIndicatorSize.Large
+            running: true
+            opacity: readingCard ? 1 : 0
             visible: opacity > 0
-
             Behavior on opacity { FadeAnimation {} }
+        }
 
-            Item {
-                width: parent.width
-                height: parent.height/2
-                opacity: (!readingCard && !targetPresent) ? 1 : 0
-                visible: opacity > 0
+        HarbourHighlightIcon {
+            y: (parent.height/2 - height)/2
+            anchors.horizontalCenter: parent.horizontalCenter
+            height: page.width/2
+            sourceSize.height: height
+            source: visible ? "images/hmm.svg" : ""
+            smooth: true
+            opacity: (!readingCard && unrecorgnizedCard) ? 1 : 0
+            visible: opacity > 0
+        }
 
-                property real cardImageHeight: Math.round(2*width/5)
+        InfoLabel {
+            id: statusLabel
 
-                Behavior on opacity { FadeAnimation {} }
+            y: parent.height/2
 
-                CardImage {
-                    anchors.centerIn: parent
-                    sourceSize.height: parent.cardImageHeight
-                    source: Qt.resolvedUrl("nysse/images/nysse-card.svg")
-                    rotation: 105
-                    visible: nysseSupported
-                    z: (lastCardType.value === "Nysse") ? 1 : 0
-                }
-
-                CardImage {
-                    anchors.centerIn: parent
-                    sourceSize.height: parent.cardImageHeight
-                    source: Qt.resolvedUrl("hsl/images/hsl-card.svg")
-                    rotation: nysseSupported ? 60 : 90
-                    z: (lastCardType.value === "HSL") ? 1 : 0
-                }
-            }
-
-            BusyIndicator {
-                y: (parent.height/2 - height)/2
-                anchors.horizontalCenter: parent.horizontalCenter
-                size: BusyIndicatorSize.Large
-                running: true
-                opacity: readingCard ? 1 : 0
-                visible: opacity > 0
-                Behavior on opacity { FadeAnimation {} }
-            }
-
-            HarbourHighlightIcon {
-                y: (parent.height/2 - height)/2
-                anchors.horizontalCenter: parent.horizontalCenter
-                height: page.width/2
-                sourceSize.height: height
-                source: visible ? "images/hmm.svg" : ""
-                smooth: true
-                opacity: (!readingCard && unrecorgnizedCard) ? 1 : 0
-                visible: opacity > 0
-            }
-
-            InfoLabel {
-                id: statusLabel
-
-                y: parent.height/2
-
-                text: readingCard ?
+            text: readingCard ?
+                //: Info label
+                //% "Reading the card"
+                qsTrId("matkakortti-info-reading") :
+                targetPresent ? (
+                travelCard.cardState === TravelCard.CardNone ?
                     //: Info label
-                    //% "Reading the card"
-                    qsTrId("matkakortti-info-reading") :
-                    targetPresent ? (
-                    travelCard.cardState === TravelCard.CardNone ?
-                        //: Info label
-                        //% "This is not a supported travel card"
-                        qsTrId("matkakortti-info-card_not_supported") : "") :
-                    (NfcSystem.enabled ?
-                        //: Info label
-                        //% "Ready"
-                        qsTrId("matkakortti-info-ready") :
-                        //: Info label
-                        //% "NFC is disabled"
-                        qsTrId("matkakortti-info-disabled"))
-            }
+                    //% "This is not a supported travel card"
+                    qsTrId("matkakortti-info-card_not_supported") : "") :
+                (NfcSystem.enabled ? "" :
+                    //: Info label
+                    //% "NFC is disabled"
+                    qsTrId("matkakortti-info-disabled"))
+        }
 
-            Text {
-                x: statusLabel.x
-                y: Math.floor((parent.height * 3 /2 - height)/2)
-                width: statusLabel.width
-                horizontalAlignment: Text.AlignHCenter
-                wrapMode: Text.Wrap
-                font {
-                    pixelSize: Theme.fontSizeLarge
-                    family: Theme.fontFamilyHeading
-                }
-                color: Theme.highlightColor
-                //: Hint label
-                //% "Place the phone on the card"
-                text: qsTrId("matkakortti-info-touch_hint")
-                opacity: (NfcSystem.enabled && !targetPresent && !readingCard) ? HarbourTheme.opacityHigh : 0
-                visible: opacity > 0
-                Behavior on opacity { FadeAnimation {} }
+        Text {
+            x: Theme.horizontalPageMargin
+            width: parent.width - 2 * x
+            height: Math.floor(parent.height/2)
+            anchors {
+                top: cardImages.bottom
+                bottom: parent.bottom
+                bottomMargin: Math.max(0, Math.round((cardImages.height - hslImage.width)/2))
             }
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            wrapMode: Text.Wrap
+            font {
+                pixelSize: Theme.fontSizeLarge
+                family: Theme.fontFamilyHeading
+            }
+            color: Theme.highlightColor
+            //: Hint label
+            //% "Place the phone on the card"
+            text: qsTrId("matkakortti-info-touch_hint")
+            opacity: (NfcSystem.enabled && !targetPresent && !readingCard) ? HarbourTheme.opacityHigh : 0
+            visible: opacity > 0
+            Behavior on opacity { FadeAnimation {} }
         }
     }
 }

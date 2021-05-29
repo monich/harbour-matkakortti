@@ -23,11 +23,6 @@
         <extracomment>Info label</extracomment>
         <translation>卡片</translation>
     </message>
-    <message id="matkakortti-info-ready">
-        <source>Ready</source>
-        <extracomment>Info label</extracomment>
-        <translation>就绪</translation>
-    </message>
     <message id="matkakortti-info-disabled">
         <source>NFC is disabled</source>
         <extracomment>Info label</extracomment>
