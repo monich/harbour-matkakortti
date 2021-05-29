@@ -36,12 +36,12 @@
     <message id="matkakortti-card-header">
         <source>Travel card</source>
         <extracomment>Page title</extracomment>
-        <translation type="unfinished">Karta podróżnicza</translation>
+        <translation>Karta podróżnicza</translation>
     </message>
     <message id="matkakortti-card_type-header">
         <source>%1 card</source>
         <extracomment>Page title</extracomment>
-        <translation type="unfinished">Karta %1</translation>
+        <translation>Karta %1</translation>
     </message>
     <message id="matkakortti-time_unit_abbr-min">
         <source>min</source>
