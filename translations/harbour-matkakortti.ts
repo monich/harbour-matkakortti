@@ -38,6 +38,11 @@
         <extracomment>Page title</extracomment>
         <translation>Travel card</translation>
     </message>
+    <message id="matkakortti-card_type-header">
+        <source>%1 card</source>
+        <extracomment>Page title</extracomment>
+        <translation>%1 card</translation>
+    </message>
     <message id="matkakortti-time_unit_abbr-min">
         <source>min</source>
         <extracomment>Time unit (abbreviated)</extracomment>

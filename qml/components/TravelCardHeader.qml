@@ -7,10 +7,15 @@ PageHeader {
     id: header
 
     property alias cardImageUrl: headerImage.source
+    property string cardType
 
-    //: Page title
-    //% "Travel card"
-    title: qsTrId("matkakortti-card-header")
+    title: cardType ?
+        //: Page title
+        //% "%1 card"
+        qsTrId("matkakortti-card_type-header").arg(cardType) :
+        //: Page title
+        //% "Travel card"
+        qsTrId("matkakortti-card-header")
 
     Rectangle {
         id: headerImageBackground

@@ -30,6 +30,7 @@ Page {
     TravelCardHeader {
         id: header
 
+        cardType: cardInfo.cardType
         description: appInfoParser.cardNumber
         cardImageUrl: Qt.resolvedUrl("images/nysse-card.svg")
     }
