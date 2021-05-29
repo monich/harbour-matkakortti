@@ -1,6 +1,6 @@
 Name:           harbour-matkakortti
-Summary:        Application for reading HSL travel cards
-Version:        1.1.1
+Summary:        Application for reading HSL and Tampere travel cards
+Version:        1.1.2
 Release:        1
 License:        BSD
 Group:          Applications/System
@@ -26,7 +26,7 @@ Requires: qt5-qtcore >= %{qt_version}
 %{?qtc_builddir:%define _builddir %qtc_builddir}
 
 %description
-Demonstrates use of NFC in Sailfish OS.
+Reads information off Helsinki and Tampere travel cards via NFC.
 
 %prep
 %setup -q -n %{name}-%{version}
