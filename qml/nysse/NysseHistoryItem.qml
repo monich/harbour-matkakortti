@@ -9,15 +9,16 @@ BackgroundItem {
     property int type
     property alias time: timestamp.value
     property int moneyAmount
+    property alias separator: bottomSeparator.visible
 
-    height: Math.max(implicitHeight, column.height + Theme.paddingLarge)
+    height: column.y + column.height
 
     Column {
         id: column
 
         x: Theme.horizontalPageMargin
+        y: Theme.paddingLarge/2
         width: parent.width - 2*x
-        anchors.verticalCenter: parent.verticalCenter
 
         ValueLabel {
             id: timestamp
@@ -36,5 +37,9 @@ BackgroundItem {
             value: Utils.moneyString(moneyAmount)
             visible: moneyAmount > 0
         }
+
+        VerticalSpace { height: column.y }
+
+        ListSeparator { id: bottomSeparator }
     }
 }

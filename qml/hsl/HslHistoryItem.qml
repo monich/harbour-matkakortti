@@ -11,15 +11,16 @@ BackgroundItem {
     property int price
     property int group
     property int saldo
+    property alias separator: bottomSeparator.visible
 
-    height: column.height + Theme.paddingLarge
+    height: column.y + column.height
 
     Column {
         id: column
 
         x: Theme.horizontalPageMargin
+        y: Theme.paddingLarge/2
         width: parent.width - 2*x
-        anchors.verticalCenter: parent.verticalCenter
 
         ValueLabel {
             id: boardingTime
@@ -68,5 +69,9 @@ BackgroundItem {
             title: qsTrId("matkakortti-history-remaining_balance")
             value: Utils.moneyString(saldo)
         }
+
+        VerticalSpace { height: column.y }
+
+        ListSeparator { id: bottomSeparator }
     }
 }

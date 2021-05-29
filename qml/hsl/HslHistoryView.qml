@@ -6,6 +6,8 @@ import "../components"
 import "../components/Utils.js" as Utils
 
 SilicaListView {
+    id: view
+
     header: Column {
         width: parent.width
 
@@ -25,6 +27,7 @@ SilicaListView {
         price: ticketPrice
         group: groupSize
         saldo: remainingValue
+        separator: (index + 1) < view.count
     }
 
     VerticalScrollDecorator { }
