@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2019-2020 Jolla Ltd.
- * Copyright (C) 2019-2020 Slava Monich <slava@monich.com>
+ * Copyright (C) 2019-2021 Jolla Ltd.
+ * Copyright (C) 2019-2021 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -52,7 +52,7 @@ protected:
 
 public:
     struct CardDesc {
-        const char* iName;
+        const QString iName;
         TravelCardImpl* (*iNewCard)(QString aPath, QObject* aParent);
         void (*iRegisterTypes)(const char* aUri, int v1, int v2);
     };
