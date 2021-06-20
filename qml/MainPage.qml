@@ -214,9 +214,9 @@ Page {
             width: parent.width - 2 * x
             height: Math.floor(parent.height/2)
             anchors {
-                top: cardImages.bottom
+                top: parent.top
+                topMargin: cardImages.height - Theme.itemSizeMedium
                 bottom: parent.bottom
-                bottomMargin: Math.max(0, Math.round((cardImages.height - hslImage.width)/2))
             }
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
