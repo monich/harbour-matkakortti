@@ -6,8 +6,10 @@ CONFIG += sailfishapp link_pkgconfig
 PKGCONFIG += sailfishapp glib-2.0 gobject-2.0 gio-unix-2.0
 QT += qml quick dbus
 
-QMAKE_CXXFLAGS += -Wno-unused-parameter -Wno-psabi
-QMAKE_CFLAGS += -Wno-unused-parameter
+DEFINES += NFCDC_NEED_PEER_SERVICE=0
+QMAKE_CXXFLAGS += -Wno-unused-parameter -flto -fPIC
+QMAKE_CFLAGS += -Wno-unused-parameter -flto -fPIC
+QMAKE_LFLAGS += -flto -fPIC
 LIBS += -ldl
 
 TARGET_DATA_DIR = /usr/share/$${TARGET}
@@ -28,6 +30,7 @@ CONFIG(debug, debug|release) {
 HARBOUR_LIB_DIR = $${_PRO_FILE_PWD_}/harbour-lib
 LIBGLIBUTIL_DIR = $${_PRO_FILE_PWD_}/libglibutil
 LIBGNFCDC_DIR = $${_PRO_FILE_PWD_}/libgnfcdc
+LIBQNFCDC_DIR = $${_PRO_FILE_PWD_}/libqnfcdc
 
 # Files
 
@@ -74,7 +77,14 @@ HEADERS += \
     $${LIBGNFCDC_SRC}/*.h
 
 SOURCES += \
-    $${LIBGNFCDC_SRC}/*.c
+    $${LIBGNFCDC_SRC}/nfcdc_adapter.c \
+    $${LIBGNFCDC_SRC}/nfcdc_base.c \
+    $${LIBGNFCDC_SRC}/nfcdc_daemon.c \
+    $${LIBGNFCDC_SRC}/nfcdc_default_adapter.c \
+    $${LIBGNFCDC_SRC}/nfcdc_error.c \
+    $${LIBGNFCDC_SRC}/nfcdc_isodep.c \
+    $${LIBGNFCDC_SRC}/nfcdc_log.c \
+    $${LIBGNFCDC_SRC}/nfcdc_tag.c
 
 OTHER_FILES += \
     $${LIBGNFCDC_SPEC}/*.xml
@@ -83,19 +93,30 @@ defineTest(generateStub) {
     xml = $${LIBGNFCDC_SPEC}/org.sailfishos.nfc.$${1}.xml
     cmd = gdbus-codegen --generate-c-code org.sailfishos.nfc.$${1} $${xml}
 
-    file = org.sailfishos.nfc.$${1}.c
-    target = org_sailfishos_nfc_$${1}
+    gen_h = org.sailfishos.nfc.$${1}.h
+    gen_c = org.sailfishos.nfc.$${1}.c
+    target_h = org_sailfishos_nfc_$${1}_h
+    target_c = org_sailfishos_nfc_$${1}_c
 
-    $${target}.target = $${file}
-    $${target}.depends = $${xml}
-    $${target}.commands = $${cmd}
-    export($${target}.target)
-    export($${target}.depends)
-    export($${target}.commands)
+    $${target_h}.target = $${gen_h}
+    $${target_h}.depends = $${xml}
+    $${target_h}.commands = $${cmd}
+    export($${target_h}.target)
+    export($${target_h}.depends)
+    export($${target_h}.commands)
 
-    QMAKE_EXTRA_TARGETS += $${target}
-    GENERATED_SOURCES += $${file}
-    PRE_TARGETDEPS += $${file}
+    GENERATED_HEADERS += $${gen_h}
+    PRE_TARGETDEPS += $${gen_h}
+    QMAKE_EXTRA_TARGETS += $${target_h}
+
+    $${target_c}.target = $${gen_c}
+    $${target_c}.depends = $${gen_h}
+    export($${target_c}.target)
+    export($${target_c}.depends)
+
+    GENERATED_SOURCES += $${gen_c}
+    QMAKE_EXTRA_TARGETS += $${target_c}
+    PRE_TARGETDEPS += $${gen_c}
 
     export(QMAKE_EXTRA_TARGETS)
     export(GENERATED_SOURCES)
@@ -107,6 +128,24 @@ generateStub(Daemon)
 generateStub(IsoDep)
 generateStub(Settings)
 generateStub(Tag)
+
+# libqnfcdc
+
+LIBQNFCDC_INCLUDE = $${LIBQNFCDC_DIR}/include
+LIBQNFCDC_SRC = $${LIBQNFCDC_DIR}/src
+
+INCLUDEPATH += \
+    $${LIBQNFCDC_INCLUDE}
+
+HEADERS += \
+    $${LIBQNFCDC_INCLUDE}/NfcAdapter.h \
+    $${LIBQNFCDC_INCLUDE}/NfcSystem.h \
+    $${LIBQNFCDC_INCLUDE}/NfcTag.h
+
+SOURCES += \
+    $${LIBQNFCDC_SRC}/NfcAdapter.cpp \
+    $${LIBQNFCDC_SRC}/NfcSystem.cpp \
+    $${LIBQNFCDC_SRC}/NfcTag.cpp
 
 # harbour-lib
 
@@ -143,18 +182,12 @@ INCLUDEPATH += \
     src
 
 HEADERS += \
-    src/NfcAdapter.h \
-    src/NfcSystem.h \
-    src/NfcTag.h \
     src/TravelCard.h \
     src/TravelCardImpl.h \
     src/Util.h
 
 SOURCES += \
     src/main.cpp \
-    src/NfcAdapter.cpp \
-    src/NfcSystem.cpp \
-    src/NfcTag.cpp \
     src/TravelCard.cpp \
     src/Util.cpp
 
@@ -219,43 +252,47 @@ for(s, ICON_SIZES) {
 }
 
 # Translations
+TRANSLATION_IDBASED=-idbased
 TRANSLATION_SOURCES = \
   $${_PRO_FILE_PWD_}/qml
 
 defineTest(addTrFile) {
-    in = $${_PRO_FILE_PWD_}/translations/harbour-$$1
-    out = $${OUT_PWD}/translations/$${PREFIX}-$$1
+    rel = translations/$${1}
+    OTHER_FILES += $${rel}.ts
+    export(OTHER_FILES)
+
+    in = $${_PRO_FILE_PWD_}/$$rel
+    out = $${OUT_PWD}/$$rel
 
     s = $$replace(1,-,_)
     lupdate_target = lupdate_$$s
-    lrelease_target = lrelease_$$s
+    qm_target = qm_$$s
 
     $${lupdate_target}.commands = lupdate -noobsolete -locations none $${TRANSLATION_SOURCES} -ts \"$${in}.ts\" && \
         mkdir -p \"$${OUT_PWD}/translations\" &&  [ \"$${in}.ts\" != \"$${out}.ts\" ] && \
         cp -af \"$${in}.ts\" \"$${out}.ts\" || :
 
-    $${lrelease_target}.target = $${out}.qm
-    $${lrelease_target}.depends = $${lupdate_target}
-    $${lrelease_target}.commands = lrelease -idbased \"$${out}.ts\"
+    $${qm_target}.path = $$TRANSLATIONS_PATH
+    $${qm_target}.depends = $${lupdate_target}
+    $${qm_target}.commands = lrelease $$TRANSLATION_IDBASED \"$${out}.ts\" && \
+        $(INSTALL_FILE) \"$${out}.qm\" $(INSTALL_ROOT)$${TRANSLATIONS_PATH}/
 
-    QMAKE_EXTRA_TARGETS += $${lrelease_target} $${lupdate_target}
-    PRE_TARGETDEPS += $${out}.qm
-    qm.files += $${out}.qm
+    QMAKE_EXTRA_TARGETS += $${lupdate_target} $${qm_target}
+    INSTALLS += $${qm_target}
 
     export($${lupdate_target}.commands)
-    export($${lrelease_target}.target)
-    export($${lrelease_target}.depends)
-    export($${lrelease_target}.commands)
+    export($${qm_target}.path)
+    export($${qm_target}.depends)
+    export($${qm_target}.commands)
     export(QMAKE_EXTRA_TARGETS)
-    export(PRE_TARGETDEPS)
-    export(qm.files)
+    export(INSTALLS)
 }
 
 LANGUAGES = fi pl ru sv zh_CN
 
-addTrFile($${NAME})
+addTrFile($${TARGET})
 for(l, LANGUAGES) {
-    addTrFile($${NAME}-$$l)
+    addTrFile($${TARGET}-$$l)
 }
 
 qm.path = $$TRANSLATIONS_PATH

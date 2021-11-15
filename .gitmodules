@@ -7,3 +7,6 @@
 [submodule "libgnfcdc"]
 	path = libgnfcdc
 	url = https://github.com/monich/libgnfcdc.git
+[submodule "libqnfcdc"]
+	path = libqnfcdc
+	url = https://github.com/monich/libqnfcdc.git

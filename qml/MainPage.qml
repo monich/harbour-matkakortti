@@ -16,7 +16,7 @@ Page {
     readonly property bool targetPresent: NfcAdapter.targetPresent
     readonly property bool unrecorgnizedCard: targetPresent && travelCard.cardState === TravelCard.CardNone && !readTimer.running
     readonly property bool readingCard: travelCard.cardState === TravelCard.CardReading || readTimer.running
-    readonly property bool nysseSupported: NfcSystem.version >= NfcSystem.MinimumVersionForNysseSupport
+    readonly property bool nysseSupported: NfcSystem.version >= NfcSystem.Version_1_0_26
     property bool showingCardInfo: !!cardInfoPage
     property Page cardInfoPage
 
