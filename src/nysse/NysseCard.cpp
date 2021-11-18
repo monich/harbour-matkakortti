@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2020-2021 Jolla Ltd.
- * Copyright (C) 2019-2021 Slava Monich <slava@monich.com>
+ * Copyright (C) 2020-2021 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -264,32 +264,25 @@ NysseCard::Private::Private(QString aPath, NysseCard* aParent) :
             NFC_TAG_PROPERTY_PRESENT, tagEventHandler, this);
 
     iIsoDep = nfc_isodep_client_new(path);
-    startReadingIfReady();
-    if (!iCancel) {
-        iIsoDepEventId[TAG_EVENT_VALID] =
-            nfc_isodep_client_add_property_handler(iIsoDep,
-                NFC_ISODEP_PROPERTY_VALID, isoDepEventHandler, this);
-        iIsoDepEventId[TAG_EVENT_PRESENT] =
-            nfc_isodep_client_add_property_handler(iIsoDep,
-                NFC_ISODEP_PROPERTY_PRESENT, isoDepEventHandler, this);
-    }
+    iIsoDepEventId[TAG_EVENT_VALID] =
+        nfc_isodep_client_add_property_handler(iIsoDep,
+            NFC_ISODEP_PROPERTY_VALID, isoDepEventHandler, this);
+    iIsoDepEventId[TAG_EVENT_PRESENT] =
+        nfc_isodep_client_add_property_handler(iIsoDep,
+            NFC_ISODEP_PROPERTY_PRESENT, isoDepEventHandler, this);
 }
 
 NysseCard::Private::~Private()
 {
-    if (iCancel) {
-        g_cancellable_cancel(iCancel);
-        g_object_unref(iCancel);
-    }
-    nfc_isodep_client_remove_all_handlers(iIsoDep, iIsoDepEventId);
-    nfc_tag_client_remove_all_handlers(iTag, iTagEventId);
+    readDone();
     nfc_isodep_client_unref(iIsoDep);
     nfc_tag_client_unref(iTag);
-    nfc_tag_client_lock_unref(iLock);
 }
 
 void NysseCard::Private::readDone()
 {
+    nfc_isodep_client_remove_all_handlers(iIsoDep, iIsoDepEventId);
+    nfc_tag_client_remove_all_handlers(iTag, iTagEventId);
     if (iCancel) {
         g_cancellable_cancel(iCancel);
         g_object_unref(iCancel);
@@ -490,4 +483,9 @@ NysseCard::NysseCard(QString aPath, QObject* aParent) :
 NysseCard::~NysseCard()
 {
     delete iPrivate;
+}
+
+void NysseCard::startReading()
+{
+    iPrivate->startReadingIfReady();
 }

@@ -168,7 +168,9 @@ void TravelCard::Private::tryNext()
         connect(iCardImpl,
             SIGNAL(readDone(QString,QVariantMap)),
             SLOT(onReadDone(QString,QVariantMap)));
+        iCardImpl->startReading();
     } else if (iCardState == CardReading) {
+        HDEBUG("No more card types to try");
         iCardState = CardNone;
         iCardInfo.clear();
     }

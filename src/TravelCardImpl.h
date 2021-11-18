@@ -57,6 +57,9 @@ public:
         void (*iRegisterTypes)(const char* aUri, int v1, int v2);
     };
 
+public:
+    virtual void startReading() = 0;
+
 Q_SIGNALS:
     void readFailed();
     void readDone(QString aPageUrl, QVariantMap aCardInfo);

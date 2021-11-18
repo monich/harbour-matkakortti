@@ -220,32 +220,25 @@ HslCard::Private::Private(QString aPath, HslCard* aParent) :
             NFC_TAG_PROPERTY_PRESENT, tagEventHandler, this);
 
     iIsoDep = nfc_isodep_client_new(path);
-    startReadingIfReady();
-    if (!iCancel) {
-        iIsoDepEventId[TAG_EVENT_VALID] =
-            nfc_isodep_client_add_property_handler(iIsoDep,
-                NFC_ISODEP_PROPERTY_VALID, isoDepEventHandler, this);
-        iIsoDepEventId[TAG_EVENT_PRESENT] =
-            nfc_isodep_client_add_property_handler(iIsoDep,
-                NFC_ISODEP_PROPERTY_PRESENT, isoDepEventHandler, this);
-    }
+    iIsoDepEventId[TAG_EVENT_VALID] =
+        nfc_isodep_client_add_property_handler(iIsoDep,
+            NFC_ISODEP_PROPERTY_VALID, isoDepEventHandler, this);
+    iIsoDepEventId[TAG_EVENT_PRESENT] =
+        nfc_isodep_client_add_property_handler(iIsoDep,
+            NFC_ISODEP_PROPERTY_PRESENT, isoDepEventHandler, this);
 }
 
 HslCard::Private::~Private()
 {
-    if (iCancel) {
-        g_cancellable_cancel(iCancel);
-        g_object_unref(iCancel);
-    }
-    nfc_isodep_client_remove_all_handlers(iIsoDep, iIsoDepEventId);
-    nfc_tag_client_remove_all_handlers(iTag, iTagEventId);
+    readDone();
     nfc_isodep_client_unref(iIsoDep);
     nfc_tag_client_unref(iTag);
-    nfc_tag_client_lock_unref(iLock);
 }
 
 void HslCard::Private::readDone()
 {
+    nfc_isodep_client_remove_all_handlers(iIsoDep, iIsoDepEventId);
+    nfc_tag_client_remove_all_handlers(iTag, iTagEventId);
     if (iCancel) {
         g_cancellable_cancel(iCancel);
         g_object_unref(iCancel);
@@ -525,4 +518,9 @@ HslCard::HslCard(QString aPath, QObject* aParent) :
 HslCard::~HslCard()
 {
     delete iPrivate;
+}
+
+void HslCard::startReading()
+{
+    iPrivate->startReadingIfReady();
 }
