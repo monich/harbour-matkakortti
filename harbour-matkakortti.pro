@@ -7,9 +7,8 @@ PKGCONFIG += sailfishapp glib-2.0 gobject-2.0 gio-unix-2.0
 QT += qml quick dbus
 
 DEFINES += NFCDC_NEED_PEER_SERVICE=0
-QMAKE_CXXFLAGS += -Wno-unused-parameter -flto -fPIC
-QMAKE_CFLAGS += -Wno-unused-parameter -flto -fPIC
-QMAKE_LFLAGS += -flto -fPIC
+QMAKE_CXXFLAGS += -Wno-unused-parameter
+QMAKE_CFLAGS += -Wno-unused-parameter
 LIBS += -ldl
 
 TARGET_DATA_DIR = /usr/share/$${TARGET}
@@ -23,6 +22,10 @@ app_settings {
 
 CONFIG(debug, debug|release) {
     DEFINES += DEBUG HARBOUR_DEBUG
+} else {
+    QMAKE_CXXFLAGS += -flto -fPIC
+    QMAKE_CFLAGS += -flto -fPIC
+    QMAKE_LFLAGS += -flto -fPIC
 }
 
 # Directories
