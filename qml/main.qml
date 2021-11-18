@@ -20,6 +20,12 @@ ApplicationWindow {
         onPopCardInfo: pageStack.pop(mainPage, PageStackAction.Immediate)
     }
 
+    NfcMode {
+        enableModes: NfcSystem.ReaderWriter
+        disableModes: NfcSystem.P2PInitiator + NfcSystem.P2PTarget + NfcSystem.CardEmulation
+        active: Qt.application.active
+    }
+
     Connections {
         target: HarbourSystemTime
         onPreNotify: Date.timeZoneUpdated()
