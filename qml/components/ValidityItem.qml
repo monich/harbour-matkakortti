@@ -10,6 +10,9 @@ Item {
 
     property int valid
 
+    readonly property color validColor: HarbourTheme.lightOnDark ? "green" : "darkgreen"
+    readonly property color invalidColor: HarbourTheme.lightOnDark ? "red" : "darkred"
+
     Rectangle {
         id: background
 
@@ -32,7 +35,7 @@ Item {
         horizontalAlignment: Text.AlignRight
         font.bold: true
         wrapMode: Text.Wrap
-        color: valid > 0 ? "green" : "red"
+        color: valid > 0 ? validColor : invalidColor
         //: Validity label
         //% "Valid"
         text: (valid > 0) ? qsTrId("matkakortti-card-validity-valid") :
