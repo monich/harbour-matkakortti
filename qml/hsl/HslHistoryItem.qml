@@ -57,7 +57,7 @@ BackgroundItem {
             Label {
                 visible: group > 1
                 color: Theme.secondaryHighlightColor
-                text: "(" + group + ")"
+                text: "\u00d7 " + group + " = " + Utils.moneyString(price * group)
             }
         }
 
