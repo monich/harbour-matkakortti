@@ -24,7 +24,7 @@
         <translation>Luetaan korttia</translation>
     </message>
     <message id="matkakortti-info-disabled">
-        <source>NFC is disabled</source>
+        <source>NFC is off</source>
         <extracomment>Info label</extracomment>
         <translation>NFC on poistettu käytöstä</translation>
     </message>

@@ -205,7 +205,7 @@ Page {
                     qsTrId("matkakortti-info-card_not_supported") : "") :
                 (NfcSystem.enabled ? "" :
                     //: Info label
-                    //% "NFC is disabled"
+                    //% "NFC is off"
                     qsTrId("matkakortti-info-disabled"))
         }
 

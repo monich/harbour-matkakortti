@@ -24,7 +24,7 @@
         <translation>卡片</translation>
     </message>
     <message id="matkakortti-info-disabled">
-        <source>NFC is disabled</source>
+        <source>NFC is off</source>
         <extracomment>Info label</extracomment>
         <translation>已禁用 NFC</translation>
     </message>

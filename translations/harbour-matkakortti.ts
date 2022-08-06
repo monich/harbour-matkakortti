@@ -24,9 +24,9 @@
         <translation>Reading the card</translation>
     </message>
     <message id="matkakortti-info-disabled">
-        <source>NFC is disabled</source>
+        <source>NFC is off</source>
         <extracomment>Info label</extracomment>
-        <translation>NFC is disabled</translation>
+        <translation>NFC is off</translation>
     </message>
     <message id="matkakortti-info-touch_hint">
         <source>Place the phone on the card</source>
