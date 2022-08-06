@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2019-2021 Jolla Ltd.
- * Copyright (C) 2019-2021 Slava Monich <slava@monich.com>
+ * Copyright (C) 2019-2022 Jolla Ltd.
+ * Copyright (C) 2019-2022 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -64,19 +64,4 @@ guint16 Util::uint16le(const guint8* data)
 guint16 Util::uint16be(const guint8* data)
 {
     return (((guint16)data[0]) << 8) + data[1];
-}
-
-QString Util::toHex(const QByteArray aData)
-{
-    static const char hex[] = "0123456789abcdef";
-    const uchar* data = (uchar*)aData.constData();
-    const int n = aData.size();
-    QString str;
-    str.reserve(2*n);
-    for (int i = 0; i < n; i++) {
-        const uchar b = data[i];
-        str.append(QChar(hex[(b & 0xf0) >> 4]));
-        str.append(QChar(hex[b & 0x0f]));
-    }
-    return str;
 }

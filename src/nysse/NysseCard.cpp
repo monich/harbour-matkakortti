@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2020-2021 Jolla Ltd.
- * Copyright (C) 2020-2021 Slava Monich <slava@monich.com>
+ * Copyright (C) 2020-2022 Jolla Ltd.
+ * Copyright (C) 2020-2022 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -49,6 +49,7 @@
 #include "Util.h"
 
 #include "HarbourDebug.h"
+#include "HarbourUtil.h"
 
 #if HARBOUR_DEBUG
 #  define REPORT_ERROR(name,sw,err) \
@@ -301,7 +302,7 @@ void NysseCard::Private::readSucceeded()
     QVariantMap cardInfo;
     cardInfo.insert(Util::CARD_TYPE_KEY, Desc.iName);
     for (int i = 0; i < BLOCK_COUNT; i++) {
-        cardInfo.insert(DATA_BLOCKS[i].iKey, Util::toHex(iData[i]));
+        cardInfo.insert(DATA_BLOCKS[i].iKey, HarbourUtil::toHex(iData[i]));
     }
     QMetaObject::invokeMethod(iParent, "readDone",
         Q_ARG(QString, PAGE_URL),

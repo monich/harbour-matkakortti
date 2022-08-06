@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2019-2020 Jolla Ltd.
- * Copyright (C) 2019-2020 Slava Monich <slava@monich.com>
+ * Copyright (C) 2019-2022 Jolla Ltd.
+ * Copyright (C) 2019-2022 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -52,7 +52,6 @@ namespace Util {
     guint32 uint32be(const guint8* data);
     guint16 uint16le(const guint8* data);
     guint16 uint16be(const guint8* data);
-    QString toHex(const QByteArray aData);
     inline QByteArray toByteArray(const GUtilData* aData)
         { return QByteArray((const char*)aData->bytes, (int)aData->size); }
 }

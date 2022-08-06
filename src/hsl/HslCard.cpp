@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2019-2021 Jolla Ltd.
- * Copyright (C) 2019-2021 Slava Monich <slava.monich@jolla.com>
+ * Copyright (C) 2019-2022 Jolla Ltd.
+ * Copyright (C) 2019-2022 Slava Monich <slava.monich@jolla.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -50,6 +50,7 @@
 #include "Util.h"
 
 #include "HarbourDebug.h"
+#include "HarbourUtil.h"
 
 enum tag_events {
     TAG_EVENT_VALID,
@@ -256,11 +257,11 @@ void HslCard::Private::readSucceeded()
     readDone();
     QVariantMap cardInfo;
     cardInfo.insert(Util::CARD_TYPE_KEY, Desc.iName);
-    cardInfo.insert(APP_INFO_KEY, Util::toHex(iAppInfoData));
-    cardInfo.insert(PERIOD_PASS_KEY, Util::toHex(iPeriodPassData));
-    cardInfo.insert(STORED_VALUE_KEY, Util::toHex(iStoredValueData));
-    cardInfo.insert(ETICKET_KEY, Util::toHex(iEticketData));
-    cardInfo.insert(HISTORY_KEY, Util::toHex(iHistoryData));
+    cardInfo.insert(APP_INFO_KEY, HarbourUtil::toHex(iAppInfoData));
+    cardInfo.insert(PERIOD_PASS_KEY, HarbourUtil::toHex(iPeriodPassData));
+    cardInfo.insert(STORED_VALUE_KEY, HarbourUtil::toHex(iStoredValueData));
+    cardInfo.insert(ETICKET_KEY, HarbourUtil::toHex(iEticketData));
+    cardInfo.insert(HISTORY_KEY, HarbourUtil::toHex(iHistoryData));
     QMetaObject::invokeMethod(iParent, "readDone",
         Q_ARG(QString, PAGE_URL),
         Q_ARG(QVariantMap, cardInfo));
