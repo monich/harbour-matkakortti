@@ -93,13 +93,13 @@ CoverBackground {
             readonly property real maxWidth: cover.width - 2 * Theme.paddingMedium
 
             border {
-                color: Theme.rgba(Theme.primaryColor, HarbourTheme.opacityLow)
+                color: Theme.rgba(Theme.primaryColor, 0.4 /* opacityLow */)
                 width: Theme.paddingSmall
             }
             width: Math.min(maxWidth, Math.floor(remainingBalanceLabel.width + 2 * height/3))
             height: Theme.itemSizeSmall
             radius: height/2
-            color: Theme.rgba(HarbourTheme.invertedPrimaryColor, HarbourTheme.opacityOverlay)
+            color: Theme.rgba(HarbourUtil.invertedColor(Theme.primaryColor), 0.8 /* opacityOverlay */)
         }
 
         Text {

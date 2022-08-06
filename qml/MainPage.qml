@@ -229,7 +229,7 @@ Page {
             //: Hint label
             //% "Place the phone on the card"
             text: qsTrId("matkakortti-info-touch_hint")
-            opacity: (NfcSystem.enabled && !targetPresent && !readingCard) ? HarbourTheme.opacityHigh : 0
+            opacity: (NfcSystem.enabled && !targetPresent && !readingCard) ? 0.6 /* opacityHigh */ : 0
             visible: opacity > 0
             Behavior on opacity {
                 enabled: NfcSystem.valid

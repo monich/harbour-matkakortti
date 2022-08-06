@@ -63,7 +63,7 @@ Page {
             width: switcher.buttonWidth + 2 * padding
             height: Math.max(detailsButton.height, historyButton.height)
             color: Theme.primaryColor
-            opacity: HarbourTheme.opacityFaint
+            opacity: 0.2 // opacityFaint
         }
 
         PressableLabel {

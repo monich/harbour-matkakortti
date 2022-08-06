@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2019-2021 Jolla Ltd.
- * Copyright (C) 2019-2021 Slava Monich <slava@monich.com>
+ * Copyright (C) 2019-2022 Jolla Ltd.
+ * Copyright (C) 2019-2022 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -43,8 +43,8 @@
 #include "NfcTag.h"
 
 #include "HarbourDebug.h"
-#include "HarbourTheme.h"
 #include "HarbourSystemTime.h"
+#include "HarbourUtil.h"
 
 #include "gutil_log.h"
 
@@ -58,13 +58,19 @@
 
 static void register_types(const char* uri, int v1 = 1, int v2 = 0)
 {
-    qmlRegisterSingletonType<HarbourSystemTime>(uri, v1, v2, "HarbourSystemTime", HarbourSystemTime::createSingleton);
-    qmlRegisterSingletonType<HarbourTheme>(uri, v1, v2, "HarbourTheme", HarbourTheme::createSingleton);
-    qmlRegisterSingletonType<NfcAdapter>(uri, v1, v2, "NfcAdapter", NfcAdapter::createSingleton);
-    qmlRegisterSingletonType<NfcSystem>(uri, v1, v2, "NfcSystem", NfcSystem::createSingleton);
-    qmlRegisterType<NfcMode>(uri, v1, v2, "NfcMode");
-    qmlRegisterType<NfcTag>(uri, v1, v2, "NfcTag");
-    qmlRegisterType<TravelCard>(uri, v1, v2, "TravelCard");
+#define REGISTER_TYPE(uri, v1, v2, Class) \
+    qmlRegisterType<Class>(uri, v1, v2, #Class)
+#define REGISTER_SINGLETON_TYPE(uri, v1, v2, Class) \
+    qmlRegisterSingletonType<Class>(uri, v1, v2, #Class, \
+    Class::createSingleton)
+
+    REGISTER_SINGLETON_TYPE(uri, v1, v2, HarbourSystemTime);
+    REGISTER_SINGLETON_TYPE(uri, v1, v2, HarbourUtil);
+    REGISTER_SINGLETON_TYPE(uri, v1, v2, NfcAdapter);
+    REGISTER_SINGLETON_TYPE(uri, v1, v2, NfcSystem);
+    REGISTER_TYPE(uri, v1, v2, NfcMode);
+    REGISTER_TYPE(uri, v1, v2, NfcTag);
+    REGISTER_TYPE(uri, v1, v2, TravelCard);
     TravelCard::registerTypes(uri, v1, v2);
 }
 

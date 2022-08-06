@@ -164,13 +164,11 @@ INCLUDEPATH += \
 HEADERS += \
     $${HARBOUR_LIB_INCLUDE}/HarbourDebug.h \
     $${HARBOUR_LIB_INCLUDE}/HarbourSystemTime.h \
-    $${HARBOUR_LIB_INCLUDE}/HarbourSystem.h \
-    $${HARBOUR_LIB_INCLUDE}/HarbourTheme.h
+    $${HARBOUR_LIB_INCLUDE}/HarbourUtil.h
 
 SOURCES += \
     $${HARBOUR_LIB_SRC}/HarbourSystemTime.cpp \
-    $${HARBOUR_LIB_SRC}/HarbourSystem.cpp \
-    $${HARBOUR_LIB_SRC}/HarbourTheme.cpp
+    $${HARBOUR_LIB_SRC}/HarbourUtil.cpp
 
 HARBOUR_QML_COMPONENTS = \
     $${HARBOUR_LIB_QML}/HarbourHighlightIcon.qml

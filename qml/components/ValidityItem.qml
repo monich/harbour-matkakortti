@@ -10,14 +10,15 @@ Item {
 
     property int valid
 
-    readonly property color validColor: HarbourTheme.lightOnDark ? "green" : "darkgreen"
-    readonly property color invalidColor: HarbourTheme.lightOnDark ? "red" : "darkred"
+    readonly property bool _darkOnLight: ('colorScheme' in Theme) && Theme.colorScheme === 1
+    readonly property color _validColor: _darkOnLight ? "darkgreen" : "green"
+    readonly property color _invalidColor: _darkOnLight ? "darkred" : "red"
 
     Rectangle {
         id: background
 
         color: Theme.primaryColor
-        opacity: HarbourTheme.opacityFaint
+        opacity: 0.2 // opacityFaint
         radius: Theme.paddingMedium
         width: validityLabel.paintedWidth + 2 * Theme.paddingMedium
         height: validityLabel.height + 2 * Theme.paddingMedium
@@ -35,7 +36,7 @@ Item {
         horizontalAlignment: Text.AlignRight
         font.bold: true
         wrapMode: Text.Wrap
-        color: valid > 0 ? validColor : invalidColor
+        color: valid > 0 ? _validColor : _invalidColor
         //: Validity label
         //% "Valid"
         text: (valid > 0) ? qsTrId("matkakortti-card-validity-valid") :

@@ -1,6 +1,5 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
-import harbour.matkakortti 1.0
 
 Item {
     id: switcher
@@ -24,7 +23,7 @@ Item {
         width: buttonWidth + 2 * padding
         height: Math.max(leftButton.height, rightButton.height)
         color: Theme.primaryColor
-        opacity: HarbourTheme.opacityFaint
+        opacity: 0.2 // opacityFaint
     }
 
     PressableLabel {

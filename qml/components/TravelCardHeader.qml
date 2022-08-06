@@ -1,7 +1,6 @@
 import QtQuick 2.0
 import QtGraphicalEffects 1.0
 import Sailfish.Silica 1.0
-import harbour.matkakortti 1.0
 
 PageHeader {
     id: header
@@ -20,7 +19,7 @@ PageHeader {
     Rectangle {
         id: headerImageBackground
 
-        color: Theme.rgba(Theme.highlightColor, HarbourTheme.opacityOverlay)
+        color: Theme.rgba(Theme.highlightColor, 0.8 /* opacityOverlay */)
         height: headerImage.height + Theme.paddingSmall
         width: headerImage.width + Theme.paddingSmall
         radius: Theme.paddingSmall
