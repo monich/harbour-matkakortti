@@ -65,6 +65,14 @@ SilicaFlickable {
                         rightMargin: Theme.paddingLarge
                     }
 
+                    Label {
+                        width: parent.width
+                        horizontalAlignment: Text.AlignLeft
+                        color: Theme.highlightColor
+                        wrapMode: Text.Wrap
+                        text: Utils.dateString(periodPass.periodStartDate) + " - " + Utils.dateString(periodPass.periodEndDate)
+                    }
+
                     ValueLabel {
                         width: parent.width
                         //: Label
@@ -73,12 +81,12 @@ SilicaFlickable {
                         value: periodPass.validityAreaName
                     }
 
-                    Label {
+                    ValueLabel {
                         width: parent.width
-                        horizontalAlignment: Text.AlignLeft
-                        color: Theme.highlightColor
-                        wrapMode: Text.Wrap
-                        text: Utils.dateString(periodPass.periodStartDate) + " - " + Utils.dateString(periodPass.periodEndDate)
+                        //: Label
+                        //% "Cost:"
+                        title: qsTrId("matkakortti-details-ticket-cost")
+                        value: Utils.moneyString(periodPass.loadedPeriodPrice)
                     }
                 }
 
