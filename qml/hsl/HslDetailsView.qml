@@ -232,36 +232,47 @@ SilicaFlickable {
                 }
             }
 
-            ValueLabel {
+            Column {
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2*x
-                //: Label
-                //% "Valid from:"
-                title: qsTrId("matkakortti-details-ticket-valid_from")
-                value: Utils.dateTimeString(eTicket.validityStartTime)
-            }
 
-            ValueLabel {
-                x: Theme.horizontalPageMargin
-                width: parent.width - 2*x
-                visible: HslData.isValidDate(eTicket.boardingTime) &&
-                    eTicket.boardingTime.getTime() !== eTicket.validityStartTime.getTime()
-                //: Label
-                //% "Boarding time:"
-                title: qsTrId("matkakortti-details-ticket-boarding_time")
-                value: Utils.dateTimeString(eTicket.boardingTime)
-            }
+                ValueLabel {
+                    width: parent.width
+                    //: Label
+                    //% "Valid from:"
+                    title: qsTrId("matkakortti-details-ticket-valid_from")
+                    value: Utils.dateTimeString(eTicket.validityStartTime)
+                }
 
-            ValueLabel {
-                x: Theme.horizontalPageMargin
-                width: parent.width - 2*x
-                //: Label
-                //% "Valid until:"
-                title: qsTrId("matkakortti-details-ticket-valid_until")
-                value: Utils.dateTimeString(eTicket.validityEndTime)
-                //: Suffix after the time ending the period
-                //% " "
-                suffix: qsTrId("matkakortti-details-ticket-valid_until-suffix").trim()
+                ValueLabel {
+                    width: parent.width
+                    //: Label
+                    //% "Valid until:"
+                    title: qsTrId("matkakortti-details-ticket-valid_until")
+                    value: Utils.dateTimeString(eTicket.validityEndTime)
+                    //: Suffix after the time ending the period
+                    //% " "
+                    suffix: qsTrId("matkakortti-details-ticket-valid_until-suffix").trim()
+                }
+
+                ValueLabel {
+                    width: parent.width
+                    visible: HslData.isValidDate(eTicket.boardingTime) &&
+                        eTicket.boardingTime.getTime() !== eTicket.validityStartTime.getTime()
+                    //: Label
+                    //% "Boarding time:"
+                    title: qsTrId("matkakortti-details-ticket-boarding_time")
+                    value: Utils.dateTimeString(eTicket.boardingTime)
+                }
+
+                ValueLabel {
+                    width: parent.width
+                    //: Label
+                    //% "Boarding zone:"
+                    title: qsTrId("matkakortti-details-boarding_zone")
+                    value: eTicket.boardingAreaName
+                    visible: value !== ""
+                }
             }
 
             VerticalSpace { height: Theme.paddingLarge }

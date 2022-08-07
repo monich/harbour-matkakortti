@@ -123,11 +123,6 @@
         <extracomment>Label</extracomment>
         <translation>Ważny od:</translation>
     </message>
-    <message id="matkakortti-details-ticket-boarding_time">
-        <source>Boarding time:</source>
-        <extracomment>Label</extracomment>
-        <translation>Czas wejścia do pojazdu:</translation>
-    </message>
     <message id="matkakortti-details-ticket-valid_until">
         <source>Valid until:</source>
         <extracomment>Label</extracomment>
@@ -137,6 +132,16 @@
         <source> </source>
         <extracomment>Suffix after the time ending the period</extracomment>
         <translation> </translation>
+    </message>
+    <message id="matkakortti-details-ticket-boarding_time">
+        <source>Boarding time:</source>
+        <extracomment>Label</extracomment>
+        <translation>Czas wejścia do pojazdu:</translation>
+    </message>
+    <message id="matkakortti-details-boarding_zone">
+        <source>Boarding zone:</source>
+        <extracomment>Label</extracomment>
+        <translation type="unfinished">Strefa wejścia do pojazdu:</translation>
     </message>
     <message id="matkakortti-details-ticket-balance">
         <source>Balance:</source>

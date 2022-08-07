@@ -66,7 +66,7 @@
     <message id="matkakortti-switcher-details">
         <source>Details</source>
         <extracomment>Switcher label</extracomment>
-        <translation>Информация</translation>
+        <translation>Сведения</translation>
     </message>
     <message id="matkakortti-switcher-history">
         <source>History</source>
@@ -91,7 +91,7 @@
     <message id="matkakortti-details-loaded_value-label">
         <source>Last loaded value:</source>
         <extracomment>Label</extracomment>
-        <translation>Пополнено на:</translation>
+        <translation>Поополнение:</translation>
     </message>
     <message id="matkakortti-details-loading_time-label">
         <source>Loading time:</source>
@@ -123,11 +123,6 @@
         <extracomment>Label</extracomment>
         <translation>Начинается:</translation>
     </message>
-    <message id="matkakortti-details-ticket-boarding_time">
-        <source>Boarding time:</source>
-        <extracomment>Label</extracomment>
-        <translation>Дата поездки:</translation>
-    </message>
     <message id="matkakortti-details-ticket-valid_until">
         <source>Valid until:</source>
         <extracomment>Label</extracomment>
@@ -137,6 +132,16 @@
         <source> </source>
         <extracomment>Suffix after the time ending the period</extracomment>
         <translation> </translation>
+    </message>
+    <message id="matkakortti-details-ticket-boarding_time">
+        <source>Boarding time:</source>
+        <extracomment>Label</extracomment>
+        <translation>Время посадки:</translation>
+    </message>
+    <message id="matkakortti-details-boarding_zone">
+        <source>Boarding zone:</source>
+        <extracomment>Label</extracomment>
+        <translation>Место посадки:</translation>
     </message>
     <message id="matkakortti-details-ticket-balance">
         <source>Balance:</source>

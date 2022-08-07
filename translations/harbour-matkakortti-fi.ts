@@ -123,11 +123,6 @@
         <extracomment>Label</extracomment>
         <translation>Voimaantuloaika:</translation>
     </message>
-    <message id="matkakortti-details-ticket-boarding_time">
-        <source>Boarding time:</source>
-        <extracomment>Label</extracomment>
-        <translation>Nousuaika:</translation>
-    </message>
     <message id="matkakortti-details-ticket-valid_until">
         <source>Valid until:</source>
         <extracomment>Label</extracomment>
@@ -137,6 +132,16 @@
         <source> </source>
         <extracomment>Suffix after the time ending the period</extracomment>
         <translation>asti</translation>
+    </message>
+    <message id="matkakortti-details-ticket-boarding_time">
+        <source>Boarding time:</source>
+        <extracomment>Label</extracomment>
+        <translation>Nousuaika:</translation>
+    </message>
+    <message id="matkakortti-details-boarding_zone">
+        <source>Boarding zone:</source>
+        <extracomment>Label</extracomment>
+        <translation>Nousualue:</translation>
     </message>
     <message id="matkakortti-details-ticket-balance">
         <source>Balance:</source>
