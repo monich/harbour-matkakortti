@@ -28,6 +28,21 @@ Requires: qt5-qtcore >= %{qt_version}
 %description
 Reads information off Helsinki and Tampere travel cards via NFC.
 
+%if "%{?vendor}" == "chum"
+Categories:
+ - Utility
+Icon: https://raw.githubusercontent.com/monich/harbour-matkakortti/master/icons/harbour-matkakortti.svg
+Screenshots:
+- https://home.monich.net/chum/harbour-matkakortti/screenshots/screenshot-001.png
+- https://home.monich.net/chum/harbour-matkakortti/screenshots/screenshot-002.png
+- https://home.monich.net/chum/harbour-matkakortti/screenshots/screenshot-003.png
+- https://home.monich.net/chum/harbour-matkakortti/screenshots/screenshot-004.png
+- https://home.monich.net/chum/harbour-matkakortti/screenshots/screenshot-005.png
+- https://home.monich.net/chum/harbour-matkakortti/screenshots/screenshot-006.png
+Url:
+  Homepage: https://openrepos.net/content/slava/matkakortti
+%endif
+
 %prep
 %setup -q -n %{name}-%{version}
 
