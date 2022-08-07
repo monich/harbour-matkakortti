@@ -1,6 +1,6 @@
 Name:           harbour-matkakortti
 Summary:        Application for reading HSL and Tampere travel cards
-Version:        1.1.3
+Version:        1.1.4
 Release:        1
 License:        BSD
 Group:          Applications/System
@@ -12,14 +12,11 @@ Requires:       qt5-qtsvg-plugin-imageformat-svg
 BuildRequires:  pkgconfig(glib-2.0)
 BuildRequires:  pkgconfig(sailfishapp)
 
-%define qt_version 5.2
-
-BuildRequires:  pkgconfig(Qt5Core) >= %{qt_version}
+BuildRequires:  pkgconfig(Qt5Core)
 BuildRequires:  pkgconfig(Qt5Quick)
 BuildRequires:  pkgconfig(Qt5DBus)
 BuildRequires:  pkgconfig(Qt5Qml)
 BuildRequires:  qt5-qttools-linguist
-Requires: qt5-qtcore >= %{qt_version}
 
 %{!?qtc_qmake5:%define qtc_qmake5 %qmake5}
 %{!?qtc_make:%define qtc_make make}
