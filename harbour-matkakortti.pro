@@ -87,7 +87,8 @@ SOURCES += \
     $${LIBGNFCDC_SRC}/nfcdc_error.c \
     $${LIBGNFCDC_SRC}/nfcdc_isodep.c \
     $${LIBGNFCDC_SRC}/nfcdc_log.c \
-    $${LIBGNFCDC_SRC}/nfcdc_tag.c
+    $${LIBGNFCDC_SRC}/nfcdc_tag.c \
+    $${LIBGNFCDC_SRC}/nfcdc_util.c
 
 OTHER_FILES += \
     $${LIBGNFCDC_SPEC}/*.xml
