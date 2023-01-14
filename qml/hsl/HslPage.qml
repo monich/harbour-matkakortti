@@ -10,8 +10,8 @@ Page {
     property alias cardImageUrl: header.cardImageUrl
     readonly property string remainingBalance: Utils.moneyString(storedValueParser.moneyValue)
     property alias ticketSecondsRemaining: eTicketParser.secondsRemaining
-    property alias periodPassDaysRemaining: periodPassParser.daysRemaining
-    property alias periodPassEndDate: periodPassParser.periodEndDate
+    property alias periodPassDaysRemaining: periodPassParser.effectiveDaysRemaining
+    property alias periodPassEndDate: periodPassParser.effectiveEndDate
 
     showNavigationIndicator: false
 

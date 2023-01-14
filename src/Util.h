@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2019-2022 Jolla Ltd.
- * Copyright (C) 2019-2022 Slava Monich <slava@monich.com>
+ * Copyright (C) 2019-2023 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -42,6 +42,7 @@
 
 #include <QString>
 #include <QByteArray>
+#include <QDateTime>
 #include <QTimeZone>
 
 namespace Util {
@@ -52,8 +53,13 @@ namespace Util {
     guint32 uint32be(const guint8* data);
     guint16 uint16le(const guint8* data);
     guint16 uint16be(const guint8* data);
+
     inline QByteArray toByteArray(const GUtilData* aData)
         { return QByteArray((const char*)aData->bytes, (int)aData->size); }
+    inline QDateTime finnishTime(const QDateTime aDateTime)
+        { return aDateTime.toTimeZone(FINLAND_TIMEZONE); }
+    inline QDateTime currentTimeInFinland()
+        { return finnishTime(QDateTime::currentDateTimeUtc()); }
 }
 
 #endif // UTIL_H

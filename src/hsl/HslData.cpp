@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2019-2020 Jolla Ltd.
- * Copyright (C) 2019-2020 Slava Monich <slava@monich.com>
+ * Copyright (C) 2019-2023 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -76,6 +76,12 @@ QDateTime HslData::startDateTime(QDate aDate)
 QDateTime HslData::endDateTime(QDate aDate)
 {
     return QDateTime(aDate, QTime(23,59,59,999), Util::FINLAND_TIMEZONE);
+}
+
+QString HslData::finnishDateString(const QDateTime aDateTime)
+{
+    static const QString DATE_FORMAT("dd.MM.yyyy");
+    return Util::finnishTime(aDateTime).toString(DATE_FORMAT);
 }
 
 uint HslData::getInt(const GUtilData* aData, uint aByteOffset,

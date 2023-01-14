@@ -12,7 +12,7 @@ SilicaFlickable {
 
     contentHeight: column.height
 
-        function timeUnits(unit) {
+    function timeUnits(unit) {
         switch (unit) {
         case HslData.ValidityLengthMinute:
             //: Time unit (abbreviated)
@@ -41,7 +41,7 @@ SilicaFlickable {
 
         Column {
             width: parent.width
-            visible: HslData.isValidPeriod(periodPass.periodStartDate, periodPass.periodEndDate)
+            visible: periodPass.periodValid1
 
             SectionHeader {
                 //: Section header
@@ -70,7 +70,7 @@ SilicaFlickable {
                         horizontalAlignment: Text.AlignLeft
                         color: Theme.highlightColor
                         wrapMode: Text.Wrap
-                        text: Utils.dateString(periodPass.periodStartDate) + " - " + Utils.dateString(periodPass.periodEndDate)
+                        text: HslData.finnishDateString(periodPass.periodStartDate1) + " - " + HslData.finnishDateString(periodPass.periodEndDate1)
                     }
 
                     ValueLabel {
@@ -78,22 +78,23 @@ SilicaFlickable {
                         //: Label
                         //% "Zone:"
                         title: qsTrId("matkakortti-details-zone")
-                        value: periodPass.validityAreaName
+                        value: periodPass.validityAreaName1
                     }
 
                     ValueLabel {
                         width: parent.width
+                        visible: periodPass.periodPrice1 > 0
                         //: Label
                         //% "Cost:"
                         title: qsTrId("matkakortti-details-ticket-cost")
-                        value: Utils.moneyString(periodPass.loadedPeriodPrice)
+                        value: Utils.moneyString(periodPass.periodPrice1)
                     }
                 }
 
                 ValidityItem {
                     id: seasonTicketValidity
 
-                    valid: periodPass.daysRemaining
+                    valid: periodPass.periodDaysRemaining1
                     anchors {
                         top: parent.top
                         right: parent.right

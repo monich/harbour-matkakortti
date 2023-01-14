@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2019-2020 Jolla Ltd.
- * Copyright (C) 2019-2020 Slava Monich <slava.monich@jolla.com>
+ * Copyright (C) 2019-2023 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -226,7 +226,7 @@ void HslCardEticket::Private::systemTimeChanged(GUtilTimeNotify*, void* aTicket)
 void HslCardEticket::Private::updateSecondsRemaining()
 {
     if (HslData::isValidTimePeriod(iValidityStartTime, iValidityEndTime)) {
-        const QDateTime now = QDateTime::currentDateTime();
+        const QDateTime now = Util::currentTimeInFinland();
         if (now < iValidityStartTime) {
             iSecondsRemaining = TravelCard::PeriodNotYetStarted;
         } else if (now > iValidityEndTime) {

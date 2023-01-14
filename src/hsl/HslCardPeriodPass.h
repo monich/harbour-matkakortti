@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2019 Jolla Ltd.
- * Copyright (C) 2019 Slava Monich <slava.monich@jolla.com>
+ * Copyright (C) 2019-2023 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -40,47 +40,89 @@
 
 #include "HslData.h"
 
-class HslCardPeriodPass : public HslData {
+class HslCardPeriodPass :
+    public HslData
+{
     Q_OBJECT
     Q_DISABLE_COPY(HslCardPeriodPass)
     Q_PROPERTY(QString data READ data WRITE setData NOTIFY dataChanged)
-    Q_PROPERTY(HslArea validityArea READ validityArea NOTIFY validityAreaChanged)
-    Q_PROPERTY(QString validityAreaName READ validityAreaName NOTIFY validityAreaChanged)
-    Q_PROPERTY(QDateTime periodStartDate READ periodStartDate NOTIFY periodStartDateChanged)
-    Q_PROPERTY(QDateTime periodEndDate READ periodEndDate NOTIFY periodEndDateChanged)
-    Q_PROPERTY(QDateTime loadingTime READ loadingTime NOTIFY loadingTimeChanged)
-    Q_PROPERTY(int loadedPeriodDays READ loadedPeriodDays NOTIFY loadedPeriodDaysChanged)
-    Q_PROPERTY(int loadedPeriodPrice READ loadedPeriodPrice NOTIFY loadedPeriodPriceChanged)
-    Q_PROPERTY(int daysRemaining READ daysRemaining NOTIFY daysRemainingChanged)
+    Q_PROPERTY(int effectiveDaysRemaining READ effectiveDaysRemaining NOTIFY effectiveDaysRemainingChanged)
+    Q_PROPERTY(QDateTime effectiveEndDate READ effectiveEndDate NOTIFY effectiveEndDateChanged)
+    // Period 1 is either the active or the last loaded period.
+    // This period is displayed by default.
+    Q_PROPERTY(bool periodValid1 READ periodValid1 NOTIFY periodValid1Changed)
+    Q_PROPERTY(int periodPrice1 READ periodPrice1 NOTIFY periodPrice1Changed)
+    Q_PROPERTY(int periodDays1 READ periodDays1 NOTIFY periodDays1Changed)
+    Q_PROPERTY(int periodDaysRemaining1 READ periodDaysRemaining1 NOTIFY periodDaysRemaining1Changed)
+    Q_PROPERTY(HslArea validityArea1 READ validityArea1 NOTIFY validityArea1Changed)
+    Q_PROPERTY(QString validityAreaName1 READ validityAreaName1 NOTIFY validityArea1Changed)
+    Q_PROPERTY(QDateTime periodStartDate1 READ periodStartDate1 NOTIFY periodStartDate1Changed)
+    Q_PROPERTY(QDateTime periodEndDate1 READ periodEndDate1 NOTIFY periodEndDate1Changed)
+    Q_PROPERTY(QDateTime loadingTime1 READ loadingTime1 NOTIFY loadingTime1Changed)
+    // Period 2 is the alternative period. It could be either the next
+    // (not yet valid) one, the last ot the second last loaded period.
+    Q_PROPERTY(bool periodValid2 READ periodValid2 NOTIFY periodValid2Changed)
+    Q_PROPERTY(int periodPrice2 READ periodPrice2 NOTIFY periodPrice2Changed)
+    Q_PROPERTY(int periodDays2 READ periodDays2 NOTIFY periodDays2Changed)
+    Q_PROPERTY(int periodDaysRemaining2 READ periodDaysRemaining2 NOTIFY periodDaysRemaining2Changed)
+    Q_PROPERTY(HslArea validityArea2 READ validityArea2 NOTIFY validityArea2Changed)
+    Q_PROPERTY(QString validityAreaName2 READ validityAreaName2 NOTIFY validityArea2Changed)
+    Q_PROPERTY(QDateTime periodStartDate2 READ periodStartDate2 NOTIFY periodStartDate2Changed)
+    Q_PROPERTY(QDateTime periodEndDate2 READ periodEndDate2 NOTIFY periodEndDate2Changed)
+    Q_PROPERTY(QDateTime loadingTime2 READ loadingTime2 NOTIFY loadingTime2Changed)
+    class PeriodPass;
+    class Types;
 
 public:
     HslCardPeriodPass(QObject* aParent = Q_NULLPTR);
     ~HslCardPeriodPass();
 
-    QString data() const;
-    void setData(QString aData);
+    const QString data() const;
+    void setData(const QString);
 
-    HslArea validityArea() const;
-    QString validityAreaName() const;
-    QDateTime periodStartDate() const;
-    QDateTime periodEndDate() const;
-    QDateTime loadingTime() const;
-    int loadedPeriodDays() const;
-    int loadedPeriodPrice() const;
-    int daysRemaining() const;
+    int effectiveDaysRemaining() const;
+    QDateTime effectiveEndDate() const;
 
-private Q_SLOTS:
-    void updateDaysRemaining();
+    bool periodValid1() const;
+    int periodPrice1() const;
+    int periodDays1() const;
+    int periodDaysRemaining1() const;
+    HslArea validityArea1() const;
+    const QString validityAreaName1() const;
+    QDateTime periodStartDate1() const;
+    QDateTime periodEndDate1() const;
+    QDateTime loadingTime1() const;
+
+    bool periodValid2() const;
+    int periodPrice2() const;
+    int periodDays2() const;
+    int periodDaysRemaining2() const;
+    HslArea validityArea2() const;
+    const QString validityAreaName2() const;
+    QDateTime periodStartDate2() const;
+    QDateTime periodEndDate2() const;
+    QDateTime loadingTime2() const;
 
 Q_SIGNALS:
     void dataChanged();
-    void validityAreaChanged();
-    void periodStartDateChanged();
-    void periodEndDateChanged();
-    void loadingTimeChanged();
-    void loadedPeriodDaysChanged();
-    void loadedPeriodPriceChanged();
-    void daysRemainingChanged();
+    void effectiveDaysRemainingChanged();
+    void effectiveEndDateChanged();
+    void periodValid1Changed();
+    void periodPrice1Changed();
+    void periodDays1Changed();
+    void periodDaysRemaining1Changed();
+    void validityArea1Changed();
+    void periodStartDate1Changed();
+    void periodEndDate1Changed();
+    void loadingTime1Changed();
+    void periodValid2Changed();
+    void periodPrice2Changed();
+    void periodDays2Changed();
+    void periodDaysRemaining2Changed();
+    void validityArea2Changed();
+    void periodStartDate2Changed();
+    void periodEndDate2Changed();
+    void loadingTime2Changed();
 
 private:
     class Private;

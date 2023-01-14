@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2019-2020 Jolla Ltd.
- * Copyright (C) 2019-2020 Slava Monich <slava@monich.com>
+ * Copyright (C) 2019-2023 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -44,7 +44,9 @@
 
 #include <QtQml>
 
-class HslData : public QObject {
+class HslData :
+    public QObject
+{
     Q_OBJECT
     Q_DISABLE_COPY(HslData)
     Q_ENUMS(Language)
@@ -78,12 +80,13 @@ public:
     // Callback for qmlRegisterSingletonType<HslData>
     static QObject* createSingleton(QQmlEngine*, QJSEngine*);
 
-    Q_INVOKABLE static bool isValidDate(QDate aDate);
-    Q_INVOKABLE static bool isValidPeriod(QDate aStart, QDate aEnd);
-    static bool isValidTimePeriod(QDateTime aStart, QDateTime aEnd);
+    Q_INVOKABLE static bool isValidDate(QDate);
+    Q_INVOKABLE static bool isValidPeriod(QDate, QDate);
+    Q_INVOKABLE static QString finnishDateString(const QDateTime);
 
-    static QDateTime startDateTime(QDate aDate);
-    static QDateTime endDateTime(QDate aDate);
+    static bool isValidTimePeriod(QDateTime, QDateTime);
+    static QDateTime startDateTime(QDate);
+    static QDateTime endDateTime(QDate);
 
     static uint getInt(const GUtilData* aData, uint aOffset, uint aCount);
     static uint getInt(const GUtilData* aData, uint aByteOffset, uint aBitOffset, uint aCount);
