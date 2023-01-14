@@ -504,7 +504,7 @@ HslCardPeriodPass::Private::updatePeriods()
                         latest1 ? 0 : iLatestPeriodPrice);
                     signals2 = iPeriodPass2.update(iValidityArea1,
                         startDateTime(iPeriodStartDate1),
-                        endDateTime(iPeriodEndDate2),
+                        endDateTime(iPeriodEndDate1),
                         latest1 ? iLastLoadingTime : QDateTime(),
                         latest1 ? iLatestPeriodPrice : 0);
                 }
