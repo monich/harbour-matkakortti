@@ -42,6 +42,7 @@ SilicaFlickable {
         Column {
             width: parent.width
             visible: periodPass.periodValid1
+            spacing: Theme.paddingLarge
 
             SectionHeader {
                 //: Section header
@@ -49,57 +50,46 @@ SilicaFlickable {
                 text: qsTrId("matkakortti-details-section-season_tickets")
             }
 
-            Item {
-                id: seasonTicketItem
+            MouseArea {
+                id: passItems
+
+                property bool expanded
+                readonly property int rowHeight: Math.max(passItem1.implicitHeight, passItem2.implicitHeight)
 
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2*x
-                height: Math.max(seasonTicketColumn.height, seasonTicketValidity.height) + Theme.paddingLarge
+                height: expanded ? 2 * rowHeight : rowHeight
+                clip: true
 
                 Column {
-                    id: seasonTicketColumn
+                    width: parent.width
 
-                    anchors {
-                        left: parent.left
-                        right: seasonTicketValidity.left
-                        rightMargin: Theme.paddingLarge
+                    HslPeriodPassItem {
+                        id: passItem1
+
+                        height: passItems.rowHeight
+                        startDate: periodPass.periodStartDate1
+                        endDate: periodPass.periodEndDate1
+                        areaName: periodPass.validityAreaName1
+                        price: periodPass.periodPrice1
+                        daysRemaining: periodPass.periodDaysRemaining1
                     }
 
-                    Label {
-                        width: parent.width
-                        horizontalAlignment: Text.AlignLeft
-                        color: Theme.highlightColor
-                        wrapMode: Text.Wrap
-                        text: HslData.finnishDateString(periodPass.periodStartDate1) + " - " + HslData.finnishDateString(periodPass.periodEndDate1)
-                    }
+                    HslPeriodPassItem {
+                        id: passItem2
 
-                    ValueLabel {
-                        width: parent.width
-                        //: Label
-                        //% "Zone:"
-                        title: qsTrId("matkakortti-details-zone")
-                        value: periodPass.validityAreaName1
-                    }
-
-                    ValueLabel {
-                        width: parent.width
-                        visible: periodPass.periodPrice1 > 0
-                        //: Label
-                        //% "Cost:"
-                        title: qsTrId("matkakortti-details-ticket-cost")
-                        value: Utils.moneyString(periodPass.periodPrice1)
+                        height: passItems.rowHeight
+                        startDate: periodPass.periodStartDate2
+                        endDate: periodPass.periodEndDate2
+                        areaName: periodPass.validityAreaName2
+                        price: periodPass.periodPrice2
+                        daysRemaining: periodPass.periodDaysRemaining2
                     }
                 }
 
-                ValidityItem {
-                    id: seasonTicketValidity
+                Behavior on height { SmoothedAnimation { duration: 200 } }
 
-                    valid: periodPass.periodDaysRemaining1
-                    anchors {
-                        top: parent.top
-                        right: parent.right
-                    }
-                }
+                onClicked: expanded = !expanded
             }
         }
 
