@@ -4,3 +4,6 @@ Name=Matkakortti
 X-Nemo-Application-Type=silica-qt5
 Icon=harbour-matkakortti
 Exec=harbour-matkakortti
+
+[X-Sailjail]
+Permissions=NFC
