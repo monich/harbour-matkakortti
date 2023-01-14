@@ -12,6 +12,7 @@ Item {
 
     readonly property bool _darkOnLight: ('colorScheme' in Theme) && Theme.colorScheme === 1
     readonly property color _validColor: _darkOnLight ? "darkgreen" : "green"
+    readonly property color _notYetValidColor: _darkOnLight ? "gold" : "yellow"
     readonly property color _invalidColor: _darkOnLight ? "darkred" : "red"
 
     Rectangle {
@@ -36,7 +37,9 @@ Item {
         horizontalAlignment: Text.AlignRight
         font.bold: true
         wrapMode: Text.Wrap
-        color: valid > 0 ? _validColor : _invalidColor
+        color: valid > 0 ? _validColor :
+            (valid === TravelCard.PeriodNotYetStarted) ? _notYetValidColor :
+            _invalidColor
         //: Validity label
         //% "Valid"
         text: (valid > 0) ? qsTrId("matkakortti-card-validity-valid") :
