@@ -76,7 +76,7 @@
     <message id="matkakortti-details-section-season_tickets">
         <source>Season tickets</source>
         <extracomment>Section header</extracomment>
-        <translation>Многодневный билет</translation>
+        <translation>Проездной</translation>
     </message>
     <message id="matkakortti-details-zone">
         <source>Zone:</source>
@@ -91,7 +91,7 @@
     <message id="matkakortti-details-loaded_value-label">
         <source>Last loaded value:</source>
         <extracomment>Label</extracomment>
-        <translation>Поополнение:</translation>
+        <translation>Пополнение:</translation>
     </message>
     <message id="matkakortti-details-loading_time-label">
         <source>Loading time:</source>
@@ -101,7 +101,7 @@
     <message id="matkakortti-details-section-latest_ticket">
         <source>Latest value ticket</source>
         <extracomment>Section header</extracomment>
-        <translation>Последний разовый билет</translation>
+        <translation>Последний билет</translation>
     </message>
     <message id="matkakortti-details-ticket-group_size">
         <source>Group size:</source>
