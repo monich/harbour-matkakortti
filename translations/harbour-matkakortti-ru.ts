@@ -101,7 +101,7 @@
     <message id="matkakortti-details-section-latest_ticket">
         <source>Latest value ticket</source>
         <extracomment>Section header</extracomment>
-        <translation>Последний билет</translation>
+        <translation>Билет</translation>
     </message>
     <message id="matkakortti-details-ticket-group_size">
         <source>Group size:</source>
@@ -141,7 +141,7 @@
     <message id="matkakortti-details-boarding_zone">
         <source>Boarding zone:</source>
         <extracomment>Label</extracomment>
-        <translation>Место посадки:</translation>
+        <translation>Зона посадки:</translation>
     </message>
     <message id="matkakortti-details-ticket-balance">
         <source>Balance:</source>
@@ -151,12 +151,12 @@
     <message id="matkakortti-card-validity-valid">
         <source>Valid</source>
         <extracomment>Validity label</extracomment>
-        <translation>ОК</translation>
+        <translation>Действует</translation>
     </message>
     <message id="matkakortti-card-validity-not_yet_valid">
         <source>Not yet valid</source>
         <extracomment>Validity label</extracomment>
-        <translation>Ещё рано</translation>
+        <translation>Ещё не действует</translation>
     </message>
     <message id="matkakortti-card-validity-no_longer_valid">
         <source>No longer valid</source>
