@@ -54,20 +54,20 @@ SilicaFlickable {
                 id: passItems
 
                 property bool expanded
-                readonly property int rowHeight: Math.max(passItem1.implicitHeight, passItem2.implicitHeight)
 
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2*x
-                height: expanded ? 2 * rowHeight : rowHeight
+                height: expanded ? periodPassItems.height : lastPassItem.height
                 clip: true
 
                 Column {
+                    id: periodPassItems
+
                     width: parent.width
 
                     HslPeriodPassItem {
-                        id: passItem1
+                        id: lastPassItem
 
-                        height: passItems.rowHeight
                         startDate: periodPass.periodStartDate1
                         endDate: periodPass.periodEndDate1
                         areaName: periodPass.validityAreaName1
@@ -76,14 +76,15 @@ SilicaFlickable {
                     }
 
                     HslPeriodPassItem {
-                        id: passItem2
-
-                        height: passItems.rowHeight
                         startDate: periodPass.periodStartDate2
                         endDate: periodPass.periodEndDate2
                         areaName: periodPass.validityAreaName2
                         price: periodPass.periodPrice2
                         daysRemaining: periodPass.periodDaysRemaining2
+                        opacity: passItems.expanded ? 1 : 0
+                        visible: opacity > 0
+
+                        Behavior on opacity { FadeAnimation { duration: 200 } }
                     }
                 }
 
