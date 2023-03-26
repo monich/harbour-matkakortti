@@ -1,6 +1,6 @@
 /*
+ * Copyright (C) 2020-2023 Slava Monich <slava@monich.com>
  * Copyright (C) 2020 Jolla Ltd.
- * Copyright (C) 2020 Slava Monich <slava.monich@jolla.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -58,7 +58,7 @@ void NysseCardOwnerInfo::Private::setHexData(QString aHexData)
 {
     iHexData = aHexData;
     HDEBUG(qPrintable(iHexData));
-    QByteArray hex(iHexData.mid(12, 44).toLatin1());
+    QByteArray hex(iHexData.mid(12, 48).toLatin1());
     const uint len = hex.size()/2;
     char* ownerName = new char[len + 1];
     if (gutil_hex2bin(hex.constData(), 2*len, ownerName)) {
