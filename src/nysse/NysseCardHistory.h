@@ -1,6 +1,6 @@
 /*
+ * Copyright (C) 2020-2023 Slava Monich <slava@monich.com>
  * Copyright (C) 2020 Jolla Ltd.
- * Copyright (C) 2020 Slava Monich <slava.monich@jolla.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -40,9 +40,8 @@
 
 #include <QAbstractListModel>
 
-#include <QtQml>
-
-class NysseCardHistory : public QAbstractListModel {
+class NysseCardHistory : public QAbstractListModel
+{
     Q_OBJECT
     Q_DISABLE_COPY(NysseCardHistory)
     Q_PROPERTY(QString data READ data WRITE setData NOTIFY dataChanged)
@@ -54,19 +53,19 @@ public:
         TransactionIssue,
         TransactionCharge,
         TransactionDeposit,
-        TransactionBoarding
+        TransactionTicket
     };
 
     NysseCardHistory(QObject* aParent = Q_NULLPTR);
     ~NysseCardHistory();
 
-    QString data() const;
-    void setData(QString aData);
+    const QString data() const;
+    void setData(const QString);
 
     // QAbstractItemModel
     QHash<int,QByteArray> roleNames() const Q_DECL_OVERRIDE;
-    int rowCount(const QModelIndex& aParent = QModelIndex()) const Q_DECL_OVERRIDE;
-    QVariant data(const QModelIndex& aIndex, int aRole) const Q_DECL_OVERRIDE;
+    int rowCount(const QModelIndex&) const Q_DECL_OVERRIDE;
+    QVariant data(const QModelIndex&, int) const Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
     void dataChanged();
@@ -76,7 +75,5 @@ private:
     class Private;
     Private* iPrivate;
 };
-
-QML_DECLARE_TYPE(NysseCardHistory)
 
 #endif // NYSSE_CARD_HISTORY_H

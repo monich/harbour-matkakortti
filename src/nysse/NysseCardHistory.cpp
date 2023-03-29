@@ -1,6 +1,6 @@
 /*
+ * Copyright (C) 2020-2023 Slava Monich <slava@monich.com>
  * Copyright (C) 2020 Jolla Ltd.
- * Copyright (C) 2020 Slava Monich <slava.monich@jolla.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -35,8 +35,6 @@
  * any official policies, either expressed or implied.
  */
 
-#include <gutil_misc.h>
-
 #include "NysseCardHistory.h"
 #include "NysseUtil.h"
 #include "Util.h"
@@ -56,7 +54,8 @@
 // NysseCardHistory::ModelData
 // ==========================================================================
 
-class NysseCardHistory::ModelData {
+class NysseCardHistory::ModelData
+{
 public:
     typedef QList<ModelData*> List;
     enum Role {
@@ -69,26 +68,29 @@ public:
 #undef LAST
     };
 
-    ModelData(TransactionType aType, QDateTime aTransactionTime,
-        int aMoneyAmount);
+    ModelData(TransactionType, QDateTime, int);
 
-    QVariant get(Role aRole) const;
+    QVariant get(Role) const;
 
 public:
-    TransactionType iTransactionType;
-    QDateTime iTransactionTime;
-    int iMoneyAmount;
+    const TransactionType iTransactionType;
+    const QDateTime iTransactionTime;
+    const int iMoneyAmount;
 };
 
-NysseCardHistory::ModelData::ModelData(TransactionType aType,
-    QDateTime aTransactionTime, int aMoneyAmount) :
+NysseCardHistory::ModelData::ModelData(
+    TransactionType aType,
+    QDateTime aTransactionTime,
+    int aMoneyAmount) :
     iTransactionType(aType),
     iTransactionTime(aTransactionTime),
     iMoneyAmount(aMoneyAmount)
 {
 }
 
-QVariant NysseCardHistory::ModelData::get(Role aRole) const
+QVariant
+NysseCardHistory::ModelData::get(
+    Role aRole) const
 {
     switch (aRole) {
     case TransactionTypeRole: return iTransactionType;
@@ -102,15 +104,16 @@ QVariant NysseCardHistory::ModelData::get(Role aRole) const
 // NysseCardHistory::Private
 // ==========================================================================
 
-class NysseCardHistory::Private {
+class NysseCardHistory::Private
+{
 public:
     enum { ENTRY_SIZE = 16 };
 
     Private();
     ~Private();
 
-    void setHexData(QString aHexData);
-    ModelData* dataAt(int aIndex) const;
+    void setHexData(const QString);
+    const ModelData* dataAt(int) const;
 
 public:
     QString iHexData;
@@ -126,46 +129,68 @@ NysseCardHistory::Private::~Private()
     qDeleteAll(iData);
 }
 
-void NysseCardHistory::Private::setHexData(QString aHexData)
+void
+NysseCardHistory::Private::setHexData(
+    const QString aHexData)
 {
     iHexData = aHexData;
-    QByteArray hexData(aHexData.toLatin1());
-    HDEBUG(hexData.constData());
-    GBytes* bytes = gutil_hex2bytes(hexData.constData(), hexData.size());
     qDeleteAll(iData);
     iData.clear();
-    if (bytes) {
-        GUtilData data;
-        gutil_data_from_bytes(&data, bytes);
-        HASSERT(!(data.size % ENTRY_SIZE));
-        const int n = data.size / ENTRY_SIZE;
-        HDEBUG(n << "history entries:");
-        for (int i = n - 1; i >= 0; i--) {
-            const guint8* entry = data.bytes + i * ENTRY_SIZE;
-            HDEBUG("Entry #" << (i + 1));
-            const guint32 typeCode = Util::uint32be(entry + 2);
-            TransactionType type;
-            // No so sure about these...
-            switch (typeCode) {
-            case 0x0000d417: type = TransactionIssue; break;
-            case 0x00001018: type = TransactionCharge; break;
-            case 0x00004c04: type = TransactionDeposit; break;
-            case 0x000bde07: type = TransactionBoarding; break;
-            default: type = TransactionUnknown; break;
-            }
-            HDEBUG("  Type =" << typeCode << "(" << type << ")");
-            QDateTime time(NysseUtil::toDateTime(Util::uint16le(entry + 0),
-                Util::uint16le(entry + 6)));
-            HDEBUG("  Time =" << time);
-            const uint amount = Util::uint16le(entry + 8);
-            HDEBUG("  MoneyAmount =" << amount);
-            iData.append(new ModelData(type, time, amount));
+
+    HDEBUG(qPrintable(aHexData));
+    const QByteArray bytes(QByteArray::fromHex(aHexData.toLatin1()));
+    HASSERT(!(bytes.size() % ENTRY_SIZE));
+    const int n = bytes.size() / ENTRY_SIZE;
+    HDEBUG(n << "history entries:");
+    for (int i = n - 1; i >= 0; i--) {
+        const guint8* block = (guint8*) bytes.constData() + i * ENTRY_SIZE;
+
+        // History block layout:
+        //
+        // +=========================================================+
+        // | Offset | Size | Description                             |
+        // +=========================================================+
+        // | 0      | 2    | Date                                    |
+        // | 2      | 2    | ??? (e.g 0000, 000b, 0d0b, 320b, 580b)  |
+        // | 4      | 2    | Transaction type:                       |
+        // |        |      +-----------------------------------------+
+        // |        |      | d417 | Card issue                       |
+        // |        |      | 1018 | Some sort of charge              |
+        // |        |      | 4c04 | Deposit                          |
+        // |        |      | ba04 | Ticket purchase or balance check |
+        // |        |      | de07 | ???                              |
+        // |        |      +-----------------------------------------+
+        // | 6      | 2    | Time                                    |
+        // | 8      | 2    | Transaction amount (in cents)           |
+        // | 10     | 6    | ???                                     |
+        // +=========================================================+
+        //
+        HDEBUG("Entry #" << (i + 1) << ":" <<
+            QByteArray((char*)block, ENTRY_SIZE).toHex().constData());
+        const guint typeCode = Util::uint16be(block + 4);
+        TransactionType type;
+        // No so sure about these...
+        switch (typeCode) {
+        case 0xd417: type = TransactionIssue; break;
+        case 0x1018: type = TransactionCharge; break;
+        case 0x4c04: type = TransactionDeposit; break;
+        case 0xba04: type = TransactionTicket; break;
+        default: type = TransactionUnknown; break;
         }
-        g_bytes_unref(bytes);
+        HDEBUG("  Type =" << typeCode << "(" << type << ")");
+        QDateTime time(NysseUtil::toDateTime(Util::uint16le(block + 0),
+            Util::uint16le(block + 6)));
+        HDEBUG("  Time =" << time);
+        const uint amount = Util::uint16le(block + 8);
+        HDEBUG("  MoneyAmount =" << amount);
+        iData.append(new ModelData(type, time, amount));
     }
 }
 
-inline NysseCardHistory::ModelData* NysseCardHistory::Private::dataAt(int aIndex) const
+inline
+const NysseCardHistory::ModelData*
+NysseCardHistory::Private::dataAt(
+    int aIndex) const
 {
     if (aIndex >= 0 && aIndex < iData.count()) {
         return iData.at(aIndex);
@@ -178,7 +203,8 @@ inline NysseCardHistory::ModelData* NysseCardHistory::Private::dataAt(int aIndex
 // NysseCardHistory
 // ==========================================================================
 
-NysseCardHistory::NysseCardHistory(QObject* aParent) :
+NysseCardHistory::NysseCardHistory(
+    QObject* aParent) :
     QAbstractListModel(aParent),
     iPrivate(new Private)
 {
@@ -189,12 +215,15 @@ NysseCardHistory::~NysseCardHistory()
     delete iPrivate;
 }
 
-QString NysseCardHistory::data() const
+const QString
+NysseCardHistory::data() const
 {
     return iPrivate->iHexData;
 }
 
-void NysseCardHistory::setData(QString aData)
+void
+NysseCardHistory::setData(
+    const QString aData)
 {
     QString data(aData.toLower());
     if (iPrivate->iHexData != data) {
@@ -230,7 +259,8 @@ void NysseCardHistory::setData(QString aData)
     }
 }
 
-QHash<int,QByteArray> NysseCardHistory::roleNames() const
+QHash<int,QByteArray>
+NysseCardHistory::roleNames() const
 {
     QHash<int,QByteArray> roles;
 #define ROLE(X,x) roles.insert(ModelData::X##Role, #x);
@@ -239,13 +269,18 @@ MODEL_ROLES(ROLE)
     return roles;
 }
 
-int NysseCardHistory::rowCount(const QModelIndex& aParent) const
+int
+NysseCardHistory::rowCount(
+    const QModelIndex& aParent) const
 {
     return iPrivate->iData.count();
 }
 
-QVariant NysseCardHistory::data(const QModelIndex& aIndex, int aRole) const
+QVariant
+NysseCardHistory::data(
+    const QModelIndex& aIndex,
+    int aRole) const
 {
-    ModelData* data = iPrivate->dataAt(aIndex.row());
+    const ModelData* data = iPrivate->dataAt(aIndex.row());
     return data ? data->get((ModelData::Role)aRole) : QVariant();
 }
