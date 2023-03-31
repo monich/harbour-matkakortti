@@ -1,6 +1,6 @@
 /*
+ * Copyright (C) 2020-2023 Slava Monich <slava@monich.com>
  * Copyright (C) 2020 Jolla Ltd.
- * Copyright (C) 2020 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -41,7 +41,8 @@
 #include <QDateTime>
 
 namespace NysseUtil {
-    QDateTime toDateTime(uint aDate, uint aTime);
+    // Date is the number of days since 1 Jan 1900
+    QDateTime toDateTime(uint aDate, uint aTime = 0);
 }
 
 #endif // NYSSE_UTIL_H
