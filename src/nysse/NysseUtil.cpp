@@ -38,8 +38,12 @@
 #include "NysseUtil.h"
 #include "Util.h"
 
-QDateTime NysseUtil::toDateTime(uint aDate, uint aTime)
+QDateTime
+NysseUtil::toDateTime(
+    uint aDate,
+    uint aTime)
 {
+    // 25567 is the number of days between 1 Jan 1900 and 1 Jan 1970
     const qint64 msec = (qint64)
         (((qint64)aDate - 25567) * 24 * 3600 +
         (aTime >> 4) * 30) * 1000;
