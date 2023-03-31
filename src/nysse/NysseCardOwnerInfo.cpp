@@ -45,7 +45,8 @@
 #define QUEUED_SIGNALS(s) \
     s(Data,data) \
     s(OwnerName,ownerName) \
-    s(BirthDate,birthDate)
+    s(BirthDate,birthDate) \
+    s(IssueDate,issueDate)
 
 // ==========================================================================
 // NysseCardOwnerInfo::Private
@@ -80,6 +81,7 @@ public:
     QString iHexData;
     QString iOwnerName;
     QDateTime iBirthDate;
+    QDateTime iIssueDate;
 };
 
 NysseCardOwnerInfo::Private::Private(
@@ -145,7 +147,9 @@ NysseCardOwnerInfo::Private::updateHexData(
     // | 6      | 24   | Owner's name, padded with zeros         |
     // | 30     | 4    | ???                                     |
     // | 34     | 2    | Birthdate (days since 1 Jan 1900)       |
-    // | 36     | 60   | ???                                     |
+    // | 36     | 6    | ???                                     |
+    // | 42     | 2    | Card issue date (days since 1 Jan 1900) |
+    // | 44     | 52   | ???                                     |
     // +=========================================================+
     if (iHexData != aHexData) {
         iHexData = aHexData;
@@ -154,9 +158,10 @@ NysseCardOwnerInfo::Private::updateHexData(
 
         const QString prevOwnerName(iOwnerName);
         const QDateTime prevBirthDate(iBirthDate);
+        const QDateTime prevIssueDate(iIssueDate);
         const QByteArray data(QByteArray::fromHex(aHexData.toLatin1()));
 
-        if (data.size() >= 36) {
+        if (data.size() >= 44) {
             const uchar* bytes = (const uchar*)data.constData();
 
             // Owner name is padded with zeros
@@ -166,11 +171,15 @@ NysseCardOwnerInfo::Private::updateHexData(
             iOwnerName = QString::fromLatin1(name, nameLen);
             HDEBUG("  OwnerName =" << iOwnerName);
 
-            iBirthDate = NysseUtil::toDateTime(Util::uint16le(bytes + 34), 0);
+            iBirthDate = NysseUtil::toDateTime(Util::uint16le(bytes + 34));
             HDEBUG("  BirthDate =" << iBirthDate.date());
+
+            iIssueDate = NysseUtil::toDateTime(Util::uint16le(bytes + 42));
+            HDEBUG("  IssueDate =" << iIssueDate.date());
         } else {
             iOwnerName.clear();
-            iBirthDate = QDateTime();
+            iBirthDate =
+            iIssueDate = QDateTime();
         }
 
         if (prevOwnerName != iOwnerName) {
@@ -178,6 +187,9 @@ NysseCardOwnerInfo::Private::updateHexData(
         }
         if (prevBirthDate != iBirthDate) {
             queueSignal(SignalBirthDateChanged);
+        }
+        if (prevIssueDate != iIssueDate) {
+            queueSignal(SignalIssueDateChanged);
         }
     }
 }
@@ -217,6 +229,12 @@ QDateTime
 NysseCardOwnerInfo::birthDate() const
 {
     return iPrivate->iBirthDate;
+}
+
+QDateTime
+NysseCardOwnerInfo::issueDate() const
+{
+    return iPrivate->iIssueDate;
 }
 
 #include "NysseCardOwnerInfo.moc"

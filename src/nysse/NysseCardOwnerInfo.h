@@ -49,6 +49,7 @@ class NysseCardOwnerInfo :
     Q_PROPERTY(QString data READ data WRITE setData NOTIFY dataChanged)
     Q_PROPERTY(QString ownerName READ ownerName NOTIFY ownerNameChanged)
     Q_PROPERTY(QDateTime birthDate READ birthDate NOTIFY birthDateChanged)
+    Q_PROPERTY(QDateTime issueDate READ issueDate NOTIFY issueDateChanged)
 
 public:
     NysseCardOwnerInfo(QObject* aParent = Q_NULLPTR);
@@ -58,11 +59,13 @@ public:
 
     QString ownerName() const;
     QDateTime birthDate() const;
+    QDateTime issueDate() const;
 
 Q_SIGNALS:
     void dataChanged();
     void ownerNameChanged();
     void birthDateChanged();
+    void issueDateChanged();
 
 private:
     class Private;
