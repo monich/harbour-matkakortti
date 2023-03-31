@@ -1,6 +1,6 @@
 /*
+ * Copyright (C) 2020-2023 Slava Monich <slava@monich.com>
  * Copyright (C) 2020 Jolla Ltd.
- * Copyright (C) 2020 Slava Monich <slava.monich@jolla.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -41,7 +41,7 @@
 QDateTime NysseUtil::toDateTime(uint aDate, uint aTime)
 {
     const qint64 msec = (qint64)
-        ((gint64)(aDate - 25567) * 24 * 3600 +
+        (((qint64)aDate - 25567) * 24 * 3600 +
         (aTime >> 4) * 30) * 1000;
     // This is slightly weird. We convert timestamp to UTC and
     // then use UTC date and time as a local time. If we don't
