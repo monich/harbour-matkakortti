@@ -35,76 +35,188 @@
  * any official policies, either expressed or implied.
  */
 
-#include "gutil_misc.h"
-
 #include "NysseCardOwnerInfo.h"
+#include "NysseUtil.h"
+#include "Util.h"
 
 #include "HarbourDebug.h"
+
+// s(SignalName,signalName)
+#define QUEUED_SIGNALS(s) \
+    s(Data,data) \
+    s(OwnerName,ownerName) \
+    s(BirthDate,birthDate)
 
 // ==========================================================================
 // NysseCardOwnerInfo::Private
 // ==========================================================================
 
-class NysseCardOwnerInfo::Private {
-public:
-    void setHexData(QString aHexData);
+class NysseCardOwnerInfo::Private :
+    public QObject
+{
+    Q_OBJECT
 
 public:
+    enum Signal {
+#define SIGNAL_ENUM_(Name,name) Signal##Name##Changed,
+        QUEUED_SIGNALS(SIGNAL_ENUM_)
+#undef  SIGNAL_ENUM_
+        SignalCount
+    };
+
+    typedef void (NysseCardOwnerInfo::*SignalEmitter)();
+    typedef uint SignalMask;
+
+    Private(NysseCardOwnerInfo*);
+
+    void queueSignal(Signal);
+    void emitQueuedSignals();
+
+    void updateHexData(const QString);
+
+public:
+    SignalMask iQueuedSignals;
+    Signal iFirstQueuedSignal;
     QString iHexData;
     QString iOwnerName;
+    QDateTime iBirthDate;
 };
 
-void NysseCardOwnerInfo::Private::setHexData(QString aHexData)
+NysseCardOwnerInfo::Private::Private(
+    NysseCardOwnerInfo* aParent) :
+    QObject(aParent),
+    iQueuedSignals(0),
+    iFirstQueuedSignal(SignalCount)
 {
-    iHexData = aHexData;
-    HDEBUG(qPrintable(iHexData));
-    QByteArray hex(iHexData.mid(12, 48).toLatin1());
-    const uint len = hex.size()/2;
-    char* ownerName = new char[len + 1];
-    if (gutil_hex2bin(hex.constData(), 2*len, ownerName)) {
-        ownerName[len] = 0;
-        iOwnerName = QString(QLatin1String(ownerName));
-        HDEBUG("  OwnerName =" << iOwnerName);
-    } else {
-        iOwnerName.clear();
+}
+
+void
+NysseCardOwnerInfo::Private::queueSignal(
+    Signal aSignal)
+{
+    if (aSignal >= 0 && aSignal < SignalCount) {
+        const SignalMask signalBit = (SignalMask(1) << aSignal);
+        if (iQueuedSignals) {
+            iQueuedSignals |= signalBit;
+            if (iFirstQueuedSignal > aSignal) {
+                iFirstQueuedSignal = aSignal;
+            }
+        } else {
+            iQueuedSignals = signalBit;
+            iFirstQueuedSignal = aSignal;
+        }
     }
-    delete [] ownerName;
+}
+
+void
+NysseCardOwnerInfo::Private::emitQueuedSignals()
+{
+    static const SignalEmitter emitSignal [] = {
+#define SIGNAL_EMITTER_(Name,name) &NysseCardOwnerInfo::name##Changed,
+        QUEUED_SIGNALS(SIGNAL_EMITTER_)
+#undef SIGNAL_EMITTER_
+    };
+    if (iQueuedSignals) {
+        // Reset first queued signal before emitting the signals.
+        // Signal handlers may emit new signals.
+        uint i = iFirstQueuedSignal;
+        iFirstQueuedSignal = SignalCount;
+        NysseCardOwnerInfo* obj = qobject_cast<NysseCardOwnerInfo*>(parent());
+        for (; i < SignalCount && iQueuedSignals; i++) {
+            const SignalMask signalBit = (SignalMask(1) << i);
+            if (iQueuedSignals & signalBit) {
+                iQueuedSignals &= ~signalBit;
+                Q_EMIT (obj->*(emitSignal[i]))();
+            }
+        }
+    }
+}
+
+void
+NysseCardOwnerInfo::Private::updateHexData(
+    const QString aHexData)
+{
+    // Owner info layout (96 bytes)
+    //
+    // +=========================================================+
+    // | Offset | Size | Description                             |
+    // +=========================================================+
+    // | 0      | 6    | ??? (05 00 00 00 00 00)                 |
+    // | 6      | 24   | Owner's name, padded with zeros         |
+    // | 30     | 4    | ???                                     |
+    // | 34     | 2    | Birthdate (days since 1 Jan 1900)       |
+    // | 36     | 60   | ???                                     |
+    // +=========================================================+
+    if (iHexData != aHexData) {
+        iHexData = aHexData;
+        HDEBUG(qPrintable(iHexData));
+        queueSignal(SignalDataChanged);
+
+        const QString prevOwnerName(iOwnerName);
+        const QDateTime prevBirthDate(iBirthDate);
+        const QByteArray data(QByteArray::fromHex(aHexData.toLatin1()));
+
+        if (data.size() >= 36) {
+            const uchar* bytes = (const uchar*)data.constData();
+
+            // Owner name is padded with zeros
+            const char* name = data.constData() + 6;
+            int nameLen = 24;
+            while (nameLen > 0 && !name[nameLen - 1]) nameLen--;
+            iOwnerName = QString::fromLatin1(name, nameLen);
+            HDEBUG("  OwnerName =" << iOwnerName);
+
+            iBirthDate = NysseUtil::toDateTime(Util::uint16le(bytes + 34), 0);
+            HDEBUG("  BirthDate =" << iBirthDate.date());
+        } else {
+            iOwnerName.clear();
+            iBirthDate = QDateTime();
+        }
+
+        if (prevOwnerName != iOwnerName) {
+            queueSignal(SignalOwnerNameChanged);
+        }
+        if (prevBirthDate != iBirthDate) {
+            queueSignal(SignalBirthDateChanged);
+        }
+    }
 }
 
 // ==========================================================================
 // NysseCardOwnerInfo
 // ==========================================================================
 
-NysseCardOwnerInfo::NysseCardOwnerInfo(QObject* aParent) :
+NysseCardOwnerInfo::NysseCardOwnerInfo(
+    QObject* aParent) :
     QObject(aParent),
-    iPrivate(new Private)
+    iPrivate(new Private(this))
 {
 }
 
-NysseCardOwnerInfo::~NysseCardOwnerInfo()
-{
-    delete iPrivate;
-}
-
-QString NysseCardOwnerInfo::data() const
+QString
+NysseCardOwnerInfo::data() const
 {
     return iPrivate->iHexData;
 }
 
-void NysseCardOwnerInfo::setData(QString aData)
+void
+NysseCardOwnerInfo::setData(
+    const QString aHexData)
 {
-    QString data(aData.toLower());
-    if (iPrivate->iHexData != data) {
-        const QString prevOwnerName(iPrivate->iOwnerName);
-        iPrivate->setHexData(data);
-        if (prevOwnerName != iPrivate->iOwnerName) {
-            Q_EMIT ownerNameChanged();
-        }
-        Q_EMIT dataChanged();
-    }
+    iPrivate->updateHexData(aHexData);
+    iPrivate->emitQueuedSignals();
 }
 
-QString NysseCardOwnerInfo::ownerName() const
+QString
+NysseCardOwnerInfo::ownerName() const
 {
     return iPrivate->iOwnerName;
 }
+
+QDateTime
+NysseCardOwnerInfo::birthDate() const
+{
+    return iPrivate->iBirthDate;
+}
+
+#include "NysseCardOwnerInfo.moc"
