@@ -11,6 +11,8 @@ BackgroundItem {
     property int moneyAmount
     property alias separator: bottomSeparator.visible
 
+    readonly property bool _isDeposit: type === NysseCardHistory.TransactionDeposit
+
     height: column.y + column.height
 
     Column {
@@ -31,10 +33,15 @@ BackgroundItem {
 
         ValueLabel {
             width: Math.min(preferredWidth, parent.width)
-            //: Label
-            //% "Cost:"
-            title: qsTrId("matkakortti-details-ticket-cost")
+            title: _isDeposit ?
+                //: Label
+                //% "Deposit:"
+                qsTrId("matkakortti-details-deposit-amount") :
+                //: Label
+                //% "Cost:"
+                qsTrId("matkakortti-details-ticket-cost")
             value: Utils.moneyString(moneyAmount)
+            boldValue: _isDeposit
             visible: moneyAmount > 0
         }
 

@@ -5,8 +5,9 @@ Column {
     property alias title: titleText.text
     property alias value: valueText.text
     property alias suffix: suffixText.text
-    readonly property real preferredWidth: titleText.preferredWidth + valueText.preferredWidth + suffixText.preferredWidth
+    property alias boldValue: valueText.font.bold
     property int fontSize: Theme.fontSizeMedium
+    readonly property real preferredWidth: titleText.preferredWidth + valueText.preferredWidth + suffixText.preferredWidth
 
     Flow {
         width: parent.width

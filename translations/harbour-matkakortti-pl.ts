@@ -173,6 +173,11 @@
         <extracomment>Label</extracomment>
         <translation type="unfinished">Karta wydana:</translation>
     </message>
+    <message id="matkakortti-details-deposit-amount">
+        <source>Deposit:</source>
+        <extracomment>Label</extracomment>
+        <translation type="unfinished">Depozyt:</translation>
+    </message>
     <message id="matkakortti-history-section-previous_journeys">
         <source>Previous journeys</source>
         <extracomment>Section header</extracomment>
