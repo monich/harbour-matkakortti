@@ -19,3 +19,7 @@ function timeString(date) {
 function dateTimeString(date) {
     return dateString(date) + " " + timeString(date)
 }
+
+function isValidDate(date) {
+    return !isNaN(date)
+}

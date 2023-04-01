@@ -163,6 +163,16 @@
         <extracomment>Validity label</extracomment>
         <translation>不再有效</translation>
     </message>
+    <message id="matkakortti-details-card-birthday">
+        <source>Birthday:</source>
+        <extracomment>Label</extracomment>
+        <translation type="unfinished">生日：</translation>
+    </message>
+    <message id="matkakortti-details-card-issue_date">
+        <source>Card issue date:</source>
+        <extracomment>Label</extracomment>
+        <translation type="unfinished">发卡时间：</translation>
+    </message>
     <message id="matkakortti-history-section-previous_journeys">
         <source>Previous journeys</source>
         <extracomment>Section header</extracomment>

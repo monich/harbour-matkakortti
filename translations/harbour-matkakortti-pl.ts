@@ -163,6 +163,16 @@
         <extracomment>Validity label</extracomment>
         <translation>Nie jest już ważny</translation>
     </message>
+    <message id="matkakortti-details-card-birthday">
+        <source>Birthday:</source>
+        <extracomment>Label</extracomment>
+        <translation type="unfinished">Urodziny:</translation>
+    </message>
+    <message id="matkakortti-details-card-issue_date">
+        <source>Card issue date:</source>
+        <extracomment>Label</extracomment>
+        <translation type="unfinished">Karta wydana:</translation>
+    </message>
     <message id="matkakortti-history-section-previous_journeys">
         <source>Previous journeys</source>
         <extracomment>Section header</extracomment>

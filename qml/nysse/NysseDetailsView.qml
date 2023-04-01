@@ -19,52 +19,82 @@ SilicaFlickable {
 
         VerticalSpace { height: Theme.paddingLarge }
 
-        Text {
+        MouseArea {
+            id: personalInfoArea
+
+            property bool expanded
+
             x: Theme.horizontalPageMargin
-            width: parent.width - 2 * x
-            wrapMode: Text.Wrap
-            color: Theme.secondaryHighlightColor
-            font {
-                pixelSize: Theme.fontSizeLarge
-                bold: true
+            width: parent.width - 2*x
+            height: expanded ? personalInfoItems.height : ownerName.height
+            clip: true
+
+            Column {
+                id: personalInfoItems
+
+                width: parent.width
+
+                Text {
+                    id: ownerName
+
+                    width: parent.width
+                    font {
+                        pixelSize: Theme.fontSizeLarge
+                        bold: true
+                    }
+                    wrapMode: Text.Wrap
+                    color: Theme.secondaryHighlightColor
+                    text: ownerInfo.ownerName
+                }
+
+                ValueLabel {
+                    width: parent.width
+                    fontSize: Theme.fontSizeSmall
+                    //: Label
+                    //% "Birthday:"
+                    title: qsTrId("matkakortti-details-card-birthday")
+                    value: Utils.dateString(ownerInfo.birthDate)
+                    visible: Utils.isValidDate(ownerInfo.birthDate)
+
+                    Behavior on opacity { FadeAnimation { duration: 200 } }
+                }
             }
-            text: ownerInfo.ownerName
+
+            Behavior on height { SmoothedAnimation { duration: 200 } }
+
+            onClicked: expanded = !expanded
         }
 
-        Item {
+        ValueLabel {
             x: Theme.horizontalPageMargin
             width: parent.width - 2 * x
-            height: balanceText.height
+            fontSize: Theme.fontSizeSmall
+            //: Label
+            //% "Card issue date:"
+            title: qsTrId("matkakortti-details-card-issue_date")
+            value: Utils.dateString(ownerInfo.issueDate)
+            visible: Utils.isValidDate(ownerInfo.issueDate)
+        }
 
-            readonly property real spacing: Theme.paddingMedium
+        SectionHeader {
+            //: Section header
+            //% "Card value"
+            text: qsTrId("matkakortti-details-section-card_value")
+        }
 
-            Label {
-                id: balanceTextLabel
+        Text {
+            id: balanceText
 
-                anchors.baseline: balanceText.baseline
-                width: Math.min(implicitWidth, parent.width - balanceText.width - parent.spacing)
-                color: Theme.secondaryHighlightColor
-                horizontalAlignment: Text.AlignLeft
-                truncationMode: TruncationMode.Fade
-                //: Label (available amount of money)
-                //% "Balance:"
-                text: qsTrId("matkakortti-details-ticket-balance")
+            anchors {
+                right: parent.right
+                rightMargin: Theme.horizontalPageMargin
             }
-
-            Text {
-                id: balanceText
-
-                anchors {
-                    left: balanceTextLabel.right
-                    leftMargin: parent.spacing
-                }
-                color: Theme.primaryColor
-                text: Utils.moneyString(balance.balance)
-                font {
-                    pixelSize: Theme.fontSizeLarge
-                    bold: true
-                }
+            font {
+                pixelSize: Theme.fontSizeHuge
+                bold: true
             }
+            color: Theme.primaryColor
+            text: Utils.moneyString(balance.balance)
         }
 
         Column {
