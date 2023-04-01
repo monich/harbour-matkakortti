@@ -6,6 +6,7 @@ Column {
     property alias value: valueText.text
     property alias suffix: suffixText.text
     readonly property real preferredWidth: titleText.preferredWidth + valueText.preferredWidth + suffixText.preferredWidth
+    property int fontSize: Theme.fontSizeMedium
 
     Flow {
         width: parent.width
@@ -15,6 +16,7 @@ Column {
 
             readonly property real preferredWidth: implicitWidth + Theme.paddingMedium
             width: Math.min(preferredWidth, parent.width)
+            font.pixelSize: fontSize
             color: Theme.secondaryHighlightColor
             horizontalAlignment: Text.AlignLeft
             truncationMode: TruncationMode.Fade
@@ -25,6 +27,7 @@ Column {
 
             readonly property real preferredWidth: implicitWidth + (suffix ? Theme.paddingMedium : 0)
             width: Math.min(preferredWidth, parent.width - x)
+            font.pixelSize: fontSize
             color: Theme.highlightColor
             horizontalAlignment: Text.AlignLeft
             truncationMode: TruncationMode.Fade
@@ -35,6 +38,7 @@ Column {
 
             readonly property real preferredWidth: implicitWidth
             width: Math.min(implicitWidth, parent.width - x)
+            font.pixelSize: fontSize
             color: Theme.secondaryHighlightColor
             horizontalAlignment: Text.AlignLeft
             truncationMode: TruncationMode.Fade
