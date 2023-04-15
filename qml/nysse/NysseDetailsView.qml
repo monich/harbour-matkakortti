@@ -10,7 +10,7 @@ SilicaFlickable {
     property var balance
     property var seasonPass
 
-    contentHeight: column.height
+    contentHeight: column.height + Theme.paddingLarge
 
     Column {
         id: column
@@ -77,6 +77,48 @@ SilicaFlickable {
         }
 
         SectionHeader {
+            visible: seasonPass.valid
+            //: Section header
+            //% "Season tickets"
+            text: qsTrId("matkakortti-details-section-season_tickets")
+        }
+
+        Item {
+            visible: seasonPass.valid
+            x: Theme.horizontalPageMargin
+            width: parent.width - 2*x
+            height: Math.max(seasonTicketLabel.height, seasonTicketValidity.height)
+
+            ValueLabel {
+                id: seasonTicketLabel
+
+                anchors {
+                    top: parent.top
+                    left: parent.left
+                    right: seasonTicketValidity.left
+                    rightMargin: Theme.paddingLarge
+                }
+                //: Label
+                //% "Valid until:"
+                title: qsTrId("matkakortti-details-ticket-valid_until")
+                value: Utils.dateString(seasonPass.endDate)
+                //: Suffix after the time ending the period
+                //% " "
+                suffix: qsTrId("matkakortti-details-ticket-valid_until-suffix").trim()
+            }
+
+            ValidityItem {
+                id: seasonTicketValidity
+
+                valid: seasonPass.daysRemaining
+                anchors {
+                    top: parent.top
+                    right: parent.right
+                }
+            }
+        }
+
+        SectionHeader {
             //: Section header
             //% "Card value"
             text: qsTrId("matkakortti-details-section-card_value")
@@ -95,51 +137,6 @@ SilicaFlickable {
             }
             color: Theme.primaryColor
             text: Utils.moneyString(balance.balance)
-        }
-
-        Column {
-            width: parent.width
-            visible: seasonPass.valid
-
-            SectionHeader {
-                //: Section header
-                //% "Season tickets"
-                text: qsTrId("matkakortti-details-section-season_tickets")
-            }
-
-            Item {
-                x: Theme.horizontalPageMargin
-                width: parent.width - 2*x
-                height: Math.max(seasonTicketLabel.height, seasonTicketValidity.height) + Theme.paddingLarge
-
-                ValueLabel {
-                    id: seasonTicketLabel
-
-                    anchors {
-                        top: parent.top
-                        left: parent.left
-                        right: seasonTicketValidity.left
-                        rightMargin: Theme.paddingLarge
-                    }
-                    //: Label
-                    //% "Valid until:"
-                    title: qsTrId("matkakortti-details-ticket-valid_until")
-                    value: Utils.dateString(seasonPass.endDate)
-                    //: Suffix after the time ending the period
-                    //% " "
-                    suffix: qsTrId("matkakortti-details-ticket-valid_until-suffix").trim()
-                }
-
-                ValidityItem {
-                    id: seasonTicketValidity
-
-                    valid: seasonPass.daysRemaining
-                    anchors {
-                        top: parent.top
-                        right: parent.right
-                    }
-                }
-            }
         }
     }
 
