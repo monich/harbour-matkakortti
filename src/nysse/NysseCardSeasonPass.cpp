@@ -1,6 +1,6 @@
 /*
+ * Copyright (C) 2020-2023 Slava Monich <slava@monich.com>
  * Copyright (C) 2020 Jolla Ltd.
- * Copyright (C) 2020 Slava Monich <slava.monich@jolla.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -45,22 +45,51 @@
 
 #include "HarbourDebug.h"
 
+// s(SignalName,signalName)
+#define QUEUED_SIGNALS(s) \
+    s(Data,data) \
+    s(Valid,valid) \
+    s(DaysRemaining,daysRemaining) \
+    s(EndDate,endDate)
+
 // ==========================================================================
 // NysseCardSeasonPass::Private
 // ==========================================================================
 
-class NysseCardSeasonPass::Private {
+class NysseCardSeasonPass::Private :
+    public QObject
+{
+    Q_OBJECT
+
 public:
-    Private(NysseCardSeasonPass* aPass);
+    enum Signal {
+#define SIGNAL_ENUM_(Name,name) Signal##Name##Changed,
+        QUEUED_SIGNALS(SIGNAL_ENUM_)
+#undef  SIGNAL_ENUM_
+        SignalCount
+    };
+
+    typedef void (NysseCardSeasonPass::*SignalEmitter)();
+    typedef uint SignalMask;
+
+    Private(NysseCardSeasonPass*);
     ~Private();
 
-    void setHexData(QString aHexData);
+    void queueSignal(Signal);
+    void emitQueuedSignals();
+
+    void updateHexData(QString);
     void updateDaysRemaining();
+    void scheduleRefreshDaysRemaining();
 
     static void systemTimeChanged(GUtilTimeNotify*, void*);
 
+public Q_SLOTS:
+    void refreshDaysRemaining();
+
 public:
-    NysseCardSeasonPass* iPass;
+    SignalMask iQueuedSignals;
+    Signal iFirstQueuedSignal;
     QString iHexData;
     QDateTime iEndDate;
     bool iValid;
@@ -69,13 +98,16 @@ public:
     gulong iTimeNotifyId;
 };
 
-NysseCardSeasonPass::Private::Private(NysseCardSeasonPass* aPass) :
-    iPass(aPass),
+NysseCardSeasonPass::Private::Private(
+    NysseCardSeasonPass* aParent) :
+    QObject(aParent),
+    iQueuedSignals(0),
+    iFirstQueuedSignal(SignalCount),
     iValid(false),
-    iDaysRemaining(0),
+    iDaysRemaining(TravelCard::PeriodInvalid),
     iTimeNotify(gutil_time_notify_new()),
     iTimeNotifyId(gutil_time_notify_add_handler(iTimeNotify,
-        systemTimeChanged, aPass))
+        systemTimeChanged, this))
 {
 }
 
@@ -85,34 +117,136 @@ NysseCardSeasonPass::Private::~Private()
     gutil_time_notify_unref(iTimeNotify);
 }
 
-void NysseCardSeasonPass::Private::setHexData(QString aHexData)
+void
+NysseCardSeasonPass::Private::queueSignal(
+    Signal aSignal)
 {
-    iHexData = aHexData;
-    HDEBUG(qPrintable(iHexData));
-    iEndDate = QDateTime();
-    iValid = false;
-    iDaysRemaining = TravelCard::PeriodInvalid;
-    guint8 data[16];
-    QByteArray hex(iHexData.toLatin1());
-    if (gutil_hex2bin(hex.constData(), 2*sizeof(data), data)) {
-        iValid = (data[6] != 0);
-        HDEBUG("  Valid =" << iValid);
-        if (iValid) {
-            iEndDate = NysseUtil::toDateTime(Util::uint16be(data + 10), 0);
-            HDEBUG("  EndDate =" << iEndDate);
-            updateDaysRemaining();
+    if (aSignal >= 0 && aSignal < SignalCount) {
+        const SignalMask signalBit = (SignalMask(1) << aSignal);
+        if (iQueuedSignals) {
+            iQueuedSignals |= signalBit;
+            if (iFirstQueuedSignal > aSignal) {
+                iFirstQueuedSignal = aSignal;
+            }
+        } else {
+            iQueuedSignals = signalBit;
+            iFirstQueuedSignal = aSignal;
         }
     }
 }
 
-void NysseCardSeasonPass::Private::systemTimeChanged(GUtilTimeNotify*, void* aPass)
+void
+NysseCardSeasonPass::Private::emitQueuedSignals()
 {
-    HDEBUG("System time changed");
-    ((NysseCardSeasonPass*)aPass)->updateDaysRemaining();
+    static const SignalEmitter emitSignal [] = {
+#define SIGNAL_EMITTER_(Name,name) &NysseCardSeasonPass::name##Changed,
+        QUEUED_SIGNALS(SIGNAL_EMITTER_)
+#undef SIGNAL_EMITTER_
+    };
+    Q_STATIC_ASSERT(G_N_ELEMENTS(emitSignal) == SignalCount);
+    if (iQueuedSignals) {
+        // Reset first queued signal before emitting the signals.
+        // Signal handlers may emit new signals.
+        uint i = iFirstQueuedSignal;
+        iFirstQueuedSignal = SignalCount;
+        NysseCardSeasonPass* obj = qobject_cast<NysseCardSeasonPass*>(parent());
+        for (; i < SignalCount && iQueuedSignals; i++) {
+            const SignalMask signalBit = (SignalMask(1) << i);
+            if (iQueuedSignals & signalBit) {
+                iQueuedSignals &= ~signalBit;
+                Q_EMIT (obj->*(emitSignal[i]))();
+            }
+        }
+    }
 }
 
-void NysseCardSeasonPass::Private::updateDaysRemaining()
+void
+NysseCardSeasonPass::Private::updateHexData(
+    const QString aHexData)
 {
+    const QByteArray bytes(QByteArray::fromHex(aHexData.toLatin1()));
+
+    iHexData = aHexData;
+    HDEBUG(qPrintable(iHexData));
+
+    // Season pass info contains two 48 bytes blocks.
+    // Block layout:
+    //
+    // +=========================================================+
+    // | Offset | Size | Description                             |
+    // +=========================================================+
+    // | 0      | 1    | Block id                                |
+    // | 1      | 5    | ??? (usually 0f 03 00 00 00)            |
+    // | 6      | 1    | Record type?                            |
+    // |        |      +-----------------------------------------+
+    // |        |      | 0x00 | Empty record                     |
+    // |        |      | 0x03 | Subscription (period ticket)     |
+    // |        |      | 0x3f | ???                              |
+    // |        |      +-----------------------------------------+
+    // | 10     | 2    | Subscription end date (record type 3)   |
+    // +=========================================================+
+    if (bytes.size() >= 96) {
+        const uchar* data = (const uchar*) bytes.constData();
+        const uint id1 = data[0];
+        const uint id2 = data[48];
+        const uint off = (id1 > id2 && (id1 - id2) <= 128) ? 0 : 48;
+
+        HDEBUG("Block ids" << hex << id1 << "and" << id2 << "using the" <<
+            (off ? "second" : "first") << "one");
+
+        bool valid = false;
+        if (data[6] == 3) {
+            const QDateTime endDate(NysseUtil::toDateTime(Util::uint16be(data + 10), 0));
+            HDEBUG("  EndDate =" << endDate);
+            if (iEndDate != endDate) {
+                iEndDate = endDate;
+                queueSignal(SignalEndDateChanged);
+            }
+            valid = true;
+        }
+
+        HDEBUG("  Valid =" << valid);
+        if (iValid != valid) {
+            iValid = valid;
+            queueSignal(SignalValidChanged);
+        }
+    }
+
+    updateDaysRemaining();
+    scheduleRefreshDaysRemaining();
+}
+
+void
+NysseCardSeasonPass::Private::systemTimeChanged(
+    GUtilTimeNotify*,
+    void* aPrivate)
+{
+    HDEBUG("System time changed");
+    QMetaObject::invokeMethod((Private*)aPrivate, "refreshDaysRemaining");
+}
+
+void
+NysseCardSeasonPass::Private::refreshDaysRemaining()
+{
+    updateDaysRemaining();
+    emitQueuedSignals();
+    scheduleRefreshDaysRemaining();
+}
+
+void
+NysseCardSeasonPass::Private::scheduleRefreshDaysRemaining()
+{
+    const QDateTime now(Util::currentTimeInFinland());
+    const QDate today = now.date();
+    const QDateTime nextMidnight(today.addDays(1), QTime(0,0), Util::FINLAND_TIMEZONE);
+    HDEBUG(now.toString("dd.MM.yyyy hh:mm:ss") << now.secsTo(nextMidnight) << "sec until midnight");
+    QTimer::singleShot(now.msecsTo(nextMidnight) + 1000, this, SLOT(refreshDaysRemaining()));
+}
+
+void
+NysseCardSeasonPass::Private::updateDaysRemaining()
+{
+    const int prevDaysRemaining = iDaysRemaining;
     if (iValid) {
         const QDateTime now = QDateTime::currentDateTime();
         const QDate today = now.date();
@@ -120,14 +254,13 @@ void NysseCardSeasonPass::Private::updateDaysRemaining()
         if (today > lastDay) {
             iDaysRemaining = TravelCard::PeriodEnded;
         } else {
-            const QDateTime nextMidnight(today.addDays(1), QTime(0,0), Util::FINLAND_TIMEZONE);
             iDaysRemaining = today.daysTo(lastDay) + 1;
-            HDEBUG(now.secsTo(nextMidnight) << "sec until midnight");
-            QTimer::singleShot(now.msecsTo(nextMidnight) + 1000, iPass,
-                SLOT(updateDaysRemaining()));
         }
     } else {
         iDaysRemaining = TravelCard::PeriodInvalid;
+    }
+    if (prevDaysRemaining != iDaysRemaining) {
+        queueSignal(SignalDaysRemainingChanged);
     }
 }
 
@@ -135,7 +268,8 @@ void NysseCardSeasonPass::Private::updateDaysRemaining()
 // NysseCardSeasonPass
 // ==========================================================================
 
-NysseCardSeasonPass::NysseCardSeasonPass(QObject* aParent) :
+NysseCardSeasonPass::NysseCardSeasonPass(
+    QObject* aParent) :
     QObject(aParent),
     iPrivate(new Private(this))
 {
@@ -146,52 +280,40 @@ NysseCardSeasonPass::~NysseCardSeasonPass()
     delete iPrivate;
 }
 
-QString NysseCardSeasonPass::data() const
+const QString
+NysseCardSeasonPass::data() const
 {
     return iPrivate->iHexData;
 }
 
-void NysseCardSeasonPass::setData(QString aData)
+void
+NysseCardSeasonPass::setData(
+    const QString aData)
 {
-    QString data(aData.toLower());
+    const QString data(aData.toLower());
     if (iPrivate->iHexData != data) {
-        const QDateTime prevEndDate(iPrivate->iEndDate);
-        const bool prevValid(iPrivate->iValid);
-        const int prevDaysRemaining = iPrivate->iDaysRemaining;
-        iPrivate->setHexData(data);
-        if (prevEndDate != iPrivate->iEndDate) {
-            Q_EMIT endDateChanged();
-        }
-        if (prevValid != iPrivate->iValid) {
-            Q_EMIT validChanged();
-        }
-        if (prevDaysRemaining != iPrivate->iDaysRemaining) {
-            Q_EMIT daysRemainingChanged();
-        }
-        Q_EMIT dataChanged();
+        iPrivate->updateHexData(data);
+        iPrivate->queueSignal(Private::SignalDataChanged);
+        iPrivate->emitQueuedSignals();
     }
 }
 
-bool NysseCardSeasonPass::valid() const
+bool
+NysseCardSeasonPass::valid() const
 {
     return iPrivate->iValid;
 }
 
-int NysseCardSeasonPass::daysRemaining() const
+int
+NysseCardSeasonPass::daysRemaining() const
 {
     return iPrivate->iDaysRemaining;
 }
 
-QDateTime NysseCardSeasonPass::endDate() const
+QDateTime
+NysseCardSeasonPass::endDate() const
 {
     return iPrivate->iEndDate;
 }
 
-void NysseCardSeasonPass::updateDaysRemaining()
-{
-    const int prevDaysRemaining = iPrivate->iDaysRemaining;
-    iPrivate->updateDaysRemaining();
-    if (prevDaysRemaining != iPrivate->iDaysRemaining) {
-        Q_EMIT daysRemainingChanged();
-    }
-}
+#include "NysseCardSeasonPass.moc"

@@ -1,6 +1,6 @@
 /*
+ * Copyright (C) 2020-2023 Slava Monich <slava@monich.com>
  * Copyright (C) 2020 Jolla Ltd.
- * Copyright (C) 2020 Slava Monich <slava.monich@jolla.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -38,9 +38,13 @@
 #ifndef NYSSE_CARD_SEASON_PASS_H
 #define NYSSE_CARD_SEASON_PASS_H
 
-#include <QtQml>
+#include <QObject>
+#include <QString>
+#include <QDateTime>
 
-class NysseCardSeasonPass : public QObject {
+class NysseCardSeasonPass :
+    public QObject
+{
     Q_OBJECT
     Q_DISABLE_COPY(NysseCardSeasonPass)
     Q_PROPERTY(QString data READ data WRITE setData NOTIFY dataChanged)
@@ -52,15 +56,12 @@ public:
     NysseCardSeasonPass(QObject* aParent = Q_NULLPTR);
     ~NysseCardSeasonPass();
 
-    QString data() const;
-    void setData(QString aData);
+    const QString data() const;
+    void setData(const QString);
 
     bool valid() const;
     int daysRemaining() const;
     QDateTime endDate() const;
-
-private Q_SLOTS:
-    void updateDaysRemaining();
 
 Q_SIGNALS:
     void dataChanged();
@@ -72,7 +73,5 @@ private:
     class Private;
     Private* iPrivate;
 };
-
-QML_DECLARE_TYPE(NysseCardSeasonPass)
 
 #endif // NYSSE_CARD_SEASON_PASS_H
