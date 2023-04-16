@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2019-2022 Jolla Ltd.
- * Copyright (C) 2019-2022 Slava Monich <slava@monich.com>
+ * Copyright (C) 2020-2023 Slava Monich <slava@monich.com>
+ * Copyright (C) 2020 Jolla Ltd.
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -40,7 +40,9 @@
 const QString Util::CARD_TYPE_KEY("cardType");
 const QTimeZone Util::FINLAND_TIMEZONE("Europe/Helsinki");
 
-guint32 Util::uint32le(const guint8* data)
+guint32
+Util::uint32le(
+    const guint8* data)
 {
     return (((guint32)data[3]) << 24) +
         (((guint32)data[2]) << 16) +
@@ -48,7 +50,9 @@ guint32 Util::uint32le(const guint8* data)
         data[0];
 }
 
-guint32 Util::uint32be(const guint8* data)
+guint32
+Util::uint32be(
+    const guint8* data)
 {
     return (((guint32)data[0]) << 24) +
         (((guint32)data[1]) << 16) +
@@ -56,12 +60,25 @@ guint32 Util::uint32be(const guint8* data)
         data[3];
 }
 
-guint16 Util::uint16le(const guint8* data)
+guint
+Util::uint24be(
+    const guint8* data)
+{
+    return (((uint)data[0]) << 16) +
+        (((uint)data[1]) << 8) +
+        data[2];
+}
+
+guint16
+Util::uint16le(
+    const guint8* data)
 {
     return (((guint16)data[1]) << 8) + data[0];
 }
 
-guint16 Util::uint16be(const guint8* data)
+guint16
+Util::uint16be(
+    const guint8* data)
 {
     return (((guint16)data[0]) << 8) + data[1];
 }

@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2019-2022 Jolla Ltd.
- * Copyright (C) 2019-2023 Slava Monich <slava@monich.com>
+ * Copyright (C) 2020-2023 Slava Monich <slava@monich.com>
+ * Copyright (C) 2020 Jolla Ltd.
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -49,10 +49,11 @@ namespace Util {
     extern const QString CARD_TYPE_KEY;
     extern const QTimeZone FINLAND_TIMEZONE; // Europe/Helsinki
 
-    guint32 uint32le(const guint8* data);
-    guint32 uint32be(const guint8* data);
-    guint16 uint16le(const guint8* data);
-    guint16 uint16be(const guint8* data);
+    guint32 uint32le(const guint8*);
+    guint32 uint32be(const guint8*);
+    guint   uint24be(const guint8*);
+    guint16 uint16le(const guint8*);
+    guint16 uint16be(const guint8*);
 
     inline QByteArray toByteArray(const GUtilData* aData)
         { return QByteArray((const char*)aData->bytes, (int)aData->size); }

@@ -147,37 +147,38 @@ NysseCardHistory::Private::setHexData(
 
         // History block layout:
         //
-        // +=========================================================+
-        // | Offset | Size | Description                             |
-        // +=========================================================+
-        // | 0      | 2    | Date                                    |
-        // | 2      | 2    | ??? (e.g 0000, 000b, 0d0b, 320b, 580b)  |
-        // | 4      | 2    | Transaction type:                       |
-        // |        |      +-----------------------------------------+
-        // |        |      | d417 | Card issue                       |
-        // |        |      | 1018 | Some sort of charge              |
-        // |        |      | 4c04 | Deposit                          |
-        // |        |      | ba04 | Ticket purchase or balance check |
-        // |        |      | de07 | ???                              |
-        // |        |      +-----------------------------------------+
-        // | 6      | 2    | Time                                    |
-        // | 8      | 2    | Transaction amount (in cents)           |
-        // | 10     | 6    | ???                                     |
-        // +=========================================================+
+        // +===========================================================+
+        // | Offset | Size | Description                               |
+        // +===========================================================+
+        // | 0      | 2    | Date                                      |
+        // | 2      | 1    | Minutes since last stamp                  |
+        // | 3      | 3    | Transaction type:                         |
+        // |        |      +-------------------------------------------+
+        // |        |      | 00 d4 17 | Card issue                     |
+        // |        |      | 00 10 18 | Some sort of charge            |
+        // |        |      | 00 4c 04 | Deposit                        |
+        // |        |      | 0b ba 04 | Ticket purchase or validation  |
+        // |        |      | 0b de 07 | Season pass check              |
+        // |        |      +-------------------------------------------+
+        // | 6      | 2    | Time                                      |
+        // | 8      | 2    | Transaction amount (in cents)             |
+        // | 10     | 6    | ???                                       |
+        // +===========================================================+
         //
         HDEBUG("Entry #" << (i + 1) << ":" <<
             QByteArray((char*)block, ENTRY_SIZE).toHex().constData());
-        const guint typeCode = Util::uint16be(block + 4);
+        const guint typeCode = Util::uint24be(block + 3);
         TransactionType type;
         // No so sure about these...
         switch (typeCode) {
-        case 0xd417: type = TransactionIssue; break;
-        case 0x1018: type = TransactionCharge; break;
-        case 0x4c04: type = TransactionDeposit; break;
-        case 0xba04: type = TransactionTicket; break;
+        case 0x00d417: type = TransactionIssue; break;
+        case 0x001018: type = TransactionCharge; break;
+        case 0x004c04: type = TransactionDeposit; break;
+        case 0x0bba04: type = TransactionTicket; break;
+        case 0x0bde07: type = TransactionCheck; break;
         default: type = TransactionUnknown; break;
         }
-        HDEBUG("  Type =" << typeCode << "(" << type << ")");
+        HDEBUG("  Type =" << hex << typeCode << "(" << dec  << type << ")");
         QDateTime time(NysseUtil::toDateTime(Util::uint16le(block + 0),
             Util::uint16le(block + 6)));
         HDEBUG("  Time =" << time);
@@ -271,7 +272,7 @@ MODEL_ROLES(ROLE)
 
 int
 NysseCardHistory::rowCount(
-    const QModelIndex& aParent) const
+    const QModelIndex&) const
 {
     return iPrivate->iData.count();
 }

@@ -40,7 +40,8 @@
 
 #include <QAbstractListModel>
 
-class NysseCardHistory : public QAbstractListModel
+class NysseCardHistory :
+    public QAbstractListModel
 {
     Q_OBJECT
     Q_DISABLE_COPY(NysseCardHistory)
@@ -53,7 +54,8 @@ public:
         TransactionIssue,
         TransactionCharge,
         TransactionDeposit,
-        TransactionTicket
+        TransactionTicket,
+        TransactionCheck
     };
 
     NysseCardHistory(QObject* aParent = Q_NULLPTR);
