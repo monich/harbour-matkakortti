@@ -80,14 +80,6 @@ Page {
                     }
                 }
                 break
-
-            case TravelCard.CardNone:
-                if (targetPresent && cardInfoPage) {
-                    // Unsupported card
-                    cardInfoPage.backNavigation = true
-                    pageStack.pop(page, PageStackAction.Animated)
-                }
-                break
             }
         }
     }
