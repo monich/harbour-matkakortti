@@ -20,19 +20,6 @@ Page {
     property bool showingCardInfo: !!cardInfoPage
     property Page cardInfoPage
 
-    NfcTag {
-        path: NfcAdapter.tagPath
-        onValidChanged: maybePopCardInfoPage()
-        onPresentChanged: maybePopCardInfoPage()
-        onTypeChanged: maybePopCardInfoPage()
-        function maybePopCardInfoPage() {
-            if (valid && present && type != NfcTag.IsoDep && showingCardInfo) {
-                cardInfoPage.backNavigation = true
-                pageStack.pop(page, PageStackAction.Animated)
-            }
-        }
-    }
-
     ConfigurationValue {
         id: lastCardType
 

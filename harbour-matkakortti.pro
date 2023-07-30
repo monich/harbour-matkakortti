@@ -144,14 +144,12 @@ INCLUDEPATH += \
 HEADERS += \
     $${LIBQNFCDC_INCLUDE}/NfcAdapter.h \
     $${LIBQNFCDC_INCLUDE}/NfcMode.h \
-    $${LIBQNFCDC_INCLUDE}/NfcSystem.h \
-    $${LIBQNFCDC_INCLUDE}/NfcTag.h
+    $${LIBQNFCDC_INCLUDE}/NfcSystem.h
 
 SOURCES += \
     $${LIBQNFCDC_SRC}/NfcAdapter.cpp \
     $${LIBQNFCDC_SRC}/NfcMode.cpp \
-    $${LIBQNFCDC_SRC}/NfcSystem.cpp \
-    $${LIBQNFCDC_SRC}/NfcTag.cpp
+    $${LIBQNFCDC_SRC}/NfcSystem.cpp
 
 # harbour-lib
 

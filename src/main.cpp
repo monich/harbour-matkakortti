@@ -1,6 +1,6 @@
 /*
+ * Copyright (C) 2019-2023 Slava Monich <slava@monich.com>
  * Copyright (C) 2019-2022 Jolla Ltd.
- * Copyright (C) 2019-2022 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -40,7 +40,6 @@
 #include "NfcAdapter.h"
 #include "NfcMode.h"
 #include "NfcSystem.h"
-#include "NfcTag.h"
 
 #include "HarbourDebug.h"
 #include "HarbourSystemTime.h"
@@ -69,7 +68,6 @@ static void register_types(const char* uri, int v1 = 1, int v2 = 0)
     REGISTER_SINGLETON_TYPE(uri, v1, v2, NfcAdapter);
     REGISTER_SINGLETON_TYPE(uri, v1, v2, NfcSystem);
     REGISTER_TYPE(uri, v1, v2, NfcMode);
-    REGISTER_TYPE(uri, v1, v2, NfcTag);
     REGISTER_TYPE(uri, v1, v2, TravelCard);
     TravelCard::registerTypes(uri, v1, v2);
 }
