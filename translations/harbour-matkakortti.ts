@@ -143,11 +143,6 @@
         <extracomment>Label</extracomment>
         <translation>Boarding zone:</translation>
     </message>
-    <message id="matkakortti-details-ticket-balance">
-        <source>Balance:</source>
-        <extracomment>Label (available amount of money)</extracomment>
-        <translation>Balance:</translation>
-    </message>
     <message id="matkakortti-card-validity-valid">
         <source>Valid</source>
         <extracomment>Validity label</extracomment>

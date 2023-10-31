@@ -143,11 +143,6 @@
         <extracomment>Label</extracomment>
         <translation type="unfinished">登机区：</translation>
     </message>
-    <message id="matkakortti-details-ticket-balance">
-        <source>Balance:</source>
-        <extracomment>Label (available amount of money)</extracomment>
-        <translation>结余：</translation>
-    </message>
     <message id="matkakortti-card-validity-valid">
         <source>Valid</source>
         <extracomment>Validity label</extracomment>

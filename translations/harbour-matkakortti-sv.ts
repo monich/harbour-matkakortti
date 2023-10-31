@@ -143,11 +143,6 @@
         <extracomment>Label</extracomment>
         <translation type="unfinished">Ombordstigningszon:</translation>
     </message>
-    <message id="matkakortti-details-ticket-balance">
-        <source>Balance:</source>
-        <extracomment>Label (available amount of money)</extracomment>
-        <translation type="unfinished">Balans:</translation>
-    </message>
     <message id="matkakortti-card-validity-valid">
         <source>Valid</source>
         <extracomment>Validity label</extracomment>
