@@ -11,11 +11,15 @@ CoverBackground {
 
     property Page cardInfoPage
     property bool unrecorgnizedCard
-    readonly property real extraSize: Theme.paddingMedium
-    readonly property int ticketSecondsRemaining: cardInfoPage ? cardInfoPage.ticketSecondsRemaining : TravelCard.PeriodInvalid
-    readonly property int periodPassDaysRemaining: cardInfoPage ? cardInfoPage.periodPassDaysRemaining : TravelCard.PeriodInvalid
-    readonly property var periodPassEndDate: cardInfoPage ? cardInfoPage.periodPassEndDate : undefined
-    readonly property string remainingBalance: (cardInfoPage && cardInfoPage.remainingBalance) ?
+
+    readonly property bool _darkOnLight: ('colorScheme' in Theme) && Theme.colorScheme === 1
+    readonly property color _ticketValidBackground: _darkOnLight ? "lightgreen" : "darkgreen"
+    readonly property color _ticketAboutToExpireBackground: _darkOnLight ? "yellow" : "#483d00"
+    readonly property real _extraSize: Theme.paddingMedium
+    readonly property int _ticketSecondsRemaining: cardInfoPage ? cardInfoPage.ticketSecondsRemaining : TravelCard.PeriodInvalid
+    readonly property int _periodPassDaysRemaining: cardInfoPage ? cardInfoPage.periodPassDaysRemaining : TravelCard.PeriodInvalid
+    readonly property var _periodPassEndDate: cardInfoPage ? cardInfoPage.periodPassEndDate : undefined
+    readonly property string _remainingBalance: (cardInfoPage && cardInfoPage.remainingBalance) ?
         cardInfoPage.remainingBalance : ""
 
     signal popCardInfo()
@@ -49,7 +53,7 @@ CoverBackground {
 
     HarbourHighlightIcon {
         anchors.centerIn: parent
-        sourceSize: Qt.size(parent.width + extraSize, parent.height + extraSize)
+        sourceSize: Qt.size(parent.width + _extraSize, parent.height + _extraSize)
         source: (lastCardType.value === "Nysse") ? "nysse/images/nysse-cover.svg" : "hsl/images/hsl-cover.svg"
         smooth: true
         fillMode: Image.PreserveAspectCrop
@@ -73,7 +77,7 @@ CoverBackground {
 
     Image {
         anchors.centerIn: parent
-        sourceSize: Qt.size(cover.height + extraSize, cover.width + extraSize)
+        sourceSize: Qt.size(cover.height + _extraSize, cover.width + _extraSize)
         source: cardInfoPage ? cardInfoPage.cardImageUrl : ""
         smooth: true
         rotation: 90
@@ -83,7 +87,7 @@ CoverBackground {
     }
 
     Item {
-        visible: ticketSecondsRemaining  > 0 || periodPassDaysRemaining > 0 || remainingBalance.length > 0
+        visible: _ticketSecondsRemaining  > 0 || _periodPassDaysRemaining > 0 || _remainingBalance.length > 0
         width: remainingBalanceBackground.width
         height: remainingBalanceBackground.height
         anchors.centerIn: parent
@@ -99,7 +103,9 @@ CoverBackground {
             width: Math.min(maxWidth, Math.floor(remainingBalanceLabel.width + 2 * height/3))
             height: Theme.itemSizeSmall
             radius: height/2
-            color: Theme.rgba(HarbourUtil.invertedColor(Theme.primaryColor), 0.8 /* opacityOverlay */)
+            color: (_ticketSecondsRemaining > 0 || _periodPassDaysRemaining > 1) ? _ticketValidBackground :
+                _periodPassDaysRemaining === 1 ? _ticketAboutToExpireBackground :
+                Theme.rgba(HarbourUtil.invertedColor(Theme.primaryColor), 0.8 /* opacityOverlay */)
         }
 
         Text {
@@ -111,8 +117,8 @@ CoverBackground {
             }
             anchors.centerIn: parent
             color: Theme.primaryColor
-            text: ticketSecondsRemaining > 0 ? timeRemainingString(ticketSecondsRemaining) :
-                periodPassDaysRemaining > 0 ? dateString(periodPassEndDate) : remainingBalance
+            text: _ticketSecondsRemaining > 0 ? timeRemainingString(_ticketSecondsRemaining) :
+                _periodPassDaysRemaining > 0 ? dateString(_periodPassEndDate) : _remainingBalance
         }
     }
 
