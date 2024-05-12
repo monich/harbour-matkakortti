@@ -8,7 +8,7 @@ import "../components/Utils.js" as Utils
 SilicaFlickable {
     property var ownerInfo
     property var balance
-    property var seasonPass
+    property var ticketInfo
 
     contentHeight: column.height + Theme.paddingLarge
 
@@ -77,14 +77,14 @@ SilicaFlickable {
         }
 
         SectionHeader {
-            visible: seasonPass.valid
+            visible: ticketInfo.valid
             //: Section header
             //% "Season tickets"
             text: qsTrId("matkakortti-details-section-season_tickets")
         }
 
         Item {
-            visible: seasonPass.valid
+            visible: ticketInfo.valid
             x: Theme.horizontalPageMargin
             width: parent.width - 2*x
             height: Math.max(seasonTicketLabel.height, seasonTicketValidity.height)
@@ -101,7 +101,7 @@ SilicaFlickable {
                 //: Label
                 //% "Valid until:"
                 title: qsTrId("matkakortti-details-ticket-valid_until")
-                value: Utils.dateString(seasonPass.endDate)
+                value: Utils.dateString(ticketInfo.endDate)
                 //: Suffix after the time ending the period
                 //% " "
                 suffix: qsTrId("matkakortti-details-ticket-valid_until-suffix").trim()
@@ -110,7 +110,7 @@ SilicaFlickable {
             ValidityItem {
                 id: seasonTicketValidity
 
-                valid: seasonPass.daysRemaining
+                valid: ticketInfo.daysRemaining
                 anchors {
                     top: parent.top
                     right: parent.right

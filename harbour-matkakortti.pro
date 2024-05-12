@@ -231,7 +231,7 @@ HEADERS += \
     src/nysse/NysseCardBalance.h \
     src/nysse/NysseCardHistory.h \
     src/nysse/NysseCardOwnerInfo.h \
-    src/nysse/NysseCardSeasonPass.h \
+    src/nysse/NysseCardTicketInfo.h \
     src/nysse/NysseUtil.h
 
 SOURCES += \
@@ -240,7 +240,7 @@ SOURCES += \
     src/nysse/NysseCardBalance.cpp \
     src/nysse/NysseCardHistory.cpp \
     src/nysse/NysseCardOwnerInfo.cpp \
-    src/nysse/NysseCardSeasonPass.cpp \
+    src/nysse/NysseCardTicketInfo.cpp \
     src/nysse/NysseUtil.cpp
 
 # Icons

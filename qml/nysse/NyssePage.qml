@@ -25,7 +25,7 @@ Page {
     NysseCardOwnerInfo { id: ownerInfoParser; data: cardInfo.ownerInfo }
     NysseCardBalance { id: balanceParser; data: cardInfo.balance }
     NysseCardHistory { id: historyParser; data: cardInfo.history }
-    NysseCardSeasonPass { id: seasonPassParser; data: cardInfo.seasonPass }
+    NysseCardTicketInfo { id: ticketInfoParser; data: cardInfo.ticketInfo }
 
     TravelCardHeader {
         id: header
@@ -153,7 +153,7 @@ Page {
             anchors.fill: parent
             ownerInfo: ownerInfoParser
             balance: balanceParser
-            seasonPass: seasonPassParser
+            ticketInfo: ticketInfoParser
         }
     }
 

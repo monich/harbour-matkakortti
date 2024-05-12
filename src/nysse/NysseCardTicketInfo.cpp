@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2023 Slava Monich <slava@monich.com>
+ * Copyright (C) 2020-2024 Slava Monich <slava@monich.com>
  * Copyright (C) 2020 Jolla Ltd.
  *
  * You may use this file under the terms of the BSD license as follows:
@@ -8,21 +8,23 @@
  * modification, are permitted provided that the following conditions
  * are met:
  *
- *   1. Redistributions of source code must retain the above copyright
- *      notice, this list of conditions and the following disclaimer.
- *   2. Redistributions in binary form must reproduce the above copyright
- *      notice, this list of conditions and the following disclaimer in
- *      the documentation and/or other materials provided with the
- *      distribution.
- *   3. Neither the names of the copyright holders nor the names of its
- *      contributors may be used to endorse or promote products derived
- *      from this software without specific prior written permission.
+ *  1. Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *
+ *  2. Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer
+ *     in the documentation and/or other materials provided with the
+ *     distribution.
+ *
+ *  3. Neither the names of the copyright holders nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
  * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
  * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
  * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
@@ -38,7 +40,7 @@
 #include "gutil_misc.h"
 #include "gutil_timenotify.h"
 
-#include "NysseCardSeasonPass.h"
+#include "NysseCardTicketInfo.h"
 #include "NysseUtil.h"
 #include "TravelCard.h"
 #include "Util.h"
@@ -53,10 +55,10 @@
     s(EndDate,endDate)
 
 // ==========================================================================
-// NysseCardSeasonPass::Private
+// NysseCardTicketInfo::Private
 // ==========================================================================
 
-class NysseCardSeasonPass::Private :
+class NysseCardTicketInfo::Private :
     public QObject
 {
     Q_OBJECT
@@ -69,10 +71,10 @@ public:
         SignalCount
     };
 
-    typedef void (NysseCardSeasonPass::*SignalEmitter)();
+    typedef void (NysseCardTicketInfo::*SignalEmitter)();
     typedef uint SignalMask;
 
-    Private(NysseCardSeasonPass*);
+    Private(NysseCardTicketInfo*);
     ~Private();
 
     void queueSignal(Signal);
@@ -98,8 +100,8 @@ public:
     gulong iTimeNotifyId;
 };
 
-NysseCardSeasonPass::Private::Private(
-    NysseCardSeasonPass* aParent) :
+NysseCardTicketInfo::Private::Private(
+    NysseCardTicketInfo* aParent) :
     QObject(aParent),
     iQueuedSignals(0),
     iFirstQueuedSignal(SignalCount),
@@ -111,14 +113,14 @@ NysseCardSeasonPass::Private::Private(
 {
 }
 
-NysseCardSeasonPass::Private::~Private()
+NysseCardTicketInfo::Private::~Private()
 {
     gutil_time_notify_remove_handler(iTimeNotify, iTimeNotifyId);
     gutil_time_notify_unref(iTimeNotify);
 }
 
 void
-NysseCardSeasonPass::Private::queueSignal(
+NysseCardTicketInfo::Private::queueSignal(
     Signal aSignal)
 {
     if (aSignal >= 0 && aSignal < SignalCount) {
@@ -136,10 +138,10 @@ NysseCardSeasonPass::Private::queueSignal(
 }
 
 void
-NysseCardSeasonPass::Private::emitQueuedSignals()
+NysseCardTicketInfo::Private::emitQueuedSignals()
 {
     static const SignalEmitter emitSignal [] = {
-#define SIGNAL_EMITTER_(Name,name) &NysseCardSeasonPass::name##Changed,
+#define SIGNAL_EMITTER_(Name,name) &NysseCardTicketInfo::name##Changed,
         QUEUED_SIGNALS(SIGNAL_EMITTER_)
 #undef SIGNAL_EMITTER_
     };
@@ -149,7 +151,7 @@ NysseCardSeasonPass::Private::emitQueuedSignals()
         // Signal handlers may emit new signals.
         uint i = iFirstQueuedSignal;
         iFirstQueuedSignal = SignalCount;
-        NysseCardSeasonPass* obj = qobject_cast<NysseCardSeasonPass*>(parent());
+        NysseCardTicketInfo* obj = qobject_cast<NysseCardTicketInfo*>(parent());
         for (; i < SignalCount && iQueuedSignals; i++) {
             const SignalMask signalBit = (SignalMask(1) << i);
             if (iQueuedSignals & signalBit) {
@@ -161,7 +163,7 @@ NysseCardSeasonPass::Private::emitQueuedSignals()
 }
 
 void
-NysseCardSeasonPass::Private::updateHexData(
+NysseCardTicketInfo::Private::updateHexData(
     const QString aHexData)
 {
     const QByteArray bytes(QByteArray::fromHex(aHexData.toLatin1()));
@@ -217,7 +219,7 @@ NysseCardSeasonPass::Private::updateHexData(
 }
 
 void
-NysseCardSeasonPass::Private::systemTimeChanged(
+NysseCardTicketInfo::Private::systemTimeChanged(
     GUtilTimeNotify*,
     void* aPrivate)
 {
@@ -226,7 +228,7 @@ NysseCardSeasonPass::Private::systemTimeChanged(
 }
 
 void
-NysseCardSeasonPass::Private::refreshDaysRemaining()
+NysseCardTicketInfo::Private::refreshDaysRemaining()
 {
     updateDaysRemaining();
     emitQueuedSignals();
@@ -234,7 +236,7 @@ NysseCardSeasonPass::Private::refreshDaysRemaining()
 }
 
 void
-NysseCardSeasonPass::Private::scheduleRefreshDaysRemaining()
+NysseCardTicketInfo::Private::scheduleRefreshDaysRemaining()
 {
     const QDateTime now(Util::currentTimeInFinland());
     const QDate today = now.date();
@@ -244,7 +246,7 @@ NysseCardSeasonPass::Private::scheduleRefreshDaysRemaining()
 }
 
 void
-NysseCardSeasonPass::Private::updateDaysRemaining()
+NysseCardTicketInfo::Private::updateDaysRemaining()
 {
     const int prevDaysRemaining = iDaysRemaining;
     if (iValid) {
@@ -265,29 +267,29 @@ NysseCardSeasonPass::Private::updateDaysRemaining()
 }
 
 // ==========================================================================
-// NysseCardSeasonPass
+// NysseCardTicketInfo
 // ==========================================================================
 
-NysseCardSeasonPass::NysseCardSeasonPass(
+NysseCardTicketInfo::NysseCardTicketInfo(
     QObject* aParent) :
     QObject(aParent),
     iPrivate(new Private(this))
 {
 }
 
-NysseCardSeasonPass::~NysseCardSeasonPass()
+NysseCardTicketInfo::~NysseCardTicketInfo()
 {
     delete iPrivate;
 }
 
 const QString
-NysseCardSeasonPass::data() const
+NysseCardTicketInfo::data() const
 {
     return iPrivate->iHexData;
 }
 
 void
-NysseCardSeasonPass::setData(
+NysseCardTicketInfo::setData(
     const QString aData)
 {
     const QString data(aData.toLower());
@@ -299,21 +301,21 @@ NysseCardSeasonPass::setData(
 }
 
 bool
-NysseCardSeasonPass::valid() const
+NysseCardTicketInfo::valid() const
 {
     return iPrivate->iValid;
 }
 
 int
-NysseCardSeasonPass::daysRemaining() const
+NysseCardTicketInfo::daysRemaining() const
 {
     return iPrivate->iDaysRemaining;
 }
 
 QDateTime
-NysseCardSeasonPass::endDate() const
+NysseCardTicketInfo::endDate() const
 {
     return iPrivate->iEndDate;
 }
 
-#include "NysseCardSeasonPass.moc"
+#include "NysseCardTicketInfo.moc"
