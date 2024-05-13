@@ -21,11 +21,11 @@ Page {
         }
     }
 
-    NysseCardAppInfo { id: appInfoParser; data: cardInfo.appInfo }
-    NysseCardOwnerInfo { id: ownerInfoParser; data: cardInfo.ownerInfo }
-    NysseCardBalance { id: balanceParser; data: cardInfo.balance }
-    NysseCardHistory { id: historyParser; data: cardInfo.history }
-    NysseCardTicketInfo { id: ticketInfoParser; data: cardInfo.ticketInfo }
+    NysseCardAppInfo { id: appInfoParser; data: cardInfo.appInfoData }
+    NysseCardOwnerInfo { id: ownerInfoParser; data: cardInfo.ownerInfoData }
+    NysseCardBalance { id: balanceParser; data: cardInfo.balanceData }
+    NysseCardHistory { id: historyParser; data: cardInfo.historyData }
+    NysseCardTicketInfo { id: ticketInfoParser; data: cardInfo.ticketInfoData }
 
     TravelCardHeader {
         id: header

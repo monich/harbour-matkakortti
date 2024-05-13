@@ -122,6 +122,7 @@ SilicaFlickable {
             //: Section header
             //% "Card value"
             text: qsTrId("matkakortti-details-section-card_value")
+            visible: balance.valid
         }
 
         Text {
@@ -135,6 +136,7 @@ SilicaFlickable {
                 pixelSize: Theme.fontSizeHuge
                 bold: true
             }
+            visible: balance.valid
             color: Theme.primaryColor
             text: Utils.moneyString(balance.balance)
         }

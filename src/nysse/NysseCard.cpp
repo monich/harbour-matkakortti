@@ -87,8 +87,21 @@ public:
         const char* iKey;
         uint iExpectedSize;
         uint iRecordSize;
+        bool iRequired;
         const NfcIsoDepApdu* iPrepareApdu;
         const NfcIsoDepApdu* iReadApdu;
+    };
+
+    struct Response {
+        guint iPrepareStatus;
+        guint iReadStatus;
+        QByteArray iData;
+
+        void clear() {
+            iPrepareStatus = 0;
+            iReadStatus = 0;
+            iData.clear();
+        }
     };
 
     Private(QString aPath, NysseCard* aParent);
@@ -150,7 +163,7 @@ public:
     GCancellable* iCancel;
     gulong iTagEventId[TAG_EVENT_COUNT];
     gulong iIsoDepEventId[TAG_EVENT_COUNT];
-    QByteArray iData[BLOCK_COUNT];
+    Response iResp[BLOCK_COUNT];
     int iCurrentBlock;
 };
 
@@ -183,19 +196,19 @@ const QString NysseCard::Private::PAGE_URL("nysse/NyssePage.qml");
 
 const NysseCard::Private::DataBlock NysseCard::Private::DATA_BLOCKS[] = {
     {
-        "APP_INFO", "appInfo", 32, 0,
+        "APP_INFO", "appInfo", 32, 0, true,
         &PREPARE_APP_INFO_CMD, &READ_APP_INFO_CMD
     },{
-        "OWNER_INFO", "ownerInfo", 96, 0,
+        "OWNER_INFO", "ownerInfo", 96, 0, true,
         &PREPARE_OWNER_INFO_CMD, &READ_OWNER_INFO_CMD
     },{
-        "SEASON_PASS", "ticketInfo", 96, 0,
+        "SEASON_PASS", "ticketInfo", 96, 0, true,
         &PREPARE_SEASON_PASS_CMD, &READ_SEASON_PASS_CMD
     },{
-        "HISTORY", "history", 0, 16,
+        "HISTORY", "history", 0, 16, true,
         &PREPARE_HISTORY_CMD, &READ_HISTORY_CMD
     },{
-        "BALANCE", "balance", 4, 0,
+        "BALANCE", "balance", 4, 0, false,
         &PREPARE_BALANCE_CMD, &READ_BALANCE_CMD
     }
 };
@@ -244,7 +257,9 @@ const NfcIsoDepApdu NysseCard::Private::READ_MORE_CMD = {
     0x100
 };
 
-NysseCard::Private::Private(QString aPath, NysseCard* aParent) :
+NysseCard::Private::Private(
+    QString aPath,
+    NysseCard* aParent) :
     iParent(aParent),
     iTag(Q_NULLPTR),
     iLock(Q_NULLPTR),
@@ -282,7 +297,8 @@ NysseCard::Private::~Private()
     nfc_tag_client_unref(iTag);
 }
 
-void NysseCard::Private::readDone()
+void
+NysseCard::Private::readDone()
 {
     nfc_isodep_client_remove_all_handlers(iIsoDep, iIsoDepEventId);
     nfc_tag_client_remove_all_handlers(iTag, iTagEventId);
@@ -297,59 +313,85 @@ void NysseCard::Private::readDone()
     }
 }
 
-void NysseCard::Private::readSucceeded()
+void
+NysseCard::Private::readSucceeded()
 {
     HDEBUG("Read done");
     readDone();
     QVariantMap cardInfo;
     cardInfo.insert(Util::CARD_TYPE_KEY, Desc.iName);
     for (int i = 0; i < BLOCK_COUNT; i++) {
-        cardInfo.insert(DATA_BLOCKS[i].iKey, HarbourUtil::toHex(iData[i]));
+        const Response* resp = iResp + i;
+        const char* key = DATA_BLOCKS[i].iKey;
+        cardInfo.insert(QString::asprintf("%sData", key),
+            HarbourUtil::toHex(resp->iData)),
+        cardInfo.insert(QString::asprintf("%sStatus1", key),
+            QString::asprintf("%04x", resp->iPrepareStatus));
+        cardInfo.insert(QString::asprintf("%sStatus2", key),
+            QString::asprintf("%04x", resp->iReadStatus));
     }
     QMetaObject::invokeMethod(iParent, "readDone",
         Q_ARG(QString, PAGE_URL),
         Q_ARG(QVariantMap, cardInfo));
 }
 
-void NysseCard::Private::readFailed()
+void
+NysseCard::Private::readFailed()
 {
     HDEBUG("Read failed");
     QMetaObject::invokeMethod(iParent, "readFailed");
     readDone();
 }
 
-const NysseCard::Private::DataBlock* NysseCard::Private::currentBlock()
+const NysseCard::Private::DataBlock*
+NysseCard::Private::currentBlock()
 {
     return (iCurrentBlock >= 0 && iCurrentBlock < BLOCK_COUNT) ?
         (DATA_BLOCKS + iCurrentBlock) : Q_NULLPTR;
 }
 
-void NysseCard::Private::readResp(NfcIsoDepClient*, const GUtilData* aResponse,
-    guint aSw, const GError* aError, void* aPrivate)
+void
+NysseCard::Private::readResp(
+    NfcIsoDepClient*,
+    const GUtilData* aResponse,
+    guint aSw,
+    const GError* aError,
+    void* aPrivate)
 {
     Private* self = (Private*)aPrivate;
 
     if (!aError) {
         const DataBlock* block = self->currentBlock();
-        QByteArray* data = self->iData + self->iCurrentBlock;
-        data->append(Util::toByteArray(aResponse));
-        if (aSw == SW_OK) {
-            const uint size = data->size();
-            if ((block->iExpectedSize && size != block->iExpectedSize) ||
-                (block->iRecordSize && (size % block->iRecordSize))) {
-                HDEBUG("READ" << block->iName << "unexpected size" << size);
-                self->readFailed();
-            } else {
-                HDEBUG("READ" << block->iName << "ok" << size << "bytes");
-                self->readNextBlock();
-            }
-        } else if (aSw == SW_MORE) {
+        Response* resp = self->iResp + self->iCurrentBlock;
+
+        resp->iData.append(Util::toByteArray(aResponse));
+        if (aSw == SW_MORE) {
             HDEBUG("READ_MORE");
             nfc_isodep_client_transmit(self->iIsoDep, &READ_MORE_CMD,
                 self->iCancel, readResp, self, Q_NULLPTR);
         } else {
-            HDEBUG("READ" << block->iName << "unexpected status" << hex << aSw);
-            self->readFailed();
+            resp->iReadStatus = aSw;
+            if (aSw == SW_OK) {
+                const uint size = resp->iData.size();
+                if ((block->iExpectedSize && size != block->iExpectedSize) ||
+                    (block->iRecordSize && (size % block->iRecordSize))) {
+                    HDEBUG("READ" << block->iName << "unexpected size" << size);
+                    if (block->iRequired) {
+                        self->readFailed();
+                    } else {
+                        self->readNextBlock();
+                    }
+                } else {
+                    HDEBUG("READ" << block->iName << "ok" << size << "bytes");
+                    self->readNextBlock();
+                }
+            } else if (!block->iRequired) {
+                HDEBUG("Ignoring READ" << block->iName << "error" << hex << aSw);
+                self->readNextBlock();
+            } else {
+                HDEBUG("READ" << block->iName << "unexpected status" << hex << aSw);
+                self->readFailed();
+            }
         }
     } else {
         REPORT_ERROR("READ", aSw, aError);
@@ -357,24 +399,40 @@ void NysseCard::Private::readResp(NfcIsoDepClient*, const GUtilData* aResponse,
     }
 }
 
-void NysseCard::Private::prepareResp(NfcIsoDepClient*, const GUtilData*,
-    guint aSw, const GError* aError, void* aPrivate)
+void
+NysseCard::Private::prepareResp(
+    NfcIsoDepClient*,
+    const GUtilData*,
+    guint aSw,
+    const GError* aError,
+    void* aPrivate)
 {
     Private* self = (Private*)aPrivate;
 
-    if (!aError && aSw == SW_OK) {
+    if (!aError) {
         const DataBlock* block = self->currentBlock();
-        HDEBUG("PREPARE" << block->iName << "ok");
-        HDEBUG("READ" << block->iName);
-        nfc_isodep_client_transmit(self->iIsoDep, block->iReadApdu,
-            self->iCancel, readResp, self, Q_NULLPTR);
+
+        self->iResp[self->iCurrentBlock].iPrepareStatus = aSw;
+        if (aSw == SW_OK) {
+            HDEBUG("PREPARE" << block->iName << "ok");
+            HDEBUG("READ" << block->iName);
+            nfc_isodep_client_transmit(self->iIsoDep, block->iReadApdu,
+                self->iCancel, readResp, self, Q_NULLPTR);
+        } else if (!block->iRequired) {
+            HDEBUG("Skipping" << block->iName << "block due to PREPARE error" << hex << aSw);
+            self->readNextBlock();
+        } else {
+            HDEBUG("PREPARE" << block->iName << "unexpected status" << hex << aSw);
+            self->readFailed();
+        }
     } else {
         REPORT_ERROR("PREPARE", aSw, aError);
         self->readFailed();
     }
 }
 
-void NysseCard::Private::readNextBlock()
+void
+NysseCard::Private::readNextBlock()
 {
     iCurrentBlock++;
     const DataBlock* block = currentBlock();
@@ -388,8 +446,13 @@ void NysseCard::Private::readNextBlock()
     }
 }
 
-void NysseCard::Private::selectResp(NfcIsoDepClient*, const GUtilData*,
-    guint aSw, const GError* aError, void* aPrivate)
+void
+NysseCard::Private::selectResp(
+    NfcIsoDepClient*,
+    const GUtilData*,
+    guint aSw,
+    const GError* aError,
+    void* aPrivate)
 {
     Private* self = (Private*)aPrivate;
 
@@ -402,8 +465,12 @@ void NysseCard::Private::selectResp(NfcIsoDepClient*, const GUtilData*,
     }
 }
 
-void NysseCard::Private::tagLockResp(NfcTagClient*, NfcTagClientLock* aLock,
-    const GError* aError, void* aPrivate)
+void
+NysseCard::Private::tagLockResp(
+    NfcTagClient*,
+    NfcTagClientLock* aLock,
+    const GError* aError,
+    void* aPrivate)
 {
     Private* self = (Private*)aPrivate;
 
@@ -419,13 +486,14 @@ void NysseCard::Private::tagLockResp(NfcTagClient*, NfcTagClientLock* aLock,
         self->iCancel, selectResp, self, Q_NULLPTR);
 }
 
-void NysseCard::Private::startReadingIfReady()
+void
+NysseCard::Private::startReadingIfReady()
 {
     if (iIsoDep->valid && iTag->valid) {
         if (iTag->present && iIsoDep->present && !iCancel) {
             iCurrentBlock = -1;
             for (int i = 0; i < BLOCK_COUNT; i++) {
-                iData[i].clear();
+                iResp[i].clear();
             }
             iCancel = g_cancellable_new();
             nfc_tag_client_acquire_lock(iTag, TRUE, iCancel, tagLockResp,
@@ -437,14 +505,20 @@ void NysseCard::Private::startReadingIfReady()
     }
 }
 
-void NysseCard::Private::isoDepEventHandler(NfcIsoDepClient*,
-    NFC_ISODEP_PROPERTY, void* aPrivate)
+void
+NysseCard::Private::isoDepEventHandler(
+    NfcIsoDepClient*,
+    NFC_ISODEP_PROPERTY,
+    void* aPrivate)
 {
     ((Private*)aPrivate)->startReadingIfReady();
 }
 
-void NysseCard::Private::tagEventHandler(NfcTagClient*,
-    NFC_TAG_PROPERTY, void* aPrivate)
+void
+NysseCard::Private::tagEventHandler(
+    NfcTagClient*,
+    NFC_TAG_PROPERTY,
+    void* aPrivate)
 {
     ((Private*)aPrivate)->startReadingIfReady();
 }
@@ -453,12 +527,19 @@ void NysseCard::Private::tagEventHandler(NfcTagClient*,
 // NysseCard::Desc
 // ==========================================================================
 
-TravelCardImpl* NysseCard::Private::newTravelCard(QString aPath, QObject* aParent)
+TravelCardImpl*
+NysseCard::Private::newTravelCard(
+    QString aPath,
+    QObject* aParent)
 {
     return new NysseCard(aPath, aParent);
 }
 
-void NysseCard::Private::registerTypes(const char* aUri, int v1, int v2)
+void
+NysseCard::Private::registerTypes(
+    const char* aUri,
+    int v1,
+    int v2)
 {
     qmlRegisterType<NysseCardAppInfo>(aUri, v1, v2, "NysseCardAppInfo");
     qmlRegisterType<NysseCardBalance>(aUri, v1, v2, "NysseCardBalance");
@@ -477,7 +558,9 @@ const TravelCardImpl::CardDesc NysseCard::Desc = {
 // NysseCard
 // ==========================================================================
 
-NysseCard::NysseCard(QString aPath, QObject* aParent) :
+NysseCard::NysseCard(
+    QString aPath,
+    QObject* aParent) :
     TravelCardImpl(aParent),
     iPrivate(new Private(aPath, this))
 {
