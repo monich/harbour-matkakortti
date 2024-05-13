@@ -8,6 +8,7 @@ import "../components/Utils.js" as Utils
 BackgroundItem {
     property int type
     property alias time: timestamp.value
+    property int group
     property int moneyAmount
     property alias separator: bottomSeparator.visible
 
@@ -31,6 +32,26 @@ BackgroundItem {
             title: qsTrId("matkakortti-history-time")
         }
 
+        Row {
+            width: parent.width
+            spacing: Theme.paddingMedium
+            visible: type === NysseCardHistory.TransactionPurchase
+
+            ValueLabel {
+                width: Math.min(preferredWidth, parent.width)
+                //: Label
+                //% "Cost:"
+                title: qsTrId("matkakortti-details-ticket-cost")
+                value: Utils.moneyString(moneyAmount)
+            }
+
+            Label {
+                visible: group > 1
+                color: Theme.secondaryHighlightColor
+                text: "\u00d7 " + group + " = " + Utils.moneyString(moneyAmount * group)
+            }
+        }
+
         ValueLabel {
             width: Math.min(preferredWidth, parent.width)
             title: _isDeposit ?
@@ -42,7 +63,7 @@ BackgroundItem {
                 qsTrId("matkakortti-details-ticket-cost")
             value: Utils.moneyString(moneyAmount)
             boldValue: _isDeposit
-            visible: moneyAmount > 0
+            visible: moneyAmount > 0 && type !== NysseCardHistory.TransactionPurchase
         }
 
         VerticalSpace { height: column.y }

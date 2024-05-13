@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2023 Slava Monich <slava@monich.com>
+ * Copyright (C) 2020-2024 Slava Monich <slava@monich.com>
  * Copyright (C) 2020 Jolla Ltd.
  *
  * You may use this file under the terms of the BSD license as follows:
@@ -8,21 +8,23 @@
  * modification, are permitted provided that the following conditions
  * are met:
  *
- *   1. Redistributions of source code must retain the above copyright
- *      notice, this list of conditions and the following disclaimer.
- *   2. Redistributions in binary form must reproduce the above copyright
- *      notice, this list of conditions and the following disclaimer in
- *      the documentation and/or other materials provided with the
- *      distribution.
- *   3. Neither the names of the copyright holders nor the names of its
- *      contributors may be used to endorse or promote products derived
- *      from this software without specific prior written permission.
+ *  1. Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *
+ *  2. Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer
+ *     in the documentation and/or other materials provided with the
+ *     distribution.
+ *
+ *  3. Neither the names of the copyright holders nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
  * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
  * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
  * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
@@ -45,6 +47,7 @@
 #define MODEL_ROLES_(first,role,last) \
     first(TransactionType,transactionType) \
     role(TransactionTime,transactionTime) \
+    role(PassengerCount,passengerCount) \
     last(MoneyAmount,moneyAmount)
 
 #define MODEL_ROLES(role) \
@@ -68,22 +71,25 @@ public:
 #undef LAST
     };
 
-    ModelData(TransactionType, QDateTime, int);
+    ModelData(TransactionType, QDateTime, uint, uint);
 
     QVariant get(Role) const;
 
 public:
     const TransactionType iTransactionType;
     const QDateTime iTransactionTime;
-    const int iMoneyAmount;
+    const uint iPassengerCount;
+    const uint iMoneyAmount;
 };
 
 NysseCardHistory::ModelData::ModelData(
     TransactionType aType,
     QDateTime aTransactionTime,
-    int aMoneyAmount) :
+    uint aPassengerCount,
+    uint aMoneyAmount) :
     iTransactionType(aType),
     iTransactionTime(aTransactionTime),
+    iPassengerCount(aPassengerCount),
     iMoneyAmount(aMoneyAmount)
 {
 }
@@ -95,6 +101,7 @@ NysseCardHistory::ModelData::get(
     switch (aRole) {
     case TransactionTypeRole: return iTransactionType;
     case TransactionTimeRole: return iTransactionTime;
+    case PassengerCountRole: return iPassengerCount;
     case MoneyAmountRole: return iMoneyAmount;
     }
     return QVariant();
@@ -151,40 +158,39 @@ NysseCardHistory::Private::setHexData(
         // | Offset | Size | Description                               |
         // +===========================================================+
         // | 0      | 2    | Date                                      |
-        // | 2      | 1    | Minutes since last stamp                  |
-        // | 3      | 3    | Transaction type:                         |
-        // |        |      +-------------------------------------------+
-        // |        |      | 00 d4 17 | Card issue                     |
-        // |        |      | 00 10 18 | Some sort of charge            |
-        // |        |      | 00 4c 04 | Deposit                        |
-        // |        |      | 0b ba 04 | Ticket purchase or validation  |
-        // |        |      | 0b de 07 | Season pass check              |
-        // |        |      +-------------------------------------------+
-        // | 6      | 2    | Time                                      |
+        // | 2      | 1    | Minutes since last validation             |
+        // | 3      | 3    | ???                                       |
+        // | 6      | 2    | Time + Transaction type (low nibble)      |
         // | 8      | 2    | Transaction amount (in cents)             |
-        // | 10     | 6    | ???                                       |
+        // | 10     | 2    | Route + something (low 2 bits)            |
+        // | 12     | 1    | Transaction type (part 2)                 |
+        // | 13     | 1    | Passenger count (high nibble) + something |
+        // | 14     | 2    | ???                                       |
         // +===========================================================+
         //
         HDEBUG("Entry #" << (i + 1) << ":" <<
             QByteArray((char*)block, ENTRY_SIZE).toHex().constData());
-        const guint typeCode = Util::uint24be(block + 3);
+        const guint typeCode = (((guint)(block[6] & 0x0f)) << 8) + block[12];
         TransactionType type;
-        // No so sure about these...
+        // Not so sure about these...
         switch (typeCode) {
-        case 0x00d417: type = TransactionIssue; break;
-        case 0x001018: type = TransactionCharge; break;
-        case 0x004c04: type = TransactionDeposit; break;
-        case 0x0bba04: type = TransactionTicket; break;
-        case 0x0bde07: type = TransactionCheck; break;
-        default: type = TransactionUnknown; break;
+        case 0x100: type = TransactionIssue; break;
+        case 0x300: type = TransactionCharge; break;
+        case 0x301: type = TransactionDeposit; break;
+        case 0x54a: type = TransactionPurchase; break;
+        case 0x548:
+        case 0xb48: type = TransactionValidation; break;
+        default:    type = TransactionUnknown; break;
         }
         HDEBUG("  Type =" << hex << typeCode << "(" << dec  << type << ")");
         QDateTime time(NysseUtil::toDateTime(Util::uint16le(block + 0),
-            Util::uint16le(block + 6)));
+            Util::uint16le(block + 6) >> 4));
         HDEBUG("  Time =" << time);
+        const uint count = block[13] >> 4;
+        HDEBUG("  Count =" << count);
         const uint amount = Util::uint16le(block + 8);
         HDEBUG("  MoneyAmount =" << amount);
-        iData.append(new ModelData(type, time, amount));
+        iData.append(new ModelData(type, time, count, amount));
     }
 }
 

@@ -9,10 +9,11 @@ SilicaListView {
 
     delegate: NysseHistoryItem {
         width: parent.width
-        type: transactionType
-        time: Utils.dateTimeString(transactionTime)
+        type: model.transactionType
+        time: Utils.dateTimeString(model.transactionTime)
+        group: model.passengerCount
         moneyAmount: model.moneyAmount
-        separator: (index + 1) < view.count
+        separator: (model.index + 1) < view.count
     }
 
     VerticalScrollDecorator { }
