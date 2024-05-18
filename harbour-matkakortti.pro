@@ -186,11 +186,13 @@ INCLUDEPATH += \
 HEADERS += \
     src/TravelCard.h \
     src/TravelCardImpl.h \
+    src/TravelCardIsoDep.h \
     src/Util.h
 
 SOURCES += \
     src/main.cpp \
     src/TravelCard.cpp \
+    src/TravelCardIsoDep.cpp \
     src/Util.cpp
 
 # HSL

@@ -1,6 +1,6 @@
 /*
+ * Copyright (C) 2019-2024 Slava Monich <slava@monich.com>
  * Copyright (C) 2019-2022 Jolla Ltd.
- * Copyright (C) 2019-2022 Slava Monich <slava.monich@jolla.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -8,21 +8,23 @@
  * modification, are permitted provided that the following conditions
  * are met:
  *
- *   1. Redistributions of source code must retain the above copyright
- *      notice, this list of conditions and the following disclaimer.
- *   2. Redistributions in binary form must reproduce the above copyright
- *      notice, this list of conditions and the following disclaimer in
- *      the documentation and/or other materials provided with the
- *      distribution.
- *   3. Neither the names of the copyright holders nor the names of its
- *      contributors may be used to endorse or promote products derived
- *      from this software without specific prior written permission.
+ *  1. Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *
+ *  2. Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer
+ *     in the documentation and/or other materials provided with the
+ *     distribution.
+ *
+ *  3. Neither the names of the copyright holders nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
  * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
  * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
  * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
@@ -36,9 +38,6 @@
  */
 
 #include "nfcdc_isodep.h"
-#include "nfcdc_tag.h"
-
-#include "gutil_log.h"
 
 #include "HslCard.h"
 #include "HslCardAppInfo.h"
@@ -52,38 +51,32 @@
 #include "HarbourDebug.h"
 #include "HarbourUtil.h"
 
-enum tag_events {
-    TAG_EVENT_VALID,
-    TAG_EVENT_PRESENT,
-    TAG_EVENT_COUNT
-};
-
 // ==========================================================================
 // HslCard::Private
 // ==========================================================================
 
-class HslCard::Private {
-public:
-    Private(QString aPath, HslCard* aParent);
-    ~Private();
+#define SELECT_RESPONSE_SLOT selectResponse
+#define READ_APPINFO_RESPONSE_SLOT readAppInfoResponse
+#define READ_PERIODPASS_RESPONSE_SLOT readPeriodPassResponse
+#define READ_STOREDVALUE_RESPONSE_SLOT readStoredValueResponse
+#define READ_ETICKET_RESPONSE_SLOT readEticketResponse
+#define READ_HISTORY_RESPONSE_SLOT readHistoryResp
 
-    void readDone();
+class HslCard::Private :
+    public QObject
+{
+    Q_OBJECT
+
+public:
+    Private(HslCard*);
+
+    HslCard* parentObject() const;
+    void transmit(const NfcIsoDepApdu*, const char*);
     void readFailed();
     void readSucceeded();
-    void startReadingIfReady();
 
-    static TravelCardImpl* newTravelCard(QString aPath, QObject* aParent);
-    static void registerTypes(const char* aUri, int v1, int v2);
-
-    static void tagEventHandler(NfcTagClient*, NFC_TAG_PROPERTY, void*);
-    static void isoDepEventHandler(NfcIsoDepClient*, NFC_ISODEP_PROPERTY, void*);
-    static void tagLockResp(NfcTagClient*, NfcTagClientLock*, const GError*, void*);
-    static void selectResp(NfcIsoDepClient*, const GUtilData*, guint, const GError*, void*);
-    static void readAppInfoResp(NfcIsoDepClient*, const GUtilData*, guint, const GError*, void*);
-    static void readPeriodPassResp(NfcIsoDepClient*, const GUtilData*, guint, const GError*, void*);
-    static void readStoredValueResp(NfcIsoDepClient*, const GUtilData*, guint, const GError*, void*);
-    static void readEticketResp(NfcIsoDepClient*, const GUtilData*, guint, const GError*, void*);
-    static void readHistoryResp(NfcIsoDepClient*, const GUtilData*, guint, const GError*, void*);
+    static TravelCardImpl* newTravelCard(QString, QObject*);
+    static void registerTypes(const char*, int, int);
 
     static const QString PAGE_URL;
 
@@ -116,14 +109,15 @@ public:
     static const uint SW_OK = NFC_ISODEP_SW(0x91, 0x00);
     static const uint SW_MORE = NFC_ISODEP_SW(0x91, 0xaf);
 
+private Q_SLOTS:
+    void SELECT_RESPONSE_SLOT(const GUtilData*, uint, const GError*);
+    void READ_APPINFO_RESPONSE_SLOT(const GUtilData*, uint, const GError*);
+    void READ_PERIODPASS_RESPONSE_SLOT(const GUtilData*, uint, const GError*);
+    void READ_STOREDVALUE_RESPONSE_SLOT(const GUtilData*, uint, const GError*);
+    void READ_ETICKET_RESPONSE_SLOT(const GUtilData*, uint, const GError*);
+    void READ_HISTORY_RESPONSE_SLOT(const GUtilData*, uint, const GError*);
+
 public:
-    HslCard* iParent;
-    NfcTagClient* iTag;
-    NfcTagClientLock* iLock;
-    NfcIsoDepClient* iIsoDep;
-    gulong iTagEventId[TAG_EVENT_COUNT];
-    gulong iIsoDepEventId[TAG_EVENT_COUNT];
-    GCancellable* iCancel;
     QByteArray iAppInfoData;
     QByteArray iPeriodPassData;
     QByteArray iStoredValueData;
@@ -199,62 +193,31 @@ const NfcIsoDepApdu HslCard::Private::READ_MORE_CMD = {
     0x100
 };
 
-HslCard::Private::Private(QString aPath, HslCard* aParent) :
-    iParent(aParent),
-    iTag(Q_NULLPTR),
-    iLock(Q_NULLPTR),
-    iIsoDep(Q_NULLPTR),
-    iCancel(Q_NULLPTR)
+HslCard::Private::Private(
+    HslCard* aParent) :
+    QObject(aParent)
 {
-    memset(iTagEventId, 0, sizeof(iTagEventId));
-    memset(iIsoDepEventId, 0, sizeof(iIsoDepEventId));
-
-    QByteArray bytes(aPath.toLatin1());
-    const char* path = bytes.constData();
-
-    iTag = nfc_tag_client_new(path);
-    iTagEventId[TAG_EVENT_VALID] =
-        nfc_tag_client_add_property_handler(iTag,
-            NFC_TAG_PROPERTY_VALID, tagEventHandler, this);
-    iTagEventId[TAG_EVENT_PRESENT] =
-        nfc_tag_client_add_property_handler(iTag,
-            NFC_TAG_PROPERTY_PRESENT, tagEventHandler, this);
-
-    iIsoDep = nfc_isodep_client_new(path);
-    iIsoDepEventId[TAG_EVENT_VALID] =
-        nfc_isodep_client_add_property_handler(iIsoDep,
-            NFC_ISODEP_PROPERTY_VALID, isoDepEventHandler, this);
-    iIsoDepEventId[TAG_EVENT_PRESENT] =
-        nfc_isodep_client_add_property_handler(iIsoDep,
-            NFC_ISODEP_PROPERTY_PRESENT, isoDepEventHandler, this);
 }
 
-HslCard::Private::~Private()
+inline
+HslCard*
+HslCard::Private::parentObject() const
 {
-    readDone();
-    nfc_isodep_client_unref(iIsoDep);
-    nfc_tag_client_unref(iTag);
+    return qobject_cast<HslCard*>(parent());
 }
 
-void HslCard::Private::readDone()
+inline
+void
+HslCard::Private::transmit(
+    const NfcIsoDepApdu* aApdu,
+    const char* aMethod)
 {
-    nfc_isodep_client_remove_all_handlers(iIsoDep, iIsoDepEventId);
-    nfc_tag_client_remove_all_handlers(iTag, iTagEventId);
-    if (iCancel) {
-        g_cancellable_cancel(iCancel);
-        g_object_unref(iCancel);
-        iCancel = Q_NULLPTR;
-    }
-    if (iLock) {
-        nfc_tag_client_lock_unref(iLock);
-        iLock = Q_NULLPTR;
-    }
+    parentObject()->transmit(aApdu, this, aMethod);
 }
 
-void HslCard::Private::readSucceeded()
+void
+HslCard::Private::readSucceeded()
 {
-    HDEBUG("Read done");
-    readDone();
     QVariantMap cardInfo;
     cardInfo.insert(Util::CARD_TYPE_KEY, Desc.iName);
     cardInfo.insert(APP_INFO_KEY, HarbourUtil::toHex(iAppInfoData));
@@ -262,37 +225,33 @@ void HslCard::Private::readSucceeded()
     cardInfo.insert(STORED_VALUE_KEY, HarbourUtil::toHex(iStoredValueData));
     cardInfo.insert(ETICKET_KEY, HarbourUtil::toHex(iEticketData));
     cardInfo.insert(HISTORY_KEY, HarbourUtil::toHex(iHistoryData));
-    QMetaObject::invokeMethod(iParent, "readDone",
-        Q_ARG(QString, PAGE_URL),
-        Q_ARG(QVariantMap, cardInfo));
+    parentObject()->success(PAGE_URL, cardInfo);
 }
 
-void HslCard::Private::readFailed()
+void
+HslCard::Private::readFailed()
 {
-    HDEBUG("Read failed");
-    QMetaObject::invokeMethod(iParent, "readFailed");
-    readDone();
+    parentObject()->failure(IoError);
 }
 
-void HslCard::Private::readHistoryResp(NfcIsoDepClient*,
-    const GUtilData* aResponse, guint aSw, const GError* aError,
-    void* aPrivate)
+void
+HslCard::Private::READ_HISTORY_RESPONSE_SLOT(
+    const GUtilData* aResponse,
+    uint aSw,
+    const GError* aError)
 {
-    Private* self = (Private*)aPrivate;
-
     if (!aError) {
-        self->iHistoryData += Util::toByteArray(aResponse);
+        iHistoryData += Util::toByteArray(aResponse);
         if (aSw == SW_OK) {
-            HDEBUG("READ_HISTORY ok" << self->iHistoryData.size() << "bytes");
-            self->readSucceeded();
+            HDEBUG("READ_HISTORY ok" << iHistoryData.size() << "bytes");
+            readSucceeded();
         } else if (aSw == SW_MORE) {
-            HDEBUG("READ_HISTORY ok" << self->iHistoryData.size() << "bytes");
+            HDEBUG("READ_HISTORY ok" << iHistoryData.size() << "bytes");
             HDEBUG("READ_MORE");
-            nfc_isodep_client_transmit(self->iIsoDep, &READ_MORE_CMD,
-                self->iCancel, readHistoryResp, self, Q_NULLPTR);
+            transmit(&READ_MORE_CMD, QT_STRINGIFY(READ_HISTORY_RESPONSE_SLOT));
         } else {
             HDEBUG("READ_HISTORY unexpected status" << hex << aSw);
-            self->readFailed();
+            readFailed();
         }
     } else {
 #if HARBOUR_DEBUG
@@ -302,22 +261,22 @@ void HslCard::Private::readHistoryResp(NfcIsoDepClient*,
             HDEBUG("READ_HISTORY error" << hex << aSw);
         }
 #endif // HARBOUR_DEBUG
-        self->readFailed();
+        readFailed();
     }
 }
 
-void HslCard::Private::readEticketResp(NfcIsoDepClient*,
-    const GUtilData* aResponse, guint aSw, const GError* aError,
-    void* aPrivate)
+void
+HslCard::Private::READ_ETICKET_RESPONSE_SLOT(
+    const GUtilData* aResponse,
+    uint aSw,
+    const GError* aError)
 {
-    Private* self = (Private*)aPrivate;
-
     if (!aError && aSw == SW_OK && aResponse->size == ETICKET_SIZE) {
         HDEBUG("READ_ETICKET" << aResponse->size << "bytes");
-        self->iEticketData = Util::toByteArray(aResponse);
+        iEticketData = Util::toByteArray(aResponse);
         HDEBUG("READ_HISTORY");
-        nfc_isodep_client_transmit(self->iIsoDep, &READ_HISTORY_CMD,
-            self->iCancel, readHistoryResp, self, Q_NULLPTR);
+        iHistoryData.resize(0);
+        transmit(&READ_HISTORY_CMD, QT_STRINGIFY(READ_HISTORY_RESPONSE_SLOT));
     } else {
 #if HARBOUR_DEBUG
         if (aError) {
@@ -328,22 +287,21 @@ void HslCard::Private::readEticketResp(NfcIsoDepClient*,
             HDEBUG("READ_ETICKET error" << hex << aSw);
         }
 #endif // HARBOUR_DEBUG
-        self->readFailed();
+        readFailed();
     }
 }
 
-void HslCard::Private::readStoredValueResp(NfcIsoDepClient*,
-    const GUtilData* aResponse, guint aSw, const GError* aError,
-    void* aPrivate)
+void
+HslCard::Private::READ_STOREDVALUE_RESPONSE_SLOT(
+    const GUtilData* aResponse,
+    uint aSw,
+    const GError* aError)
 {
-    Private* self = (Private*)aPrivate;
-
     if (!aError && aSw == SW_OK && aResponse->size == STOREDVALUE_SIZE) {
         HDEBUG("READ_STOREDVALUE" << aResponse->size << "bytes");
-        self->iStoredValueData = Util::toByteArray(aResponse);
+        iStoredValueData = Util::toByteArray(aResponse);
         HDEBUG("READ_ETICKET");
-        nfc_isodep_client_transmit(self->iIsoDep, &READ_ETICKET_CMD,
-            self->iCancel, readEticketResp, self, Q_NULLPTR);
+        transmit(&READ_ETICKET_CMD, QT_STRINGIFY(READ_ETICKET_RESPONSE_SLOT));
     } else {
 #if HARBOUR_DEBUG
         if (aError) {
@@ -354,22 +312,21 @@ void HslCard::Private::readStoredValueResp(NfcIsoDepClient*,
             HDEBUG("READ_STOREDVALUE error" << hex << aSw);
         }
 #endif // HARBOUR_DEBUG
-        self->readFailed();
+        readFailed();
     }
 }
 
-void HslCard::Private::readPeriodPassResp(NfcIsoDepClient*,
-    const GUtilData* aResponse, guint aSw, const GError* aError,
-    void* aPrivate)
+void
+HslCard::Private::READ_PERIODPASS_RESPONSE_SLOT(
+    const GUtilData* aResponse,
+    uint aSw,
+    const GError* aError)
 {
-    Private* self = (Private*)aPrivate;
-
     if (!aError && aSw == SW_OK && aResponse->size == PERIODPASS_SIZE) {
         HDEBUG("READ_PERIODPASS" << aResponse->size << "bytes");
-        self->iPeriodPassData = Util::toByteArray(aResponse);
+        iPeriodPassData = Util::toByteArray(aResponse);
         HDEBUG("READ_STOREDVALUE");
-        nfc_isodep_client_transmit(self->iIsoDep, &READ_STOREDVALUE_CMD,
-            self->iCancel, readStoredValueResp, self, Q_NULLPTR);
+        transmit(&READ_STOREDVALUE_CMD, QT_STRINGIFY(READ_STOREDVALUE_RESPONSE_SLOT));
     } else {
 #if HARBOUR_DEBUG
         if (aError) {
@@ -380,22 +337,21 @@ void HslCard::Private::readPeriodPassResp(NfcIsoDepClient*,
             HDEBUG("READ_PERIODPASS error" << hex << aSw);
         }
 #endif // HARBOUR_DEBUG
-        self->readFailed();
+        readFailed();
     }
 }
 
-void HslCard::Private::readAppInfoResp(NfcIsoDepClient*,
-    const GUtilData* aResponse, guint aSw, const GError* aError,
-    void* aPrivate)
+void
+HslCard::Private::READ_APPINFO_RESPONSE_SLOT(
+    const GUtilData* aResponse,
+    uint aSw,
+    const GError* aError)
 {
-    Private* self = (Private*)aPrivate;
-
     if (!aError && aSw == SW_OK && aResponse->size == APPINFO_SIZE) {
         HDEBUG("READ_APPINFO" << aResponse->size << "bytes");
-        self->iAppInfoData = Util::toByteArray(aResponse);
+        iAppInfoData = Util::toByteArray(aResponse);
         HDEBUG("READ_PERIODPASS");
-        nfc_isodep_client_transmit(self->iIsoDep, &READ_PERIODPASS_CMD,
-            self->iCancel, readPeriodPassResp, self, Q_NULLPTR);
+        transmit(&READ_PERIODPASS_CMD, QT_STRINGIFY(READ_PERIODPASS_RESPONSE_SLOT));
     } else {
 #if HARBOUR_DEBUG
         if (aError) {
@@ -406,20 +362,20 @@ void HslCard::Private::readAppInfoResp(NfcIsoDepClient*,
             HDEBUG("READ_APPINFO error" << hex << aSw);
         }
 #endif // HARBOUR_DEBUG
-        self->readFailed();
+        readFailed();
     }
 }
 
-void HslCard::Private::selectResp(NfcIsoDepClient*, const GUtilData*,
-    guint aSw, const GError* aError, void* aPrivate)
+void
+HslCard::Private::SELECT_RESPONSE_SLOT(
+    const GUtilData*,
+    uint aSw,
+    const GError* aError)
 {
-    Private* self = (Private*)aPrivate;
-
     if (!aError && aSw == SW_OK) {
         HDEBUG("SELECT ok");
         HDEBUG("READ_APPINFO");
-        nfc_isodep_client_transmit(self->iIsoDep, &READ_APPINFO_CMD,
-            self->iCancel, readAppInfoResp, self, Q_NULLPTR);
+        transmit(&READ_APPINFO_CMD, QT_STRINGIFY(READ_APPINFO_RESPONSE_SLOT));
     } else {
 #if HARBOUR_DEBUG
         if (aError) {
@@ -428,76 +384,58 @@ void HslCard::Private::selectResp(NfcIsoDepClient*, const GUtilData*,
             HDEBUG("SELECT error" << hex << aSw);
         }
 #endif // HARBOUR_DEBUG
-        self->readFailed();
+        readFailed();
     }
 }
 
-void HslCard::Private::tagLockResp(NfcTagClient*, NfcTagClientLock* aLock,
-    const GError* aError, void* aPrivate)
-{
-    Private* self = (Private*)aPrivate;
+// ==========================================================================
+// HslCard
+// ==========================================================================
 
-    HASSERT(!self->iLock);
-    if (aLock) {
-        self->iLock = nfc_tag_client_lock_ref(aLock);
-    } else {
-        // This is not fatal, try to continue
-        HWARN("Failed to lock the tag:" << GERRMSG(aError));
-    }
+HslCard::HslCard(
+    QString aPath,
+    QObject* aParent) :
+    TravelCardIsoDep(aPath, aParent),
+    iPrivate(new Private(this))
+{}
+
+void
+HslCard::startIo()
+{
     HDEBUG("SELECT");
-    nfc_isodep_client_transmit(self->iIsoDep, &SELECT_CMD, self->iCancel,
-        selectResp, self, Q_NULLPTR);
-}
-
-void HslCard::Private::startReadingIfReady()
-{
-    if (iIsoDep->valid && iTag->valid) {
-        if (iTag->present && iIsoDep->present && !iCancel) {
-            iAppInfoData.clear();
-            iPeriodPassData.clear();
-            iStoredValueData.clear();
-            iEticketData.clear();
-            iHistoryData.clear();
-            iCancel = g_cancellable_new();
-            nfc_tag_client_acquire_lock(iTag, TRUE, iCancel, tagLockResp,
-                this, Q_NULLPTR);
-        } else if (!iIsoDep->present) {
-            // Not an ISO-DEP card
-            readFailed();
-        }
-    }
-}
-
-void HslCard::Private::isoDepEventHandler(NfcIsoDepClient*,
-    NFC_ISODEP_PROPERTY, void* aPrivate)
-{
-    ((Private*)aPrivate)->startReadingIfReady();
-}
-
-void HslCard::Private::tagEventHandler(NfcTagClient*,
-    NFC_TAG_PROPERTY, void* aPrivate)
-{
-    ((Private*)aPrivate)->startReadingIfReady();
+    transmit(&Private::SELECT_CMD, iPrivate, QT_STRINGIFY(SELECT_RESPONSE_SLOT));
 }
 
 // ==========================================================================
 // HslCard::Desc
 // ==========================================================================
 
-TravelCardImpl* HslCard::Private::newTravelCard(QString aPath, QObject* aParent)
+#define REGISTER_META_TYPE(t) qRegisterMetaType<t>(#t)
+#define REGISTER_TYPE(t,uri,v1,v2) qmlRegisterType<t>(uri,v1,v2,#t)
+#define REGISTER_SINGLETON_TYPE(t,uri,v1,v2) \
+    qmlRegisterSingletonType<t>(uri,v1,v2,#t,t::createSingleton)
+
+TravelCardImpl*
+HslCard::Private::newTravelCard(
+    QString aPath,
+    QObject* aParent)
 {
     return new HslCard(aPath, aParent);
 }
 
-void HslCard::Private::registerTypes(const char* aUri, int v1, int v2)
+void
+HslCard::Private::registerTypes(
+    const char* aUri,
+    int v1,
+    int v2)
 {
-    qRegisterMetaType<HslArea>("HslArea");
-    qmlRegisterType<HslCardAppInfo>(aUri, v1, v2, "HslCardAppInfo");
-    qmlRegisterType<HslCardEticket>(aUri, v1, v2, "HslCardEticket");
-    qmlRegisterType<HslCardHistory>(aUri, v1, v2, "HslCardHistory");
-    qmlRegisterType<HslCardPeriodPass>(aUri, v1, v2, "HslCardPeriodPass");
-    qmlRegisterType<HslCardStoredValue>(aUri, v1, v2, "HslCardStoredValue");
-    qmlRegisterSingletonType<HslData>(aUri, v1, v2, "HslData", HslData::createSingleton);
+    REGISTER_META_TYPE(HslArea);
+    REGISTER_TYPE(HslCardAppInfo, aUri, v1, v2);
+    REGISTER_TYPE(HslCardEticket, aUri, v1, v2);
+    REGISTER_TYPE(HslCardHistory, aUri, v1, v2);
+    REGISTER_TYPE(HslCardPeriodPass, aUri, v1, v2);
+    REGISTER_TYPE(HslCardStoredValue, aUri, v1, v2);
+    REGISTER_SINGLETON_TYPE(HslData, aUri, v1, v2);
 }
 
 const TravelCardImpl::CardDesc HslCard::Desc = {
@@ -506,22 +444,4 @@ const TravelCardImpl::CardDesc HslCard::Desc = {
     HslCard::Private::registerTypes
 };
 
-// ==========================================================================
-// HslCard
-// ==========================================================================
-
-HslCard::HslCard(QString aPath, QObject* aParent) :
-    TravelCardImpl(aParent),
-    iPrivate(new Private(aPath, this))
-{
-}
-
-HslCard::~HslCard()
-{
-    delete iPrivate;
-}
-
-void HslCard::startReading()
-{
-    iPrivate->startReadingIfReady();
-}
+#include "HslCard.moc"

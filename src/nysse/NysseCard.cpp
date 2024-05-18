@@ -38,9 +38,6 @@
  */
 
 #include "nfcdc_isodep.h"
-#include "nfcdc_tag.h"
-
-#include "gutil_log.h"
 
 #include "NysseCardAppInfo.h"
 #include "NysseCardBalance.h"
@@ -61,12 +58,6 @@
 #  define REPORT_ERROR(name,sw,err) ((void)0)
 #endif // HARBOUR_DEBUG
 
-enum tag_events {
-    TAG_EVENT_VALID,
-    TAG_EVENT_PRESENT,
-    TAG_EVENT_COUNT
-};
-
 enum data_blocks {
     APP_INFO_BLOCK,
     OWNER_INFO_BLOCK,
@@ -80,7 +71,15 @@ enum data_blocks {
 // NysseCard::Private
 // ==========================================================================
 
-class NysseCard::Private {
+#define SELECT_RESPONSE_SLOT selectResponse
+#define PREPARE_RESPONSE_SLOT prepareResponse
+#define READ_RESPONSE_SLOT readResponse
+
+class NysseCard::Private :
+    public QObject
+{
+    Q_OBJECT
+
 public:
     struct DataBlock {
         const char* iName;
@@ -93,8 +92,8 @@ public:
     };
 
     struct Response {
-        guint iPrepareStatus;
-        guint iReadStatus;
+        uint iPrepareStatus;
+        uint iReadStatus;
         QByteArray iData;
 
         void clear() {
@@ -104,25 +103,17 @@ public:
         }
     };
 
-    Private(QString aPath, NysseCard* aParent);
-    ~Private();
+    Private(NysseCard*);
 
-    void readDone();
+    NysseCard* parentObject() const;
+    void transmit(const NfcIsoDepApdu*, const char*);
     void readFailed();
     void readSucceeded();
-    void startReadingIfReady();
     void readNextBlock();
     const DataBlock* currentBlock();
 
-    static TravelCardImpl* newTravelCard(QString aPath, QObject* aParent);
-    static void registerTypes(const char* aUri, int v1, int v2);
-
-    static void tagEventHandler(NfcTagClient*, NFC_TAG_PROPERTY, void*);
-    static void isoDepEventHandler(NfcIsoDepClient*, NFC_ISODEP_PROPERTY, void*);
-    static void tagLockResp(NfcTagClient*, NfcTagClientLock*, const GError*, void*);
-    static void selectResp(NfcIsoDepClient*, const GUtilData*, guint, const GError*, void*);
-    static void prepareResp(NfcIsoDepClient*, const GUtilData*, guint, const GError*, void*);
-    static void readResp(NfcIsoDepClient*, const GUtilData*, guint, const GError*, void*);
+    static TravelCardImpl* newTravelCard(QString, QObject*);
+    static void registerTypes(const char*, int, int);
 
     static const QString PAGE_URL;
 
@@ -155,14 +146,12 @@ public:
     static const uint SW_OK = NFC_ISODEP_SW(0x91, 0x00);
     static const uint SW_MORE = NFC_ISODEP_SW(0x91, 0xaf);
 
+private Q_SLOTS:
+    void SELECT_RESPONSE_SLOT(const GUtilData*, uint, const GError*);
+    void PREPARE_RESPONSE_SLOT(const GUtilData*, uint, const GError*);
+    void READ_RESPONSE_SLOT(const GUtilData*, uint, const GError*);
+
 public:
-    NysseCard* iParent;
-    NfcTagClient* iTag;
-    NfcTagClientLock* iLock;
-    NfcIsoDepClient* iIsoDep;
-    GCancellable* iCancel;
-    gulong iTagEventId[TAG_EVENT_COUNT];
-    gulong iIsoDepEventId[TAG_EVENT_COUNT];
     Response iResp[BLOCK_COUNT];
     int iCurrentBlock;
 };
@@ -258,66 +247,30 @@ const NfcIsoDepApdu NysseCard::Private::READ_MORE_CMD = {
 };
 
 NysseCard::Private::Private(
-    QString aPath,
     NysseCard* aParent) :
-    iParent(aParent),
-    iTag(Q_NULLPTR),
-    iLock(Q_NULLPTR),
-    iIsoDep(Q_NULLPTR),
-    iCancel(Q_NULLPTR),
+    QObject(aParent),
     iCurrentBlock(-1)
+{}
+
+inline
+NysseCard*
+NysseCard::Private::parentObject() const
 {
-    memset(iTagEventId, 0, sizeof(iTagEventId));
-    memset(iIsoDepEventId, 0, sizeof(iIsoDepEventId));
-
-    QByteArray bytes(aPath.toLatin1());
-    const char* path = bytes.constData();
-
-    iTag = nfc_tag_client_new(path);
-    iTagEventId[TAG_EVENT_VALID] =
-        nfc_tag_client_add_property_handler(iTag,
-            NFC_TAG_PROPERTY_VALID, tagEventHandler, this);
-    iTagEventId[TAG_EVENT_PRESENT] =
-        nfc_tag_client_add_property_handler(iTag,
-            NFC_TAG_PROPERTY_PRESENT, tagEventHandler, this);
-
-    iIsoDep = nfc_isodep_client_new(path);
-    iIsoDepEventId[TAG_EVENT_VALID] =
-        nfc_isodep_client_add_property_handler(iIsoDep,
-            NFC_ISODEP_PROPERTY_VALID, isoDepEventHandler, this);
-    iIsoDepEventId[TAG_EVENT_PRESENT] =
-        nfc_isodep_client_add_property_handler(iIsoDep,
-            NFC_ISODEP_PROPERTY_PRESENT, isoDepEventHandler, this);
+    return qobject_cast<NysseCard*>(parent());
 }
 
-NysseCard::Private::~Private()
-{
-    readDone();
-    nfc_isodep_client_unref(iIsoDep);
-    nfc_tag_client_unref(iTag);
-}
-
+inline
 void
-NysseCard::Private::readDone()
+NysseCard::Private::transmit(
+    const NfcIsoDepApdu* aApdu,
+    const char* aMethod)
 {
-    nfc_isodep_client_remove_all_handlers(iIsoDep, iIsoDepEventId);
-    nfc_tag_client_remove_all_handlers(iTag, iTagEventId);
-    if (iCancel) {
-        g_cancellable_cancel(iCancel);
-        g_object_unref(iCancel);
-        iCancel = Q_NULLPTR;
-    }
-    if (iLock) {
-        nfc_tag_client_lock_unref(iLock);
-        iLock = Q_NULLPTR;
-    }
+    parentObject()->transmit(aApdu, this, aMethod);
 }
 
 void
 NysseCard::Private::readSucceeded()
 {
-    HDEBUG("Read done");
-    readDone();
     QVariantMap cardInfo;
     cardInfo.insert(Util::CARD_TYPE_KEY, Desc.iName);
     for (int i = 0; i < BLOCK_COUNT; i++) {
@@ -330,17 +283,13 @@ NysseCard::Private::readSucceeded()
         cardInfo.insert(QString::asprintf("%sStatus2", key),
             QString::asprintf("%04x", resp->iReadStatus));
     }
-    QMetaObject::invokeMethod(iParent, "readDone",
-        Q_ARG(QString, PAGE_URL),
-        Q_ARG(QVariantMap, cardInfo));
+    parentObject()->success(PAGE_URL, cardInfo);
 }
 
 void
 NysseCard::Private::readFailed()
 {
-    HDEBUG("Read failed");
-    QMetaObject::invokeMethod(iParent, "readFailed");
-    readDone();
+    parentObject()->failure(IoError);
 }
 
 const NysseCard::Private::DataBlock*
@@ -351,24 +300,33 @@ NysseCard::Private::currentBlock()
 }
 
 void
-NysseCard::Private::readResp(
-    NfcIsoDepClient*,
-    const GUtilData* aResponse,
-    guint aSw,
-    const GError* aError,
-    void* aPrivate)
+NysseCard::Private::readNextBlock()
 {
-    Private* self = (Private*)aPrivate;
+    iCurrentBlock++;
+    const DataBlock* block = currentBlock();
+    if (block) {
+        HDEBUG(iCurrentBlock);
+        HDEBUG("PREPARE" << block->iName);
+        transmit(block->iPrepareApdu, QT_STRINGIFY(PREPARE_RESPONSE_SLOT));
+    } else {
+        readSucceeded();
+    }
+}
 
+void
+NysseCard::Private::READ_RESPONSE_SLOT(
+    const GUtilData* aResponse,
+    uint aSw,
+    const GError* aError)
+{
     if (!aError) {
-        const DataBlock* block = self->currentBlock();
-        Response* resp = self->iResp + self->iCurrentBlock;
+        const DataBlock* block = currentBlock();
+        Response* resp = iResp + iCurrentBlock;
 
         resp->iData.append(Util::toByteArray(aResponse));
         if (aSw == SW_MORE) {
             HDEBUG("READ_MORE");
-            nfc_isodep_client_transmit(self->iIsoDep, &READ_MORE_CMD,
-                self->iCancel, readResp, self, Q_NULLPTR);
+            transmit(&READ_MORE_CMD, QT_STRINGIFY(READ_RESPONSE_SLOT));
         } else {
             resp->iReadStatus = aSw;
             if (aSw == SW_OK) {
@@ -377,155 +335,93 @@ NysseCard::Private::readResp(
                     (block->iRecordSize && (size % block->iRecordSize))) {
                     HDEBUG("READ" << block->iName << "unexpected size" << size);
                     if (block->iRequired) {
-                        self->readFailed();
+                        readFailed();
                     } else {
-                        self->readNextBlock();
+                        readNextBlock();
                     }
                 } else {
                     HDEBUG("READ" << block->iName << "ok" << size << "bytes");
-                    self->readNextBlock();
+                    readNextBlock();
                 }
             } else if (!block->iRequired) {
                 HDEBUG("Ignoring READ" << block->iName << "error" << hex << aSw);
-                self->readNextBlock();
+                readNextBlock();
             } else {
                 HDEBUG("READ" << block->iName << "unexpected status" << hex << aSw);
-                self->readFailed();
+                readFailed();
             }
         }
     } else {
         REPORT_ERROR("READ", aSw, aError);
-        self->readFailed();
+        readFailed();
     }
 }
 
 void
-NysseCard::Private::prepareResp(
-    NfcIsoDepClient*,
+NysseCard::Private::PREPARE_RESPONSE_SLOT(
     const GUtilData*,
-    guint aSw,
-    const GError* aError,
-    void* aPrivate)
+    uint aSw,
+    const GError* aError)
 {
-    Private* self = (Private*)aPrivate;
-
     if (!aError) {
-        const DataBlock* block = self->currentBlock();
+        const DataBlock* block = currentBlock();
 
-        self->iResp[self->iCurrentBlock].iPrepareStatus = aSw;
+        iResp[iCurrentBlock].iPrepareStatus = aSw;
         if (aSw == SW_OK) {
             HDEBUG("PREPARE" << block->iName << "ok");
             HDEBUG("READ" << block->iName);
-            nfc_isodep_client_transmit(self->iIsoDep, block->iReadApdu,
-                self->iCancel, readResp, self, Q_NULLPTR);
+            transmit(block->iReadApdu, QT_STRINGIFY(READ_RESPONSE_SLOT));
         } else if (!block->iRequired) {
             HDEBUG("Skipping" << block->iName << "block due to PREPARE error" << hex << aSw);
-            self->readNextBlock();
+            readNextBlock();
         } else {
             HDEBUG("PREPARE" << block->iName << "unexpected status" << hex << aSw);
-            self->readFailed();
+            readFailed();
         }
     } else {
         REPORT_ERROR("PREPARE", aSw, aError);
-        self->readFailed();
+        readFailed();
     }
 }
 
 void
-NysseCard::Private::readNextBlock()
-{
-    iCurrentBlock++;
-    const DataBlock* block = currentBlock();
-    if (block) {
-        HDEBUG(iCurrentBlock);
-        HDEBUG("PREPARE" << block->iName);
-        nfc_isodep_client_transmit(iIsoDep, block->iPrepareApdu,
-            iCancel, prepareResp, this, Q_NULLPTR);
-    } else {
-        readSucceeded();
-    }
-}
-
-void
-NysseCard::Private::selectResp(
-    NfcIsoDepClient*,
+NysseCard::Private::SELECT_RESPONSE_SLOT(
     const GUtilData*,
-    guint aSw,
-    const GError* aError,
-    void* aPrivate)
+    uint aSw,
+    const GError* aError)
 {
-    Private* self = (Private*)aPrivate;
-
     if (!aError && aSw == SW_OK) {
         HDEBUG("SELECT ok");
-        self->readNextBlock();
+        readNextBlock();
     } else {
         REPORT_ERROR("SELECT", aSw, aError);
-        self->readFailed();
+        readFailed();
     }
 }
 
-void
-NysseCard::Private::tagLockResp(
-    NfcTagClient*,
-    NfcTagClientLock* aLock,
-    const GError* aError,
-    void* aPrivate)
-{
-    Private* self = (Private*)aPrivate;
+// ==========================================================================
+// NysseCard
+// ==========================================================================
 
-    HASSERT(!self->iLock);
-    if (aLock) {
-        self->iLock = nfc_tag_client_lock_ref(aLock);
-    } else {
-        // This is not fatal, try to continue
-        HWARN("Failed to lock the tag:" << GERRMSG(aError));
-    }
+NysseCard::NysseCard(
+    QString aPath,
+    QObject* aParent) :
+    TravelCardIsoDep(aPath, aParent),
+    iPrivate(new Private(this))
+{}
+
+void
+NysseCard::startIo()
+{
     HDEBUG("SELECT");
-    nfc_isodep_client_transmit(self->iIsoDep, &SELECT_CMD,
-        self->iCancel, selectResp, self, Q_NULLPTR);
-}
-
-void
-NysseCard::Private::startReadingIfReady()
-{
-    if (iIsoDep->valid && iTag->valid) {
-        if (iTag->present && iIsoDep->present && !iCancel) {
-            iCurrentBlock = -1;
-            for (int i = 0; i < BLOCK_COUNT; i++) {
-                iResp[i].clear();
-            }
-            iCancel = g_cancellable_new();
-            nfc_tag_client_acquire_lock(iTag, TRUE, iCancel, tagLockResp,
-                this, Q_NULLPTR);
-        } else if (!iIsoDep->present) {
-            // Not an ISO-DEP card
-            readFailed();
-        }
-    }
-}
-
-void
-NysseCard::Private::isoDepEventHandler(
-    NfcIsoDepClient*,
-    NFC_ISODEP_PROPERTY,
-    void* aPrivate)
-{
-    ((Private*)aPrivate)->startReadingIfReady();
-}
-
-void
-NysseCard::Private::tagEventHandler(
-    NfcTagClient*,
-    NFC_TAG_PROPERTY,
-    void* aPrivate)
-{
-    ((Private*)aPrivate)->startReadingIfReady();
+    transmit(&Private::SELECT_CMD, iPrivate, QT_STRINGIFY(SELECT_RESPONSE_SLOT));
 }
 
 // ==========================================================================
 // NysseCard::Desc
 // ==========================================================================
+
+#define REGISTER_TYPE(t,uri,v1,v2) qmlRegisterType<t>(uri,v1,v2,#t)
 
 TravelCardImpl*
 NysseCard::Private::newTravelCard(
@@ -541,11 +437,11 @@ NysseCard::Private::registerTypes(
     int v1,
     int v2)
 {
-    qmlRegisterType<NysseCardAppInfo>(aUri, v1, v2, "NysseCardAppInfo");
-    qmlRegisterType<NysseCardBalance>(aUri, v1, v2, "NysseCardBalance");
-    qmlRegisterType<NysseCardHistory>(aUri, v1, v2, "NysseCardHistory");
-    qmlRegisterType<NysseCardOwnerInfo>(aUri, v1, v2, "NysseCardOwnerInfo");
-    qmlRegisterType<NysseCardTicketInfo>(aUri, v1, v2, "NysseCardTicketInfo");
+    REGISTER_TYPE(NysseCardAppInfo, aUri, v1, v2);
+    REGISTER_TYPE(NysseCardBalance, aUri, v1, v2);
+    REGISTER_TYPE(NysseCardHistory, aUri, v1, v2);
+    REGISTER_TYPE(NysseCardOwnerInfo, aUri, v1, v2);
+    REGISTER_TYPE(NysseCardTicketInfo, aUri, v1, v2);
 }
 
 const TravelCardImpl::CardDesc NysseCard::Desc = {
@@ -554,24 +450,4 @@ const TravelCardImpl::CardDesc NysseCard::Desc = {
     NysseCard::Private::registerTypes
 };
 
-// ==========================================================================
-// NysseCard
-// ==========================================================================
-
-NysseCard::NysseCard(
-    QString aPath,
-    QObject* aParent) :
-    TravelCardImpl(aParent),
-    iPrivate(new Private(aPath, this))
-{
-}
-
-NysseCard::~NysseCard()
-{
-    delete iPrivate;
-}
-
-void NysseCard::startReading()
-{
-    iPrivate->startReadingIfReady();
-}
+#include "NysseCard.moc"

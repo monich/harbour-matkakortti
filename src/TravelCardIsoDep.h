@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2019-2024 Slava Monich <slava@monich.com>
- * Copyright (C) 2019-2021 Jolla Ltd.
+ * Copyright (C) 2024 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -37,36 +36,48 @@
  * any official policies, either expressed or implied.
  */
 
-#ifndef TRAVEL_CARD_IMPL_H
-#define TRAVEL_CARD_IMPL_H
+#ifndef TRAVEL_CARD_ISO_DEP_H
+#define TRAVEL_CARD_ISO_DEP_H
 
-#include <QVariantMap>
-#include <QString>
-#include <QObject>
-#include <QUrl>
+#include "nfcdc_types.h"
 
-class TravelCardImpl :
-    public QObject
+#include "TravelCardImpl.h"
+
+class TravelCardIsoDep :
+    public TravelCardImpl
 {
     Q_OBJECT
-    Q_DISABLE_COPY(TravelCardImpl)
 
 protected:
-    TravelCardImpl(QObject* aParent) : QObject(aParent) {}
-
-public:
-    struct CardDesc {
-        const QString iName;
-        TravelCardImpl* (*iNewCard)(QString, QObject*);
-        void (*iRegisterTypes)(const char*, int, int);
+    enum Failure {
+        IoError,
+        LockFailure,
+        UnsupportedCard
     };
 
-public:
-    virtual void startReading() = 0;
+    TravelCardIsoDep(QString, QObject*);
+    ~TravelCardIsoDep();
 
-Q_SIGNALS:
-    void readFailed();
-    void readDone(QString url, QVariantMap info);
+    // The completion method (the last parameter) is invoked with the
+    // following arguments:
+    //
+    // (const GUtilData* aResponse, uint aSw, const GError* aError)
+    //
+    // If TravelCardIsoDep fails to start the transmission, it calls
+    // failure(Failure) and returns false.
+    bool transmit(const NfcIsoDepApdu*, QObject*, const char*);
+
+    virtual void startIo() = 0;
+    virtual void success(QString, QVariantMap); // emits readDone
+    virtual void failure(Failure);              // emits readFailed
+
+public:
+    void startReading() Q_DECL_OVERRIDE;
+
+private:
+    class Private;
+    friend class Private;
+    Private* iPrivate;
 };
 
-#endif // TRAVEL_CARD_IMPL_H
+#endif // TRAVEL_CARD_ISO_DEP_H
