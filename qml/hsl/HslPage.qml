@@ -6,6 +6,8 @@ import "../components"
 import "../components/Utils.js" as Utils
 
 Page {
+    id: thisPage
+
     property var cardInfo
     property alias cardImageUrl: header.cardImageUrl
     readonly property string remainingBalance: Utils.moneyString(storedValueParser.moneyValue)
@@ -13,13 +15,21 @@ Page {
     property alias periodPassDaysRemaining: periodPassParser.effectiveDaysRemaining
     property alias periodPassEndDate: periodPassParser.effectiveEndDate
 
+    readonly property var _debug: cardInfo ? cardInfo.debug : undefined
+
     showNavigationIndicator: false
 
     onStatusChanged: {
         if (status === PageStatus.Active) {
-            backNavigation = !NfcAdapter.targetPresent
             showNavigationIndicator = true
         }
+    }
+
+    Binding {
+        target: thisPage
+        property: "backNavigation"
+        value: !NfcAdapter.targetPresent
+        when: showNavigationIndicator
     }
 
     HslCardAppInfo { id: appInfoParser; data: cardInfo.appInfo }
@@ -34,6 +44,12 @@ Page {
         cardType: cardInfo.cardType
         description: appInfoParser.cardNumber
         cardImageUrl: Qt.resolvedUrl("images/hsl-card.svg")
+        onMultiClick: {
+            if (_debug) {
+                pageStack.push(Qt.resolvedUrl("../DebugPage.qml"),
+                    { debug: Qt.binding(function() { return _debug}) })
+            }
+        }
     }
 
     ListSwitcher {

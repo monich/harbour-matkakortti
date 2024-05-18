@@ -13,12 +13,11 @@ Page {
     backNavigation: false
     showNavigationIndicator: false
 
-    readonly property bool targetPresent: NfcAdapter.targetPresent
-    readonly property bool unrecorgnizedCard: targetPresent && travelCard.cardState === TravelCard.CardNone && !readTimer.running
-    readonly property bool readingCard: travelCard.cardState === TravelCard.CardReading || readTimer.running
-    readonly property bool nysseSupported: NfcSystem.version >= NfcSystem.Version_1_0_26
-    property bool showingCardInfo: !!cardInfoPage
-    property Page cardInfoPage
+    readonly property bool unrecorgnizedCard: NfcAdapter.targetPresent && travelCard.cardState === TravelCard.CardNone && !readTimer.running
+    readonly property Page cardInfoPage: pageStack.nextPage(page)
+
+    readonly property bool _nysseSupported: NfcSystem.version >= NfcSystem.Version_1_0_26
+    readonly property bool _readingCard: travelCard.cardState === TravelCard.CardReading || readTimer.running
 
     ConfigurationValue {
         id: lastCardType
@@ -41,30 +40,12 @@ Page {
                 lastCardType.value = cardInfo.cardType
                 if (cardInfoPage) {
                     if (cardInfoPage.cardInfo.cardType === cardInfo.cardType) {
-                        cardInfoPage.cardInfo = cardInfo
+                        cardInfoPage.cardInfo = cardInfo // Reuse the existing page
                     } else {
-                        cardInfoPage = pageStack.replace(Qt.resolvedUrl(pageUrl),
-                            { cardInfo: cardInfo })
-                        if (cardInfoPage) {
-                            cardInfoPage.statusChanged.connect(function() {
-                                if (cardInfoPage.status === PageStatus.Inactive) {
-                                    cardInfoPage.destroy()
-                                    cardInfoPage = null
-                                }
-                            })
-                        }
+                        pageStack.replaceAbove(page, Qt.resolvedUrl(pageUrl), { cardInfo: cardInfo })
                     }
                 } else {
-                    cardInfoPage = pageStack.push(Qt.resolvedUrl(pageUrl),
-                        { cardInfo: cardInfo })
-                    if (cardInfoPage) {
-                        cardInfoPage.statusChanged.connect(function() {
-                            if (cardInfoPage.status === PageStatus.Inactive) {
-                                cardInfoPage.destroy()
-                                cardInfoPage = null
-                            }
-                        })
-                    }
+                    pageStack.push(Qt.resolvedUrl(pageUrl), { cardInfo: cardInfo })
                 }
                 break
             }
@@ -75,12 +56,6 @@ Page {
         id: readTimer
 
         interval: 500
-    }
-
-    onTargetPresentChanged: {
-        if (cardInfoPage && cardInfoPage.status === PageStatus.Active) {
-            cardInfoPage.backNavigation = !targetPresent
-        }
     }
 
     Item {
@@ -114,7 +89,7 @@ Page {
         ShaderEffectSource {
             width: cardImages.width
             height: cardImages.height
-            opacity: (!readingCard && !targetPresent) ? 1 : 0
+            opacity: (!_readingCard && !NfcAdapter.targetPresent) ? 1 : 0
             visible: opacity > 0
             sourceItem: Item {
                 id: cardImages
@@ -129,7 +104,7 @@ Page {
                     sourceSize.height: parent.cardImageHeight
                     source: Qt.resolvedUrl("nysse/images/nysse-card.svg")
                     rotation: 105
-                    visible: nysseSupported
+                    visible: _nysseSupported
                     z: (lastCardType.value === "Nysse") ? 1 : 0
                 }
 
@@ -139,7 +114,7 @@ Page {
                     anchors.centerIn: parent
                     sourceSize.height: parent.cardImageHeight
                     source: Qt.resolvedUrl("hsl/images/hsl-card.svg")
-                    rotation: nysseSupported ? 60 : 90
+                    rotation: _nysseSupported ? 60 : 90
                     z: (lastCardType.value === "HSL") ? 1 : 0
                 }
             }
@@ -151,7 +126,7 @@ Page {
             anchors.horizontalCenter: parent.horizontalCenter
             size: BusyIndicatorSize.Large
             running: true
-            opacity: readingCard ? 1 : 0
+            opacity: _readingCard ? 1 : 0
             visible: opacity > 0
             Behavior on opacity { FadeAnimation {} }
         }
@@ -163,7 +138,7 @@ Page {
             sourceSize.height: height
             source: visible ? "images/hmm.svg" : ""
             smooth: true
-            opacity: (!readingCard && unrecorgnizedCard) ? 1 : 0
+            opacity: (!_readingCard && unrecorgnizedCard) ? 1 : 0
             visible: opacity > 0
             Behavior on opacity { FadeAnimation {} }
         }
@@ -173,11 +148,11 @@ Page {
 
             y: parent.height/2
 
-            text: readingCard ?
+            text: _readingCard ?
                 //: Info label
                 //% "Reading the card"
                 qsTrId("matkakortti-info-reading") :
-                targetPresent ? (
+                NfcAdapter.targetPresent ? (
                 travelCard.cardState === TravelCard.CardNone ?
                     //: Info label
                     //% "This is not a supported travel card"
@@ -208,7 +183,7 @@ Page {
             //: Hint label
             //% "Place the phone on the card"
             text: qsTrId("matkakortti-info-touch_hint")
-            opacity: (NfcSystem.enabled && !targetPresent && !readingCard) ? 0.6 /* opacityHigh */ : 0
+            opacity: (NfcSystem.enabled && !NfcAdapter.targetPresent && !_readingCard) ? 0.6 /* opacityHigh */ : 0
             visible: opacity > 0
             Behavior on opacity {
                 enabled: NfcSystem.valid

@@ -8,6 +8,8 @@ PageHeader {
     property alias cardImageUrl: headerImage.source
     property string cardType
 
+    signal multiClick()
+
     title: cardType ?
         //: Page title
         //% "%1 card"
@@ -54,5 +56,40 @@ PageHeader {
         anchors.fill: headerImage
         source: headerImage
         maskSource: headerImageMask
+    }
+
+    MouseArea {
+        id: multiClickArea
+
+        property int clickCount
+        readonly property int multiClickCount: 5
+
+        anchors {
+            right: parent.right
+            left: parent.horizontalCenter
+            top: parent.top
+            bottom: parent.bottom
+        }
+
+        onClicked: handleClick()
+        onDoubleClicked: handleClick()
+
+        function handleClick() {
+            clickCount ++
+            if (clickCount >= multiClickCount) {
+                multiClickResetTimer.stop()
+                clickCount = 0
+                header.multiClick()
+            } else {
+                multiClickResetTimer.restart()
+            }
+        }
+
+        Timer {
+            id: multiClickResetTimer
+
+            interval: 500
+            onTriggered: multiClickArea.clickCount = 0
+        }
     }
 }

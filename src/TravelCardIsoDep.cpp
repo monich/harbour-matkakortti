@@ -42,6 +42,7 @@
 #include "TravelCardIsoDep.h"
 
 #include "HarbourDebug.h"
+#include "HarbourUtil.h"
 
 enum tag_events {
     TAG_EVENT_VALID,
@@ -57,10 +58,11 @@ class TravelCardIsoDep::Private
 {
 public:
     struct Transmit {
+        Private* iPrivate;
         QObject* iObject;
         char* iMethod;
 
-        Transmit(QObject*, const char*);
+        Transmit(Private*, QObject*, const char*);
         ~Transmit();
 
         static void response(NfcIsoDepClient*, const GUtilData*, guint, const GError*, void*);
@@ -69,6 +71,9 @@ public:
 
     Private(const QString&, TravelCardIsoDep*);
     ~Private();
+
+    void logCommand(const NfcIsoDepApdu*);
+    void logResponse(const GUtilData*, uint);
 
     void startReadingIfReady();
     void readDone();
@@ -85,6 +90,7 @@ public:
     gulong iTagEventId[TAG_EVENT_COUNT];
     gulong iIsoDepEventId[TAG_EVENT_COUNT];
     GCancellable* iCancel;
+    QString iDebugLog;
 };
 
 TravelCardIsoDep::Private::Private(
@@ -199,13 +205,49 @@ TravelCardIsoDep::Private::tagEventHandler(
     ((Private*)aPrivate)->startReadingIfReady();
 }
 
+void
+TravelCardIsoDep::Private::logCommand(
+    const NfcIsoDepApdu* aApdu)
+{
+    if (!iDebugLog.isEmpty()) {
+        iDebugLog.append('\n');
+    }
+    iDebugLog.append(QString::asprintf("%02x %02x %02x %02x ",
+        aApdu->cla, aApdu->ins, aApdu->p1, aApdu->p1));
+    if (aApdu->data.size) {
+        iDebugLog.append(HarbourUtil::toHex(aApdu->data.bytes, aApdu->data.size));
+    } else {
+        iDebugLog.append('-');
+    }
+    if (aApdu->le > 255) {
+        iDebugLog.append(QString::asprintf(" %04x", aApdu->le));
+    } else {
+        iDebugLog.append(QString::asprintf(" %02x", aApdu->le));
+    }
+    iDebugLog.append('\n');
+}
+
+void
+TravelCardIsoDep::Private::logResponse(
+    const GUtilData* aData,
+    uint aSw)
+{
+    if (aData && aData->size) {
+        iDebugLog.append(HarbourUtil::toHex(aData->bytes, aData->size));
+        iDebugLog.append(' ');
+    }
+    iDebugLog.append(QString::asprintf("%02x%02x\n", aSw >> 8, aSw & 0xff));
+}
+
 // ==========================================================================
 // TravelCardIsoDep::Private::Transmit
 // ==========================================================================
 
 TravelCardIsoDep::Private::Transmit::Transmit(
+    Private* aPrivate,
     QObject* aObject,
     const char* aMethod) :
+    iPrivate(aPrivate),
     iObject(aObject),
     iMethod(g_strdup(aMethod))
 {
@@ -227,6 +269,9 @@ TravelCardIsoDep::Private::Transmit::response(
 {
     Transmit* self = (Transmit*)aTransmitData;
 
+    if (!aError) {
+        self->iPrivate->logResponse(aData, aSw);
+    }
     QMetaObject::invokeMethod(self->iObject, self->iMethod,
                               Q_ARG(const GUtilData*, aData),
                               Q_ARG(uint, aSw),
@@ -264,7 +309,8 @@ TravelCardIsoDep::transmit(
     QObject* aObject,
     const char* aMethod)
 {
-    Private::Transmit* tx = new Private::Transmit(aObject, aMethod);
+    Private::Transmit* tx = new Private::Transmit(iPrivate, aObject, aMethod);
+    iPrivate->logCommand(aApdu);
     return nfc_isodep_client_transmit(iPrivate->iIsoDep, aApdu, iPrivate->iCancel,
         Private::Transmit::response, tx, Private::Transmit::free);
 }
@@ -276,6 +322,10 @@ TravelCardIsoDep::success(
 {
     HDEBUG("Read done");
     iPrivate->readDone();
+    // Add ISO-DEP transaction log to the card info
+    QVariantMap debug;
+    debug.insert("log", iPrivate->iDebugLog);
+    aInfo.insert("debug", debug);
     Q_EMIT readDone(aUrl, aInfo);
 }
 
@@ -290,5 +340,6 @@ TravelCardIsoDep::failure(Failure)
 void
 TravelCardIsoDep::startReading()
 {
+    iPrivate->iDebugLog.clear();
     iPrivate->startReadingIfReady();
 }

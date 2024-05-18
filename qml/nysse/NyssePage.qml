@@ -6,19 +6,29 @@ import "../components"
 import "../components/Utils.js" as Utils
 
 Page {
+    id: thisPage
+
     property var cardInfo
     property alias cardImageUrl: header.cardImageUrl
     readonly property string remainingBalance: Utils.moneyString(balanceParser.balance)
     readonly property int ticketSecondsRemaining: 0
     readonly property int periodPassDaysRemaining: 0
 
+    readonly property var _debug: cardInfo ? cardInfo.debug : undefined
+
     showNavigationIndicator: false
 
     onStatusChanged: {
         if (status === PageStatus.Active) {
-            backNavigation = !NfcAdapter.targetPresent
             showNavigationIndicator = true
         }
+    }
+
+    Binding {
+        target: thisPage
+        property: "backNavigation"
+        value: !NfcAdapter.targetPresent
+        when: showNavigationIndicator
     }
 
     NysseCardAppInfo { id: appInfoParser; data: cardInfo.appInfoData }
@@ -33,6 +43,12 @@ Page {
         cardType: cardInfo.cardType
         description: appInfoParser.cardNumber
         cardImageUrl: Qt.resolvedUrl("images/nysse-card.svg")
+        onMultiClick: {
+            if (_debug) {
+                pageStack.push(Qt.resolvedUrl("../DebugPage.qml"),
+                    { debug: Qt.binding(function() { return _debug}) })
+            }
+        }
     }
 
     Item {
