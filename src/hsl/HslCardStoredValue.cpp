@@ -1,6 +1,6 @@
 /*
+ * Copyright (C) 2019-2024 Slava Monich <slava@monich.com>
  * Copyright (C) 2019-2020 Jolla Ltd.
- * Copyright (C) 2019-2020 Slava Monich <slava.monich@jolla.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -8,21 +8,23 @@
  * modification, are permitted provided that the following conditions
  * are met:
  *
- *   1. Redistributions of source code must retain the above copyright
- *      notice, this list of conditions and the following disclaimer.
- *   2. Redistributions in binary form must reproduce the above copyright
- *      notice, this list of conditions and the following disclaimer in
- *      the documentation and/or other materials provided with the
- *      distribution.
- *   3. Neither the names of the copyright holders nor the names of its
- *      contributors may be used to endorse or promote products derived
- *      from this software without specific prior written permission.
+ *  1. Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *
+ *  2. Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer
+ *     in the documentation and/or other materials provided with the
+ *     distribution.
+ *
+ *  3. Neither the names of the copyright holders nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
  * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
  * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
  * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
@@ -38,19 +40,18 @@
 #include "HslCardStoredValue.h"
 #include "Util.h"
 
-#include <gutil_misc.h>
-
 #include "HarbourDebug.h"
 
 // ==========================================================================
 // HslCardStoredValue::Private
 // ==========================================================================
 
-class HslCardStoredValue::Private {
+class HslCardStoredValue::Private
+{
 public:
     Private();
 
-    void setHexData(QString aHexData);
+    void setHexData(QString);
 
 public:
     QString iHexData;
@@ -62,21 +63,38 @@ public:
 HslCardStoredValue::Private::Private() :
     iMoneyValue(0),
     iLoadedValue(0)
-{
-}
+{}
 
-void HslCardStoredValue::Private::setHexData(QString aHexData)
+void
+HslCardStoredValue::Private::setHexData(
+    QString aHexData)
 {
-    iHexData = aHexData;
-    QByteArray hexData(aHexData.toLatin1());
+    const QByteArray hexData(aHexData.toLatin1());
+    const QByteArray bytes(QByteArray::fromHex(hexData));
+
     HDEBUG(hexData.constData());
-    GBytes* bytes = gutil_hex2bytes(hexData.constData(), hexData.size());
+    iHexData = aHexData;
     iMoneyValue = 0;
     iLoadingTime = QDateTime();
     iLoadedValue = 0;
-    if (bytes) {
-        GUtilData data;
-        gutil_data_from_bytes(&data, bytes);
+
+    if (!bytes.isEmpty()) {
+        const GUtilData data = Util::toData(bytes);
+
+        // StoredValue
+        //
+        // +======================================================+
+        // | Byte/Bit | Bit   | Entry | Description               |
+        // | offset   | count | type  |                           |
+        // +==========+=======+=======+===========================+
+        // | 0/0      | 20    | uint  | Available money (cents)   |
+        // | 2/4      | 14    | date  | Loading date              |
+        // | 4/2      | 11    | time  | Loading time              |
+        // | 5/5      | 20    | uint  | Loaded value (cents)      |
+        // | 8/1      | 14    | uint  | Loading organisation id   |
+        // | 9/7      | 14    | uint  | Loading device number     |
+        // | 11/5     | 3     | -     | Reserved                  |
+        // +======================================================+
         iMoneyValue = getInt(&data, 0, 20);
         HDEBUG("  ValueCounter =" << iMoneyValue);
         const QDate loadingDate(getDate(&data, 2, 4));
@@ -88,7 +106,6 @@ void HslCardStoredValue::Private::setHexData(QString aHexData)
         HDEBUG("  LoadedValue =" << iLoadedValue);
         HDEBUG("  LoadingOrganisationID =" << getInt(&data, 8, 1, 14));
         HDEBUG("  LoadingDeviceNumber =" << getInt(&data, 9, 7, 14));
-        g_bytes_unref(bytes);
     }
 }
 
@@ -96,23 +113,26 @@ void HslCardStoredValue::Private::setHexData(QString aHexData)
 // HslCardStoredValue
 // ==========================================================================
 
-HslCardStoredValue::HslCardStoredValue(QObject* aParent) :
+HslCardStoredValue::HslCardStoredValue(
+    QObject* aParent) :
     HslData(aParent),
-    iPrivate(new Private)
-{
-}
+    iPrivate(new Private())
+{}
 
 HslCardStoredValue::~HslCardStoredValue()
 {
     delete iPrivate;
 }
 
-QString HslCardStoredValue::data() const
+QString
+HslCardStoredValue::data() const
 {
     return iPrivate->iHexData;
 }
 
-void HslCardStoredValue::setData(QString aData)
+void
+HslCardStoredValue::setData(
+    QString aData)
 {
     QString data(aData.toLower());
     if (iPrivate->iHexData != data) {
@@ -133,17 +153,20 @@ void HslCardStoredValue::setData(QString aData)
     }
 }
 
-int HslCardStoredValue::moneyValue() const
+int
+HslCardStoredValue::moneyValue() const
 {
     return iPrivate->iMoneyValue;
 }
 
-int HslCardStoredValue::loadedValue() const
+int
+HslCardStoredValue::loadedValue() const
 {
     return iPrivate->iLoadedValue;
 }
 
-QDateTime HslCardStoredValue::loadingTime() const
+QDateTime
+HslCardStoredValue::loadingTime() const
 {
     return iPrivate->iLoadingTime;
 }

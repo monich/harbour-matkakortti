@@ -1,6 +1,6 @@
 /*
+ * Copyright (C) 2019-2024 Slava Monich <slava@monich.com>
  * Copyright (C) 2019-2020 Jolla Ltd.
- * Copyright (C) 2019-2023 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -8,21 +8,23 @@
  * modification, are permitted provided that the following conditions
  * are met:
  *
- *   1. Redistributions of source code must retain the above copyright
- *      notice, this list of conditions and the following disclaimer.
- *   2. Redistributions in binary form must reproduce the above copyright
- *      notice, this list of conditions and the following disclaimer in
- *      the documentation and/or other materials provided with the
- *      distribution.
- *   3. Neither the names of the copyright holders nor the names of its
- *      contributors may be used to endorse or promote products derived
- *      from this software without specific prior written permission.
+ *  1. Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *
+ *  2. Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer
+ *     in the documentation and/or other materials provided with the
+ *     distribution.
+ *
+ *  3. Neither the names of the copyright holders nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
  * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
  * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
  * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
@@ -39,7 +41,6 @@
 #include "TravelCard.h"
 #include "Util.h"
 
-#include <gutil_misc.h>
 #include <gutil_timenotify.h>
 
 #include "HarbourDebug.h"
@@ -48,12 +49,13 @@
 // HslCardEticket::Private
 // ==========================================================================
 
-class HslCardEticket::Private {
+class HslCardEticket::Private
+{
 public:
-    Private(HslCardEticket* aTicket);
+    Private(HslCardEticket*);
     ~Private();
 
-    void setHexData(QString aHexData);
+    void setHexData(QString);
     void updateSecondsRemaining();
 
     static void systemTimeChanged(GUtilTimeNotify*, void*);
@@ -61,8 +63,8 @@ public:
 public:
     HslCardEticket* iTicket;
     QString iHexData;
-    Language iLanguage;
-    ValidityLengthType iValidityLengthType;
+    HslData::Language iLanguage;
+    HslData::ValidityLengthType iValidityLengthType;
     int iValidityLength;
     HslArea iValidityArea;
     int iTicketPrice;
@@ -80,7 +82,8 @@ public:
     gulong iTimeNotifyId;
 };
 
-HslCardEticket::Private::Private(HslCardEticket* aTicket) :
+HslCardEticket::Private::Private(
+    HslCardEticket* aTicket) :
     iTicket(aTicket),
     iLanguage(LanguageUnknown),
     iValidityLengthType(ValidityLengthUnknown),
@@ -103,12 +106,15 @@ HslCardEticket::Private::~Private()
     gutil_time_notify_unref(iTimeNotify);
 }
 
-void HslCardEticket::Private::setHexData(QString aHexData)
+void
+HslCardEticket::Private::setHexData(
+    QString aHexData)
 {
-    iHexData = aHexData;
-    QByteArray hexData(aHexData.toLatin1());
+    const QByteArray hexData(aHexData.toLatin1());
+    const QByteArray bytes(QByteArray::fromHex(hexData));
+
     HDEBUG(hexData.constData());
-    GBytes* bytes = gutil_hex2bytes(hexData.constData(), hexData.size());
+    iHexData = aHexData;
     iLanguage = LanguageUnknown;
     iValidityLengthType = ValidityLengthUnknown;
     iValidityLength = 0;
@@ -123,9 +129,10 @@ void HslCardEticket::Private::setHexData(QString aHexData)
     iBoardingTime = QDateTime();
     iBoardingVehicle = 0;
     iBoardingArea = HslArea();
-    if (bytes) {
-        GUtilData data;
-        gutil_data_from_bytes(&data, bytes);
+
+    if (!bytes.isEmpty()) {
+        const GUtilData data = Util::toData(bytes);
+
         HDEBUG("  ProductCodeType =" << getInt(&data, 0, 1));
         HDEBUG("  ProductCode =" << getInt(&data, 0, 14));
         HDEBUG("  ProductCodeGroup =" << getInt(&data, 1, 7, 14));
@@ -195,7 +202,6 @@ void HslCardEticket::Private::setHexData(QString aHexData)
         iBoardingArea = getArea(&data, 42, 6, 43, 0);
         HDEBUG("  BoardingAreaType =" << getInt(&data, 42, 6, 2));
         HDEBUG("  BoardingArea =" << getInt(&data, 43, 0, 6) << iBoardingArea);
-        g_bytes_unref(bytes);
 
         // Kielikoodi: 0=Suomi, 1=Ruotsi, 2=Englanti
         switch (languageCode) {
@@ -217,13 +223,17 @@ void HslCardEticket::Private::setHexData(QString aHexData)
     }
 }
 
-void HslCardEticket::Private::systemTimeChanged(GUtilTimeNotify*, void* aTicket)
+void
+HslCardEticket::Private::systemTimeChanged(
+    GUtilTimeNotify*,
+    void* aTicket)
 {
     HDEBUG("System time changed");
-    ((HslCardEticket*)aTicket)->updateSecondsRemaining();
+    QTimer::singleShot(0, (HslCardEticket*) aTicket, SLOT(updateSecondsRemaining()));
 }
 
-void HslCardEticket::Private::updateSecondsRemaining()
+void
+HslCardEticket::Private::updateSecondsRemaining()
 {
     if (HslData::isValidTimePeriod(iValidityStartTime, iValidityEndTime)) {
         const QDateTime now = Util::currentTimeInFinland();
@@ -248,7 +258,8 @@ void HslCardEticket::Private::updateSecondsRemaining()
 // HslCardEticket
 // ==========================================================================
 
-HslCardEticket::HslCardEticket(QObject* aParent) :
+HslCardEticket::HslCardEticket(
+    QObject* aParent) :
     HslData(aParent),
     iPrivate(new Private(this))
 {
@@ -259,14 +270,18 @@ HslCardEticket::~HslCardEticket()
     delete iPrivate;
 }
 
-QString HslCardEticket::data() const
+QString
+HslCardEticket::data() const
 {
     return iPrivate->iHexData;
 }
 
-void HslCardEticket::setData(QString aData)
+void
+HslCardEticket::setData(
+    QString aData)
 {
-    QString data(aData.toLower());
+    const QString data(aData.toLower());
+
     if (iPrivate->iHexData != data) {
         const Language prevLanguage = iPrivate->iLanguage;
         const ValidityLengthType prevValidityLengthType = iPrivate->iValidityLengthType;
@@ -333,92 +348,110 @@ void HslCardEticket::setData(QString aData)
     }
 }
 
-HslData::Language HslCardEticket::language() const
+HslData::Language
+HslCardEticket::language() const
 {
     return iPrivate->iLanguage;
 }
 
-HslData::ValidityLengthType HslCardEticket::validityLengthType() const
+HslData::ValidityLengthType
+HslCardEticket::validityLengthType() const
 {
     return iPrivate->iValidityLengthType;
 }
 
-int HslCardEticket::validityLength() const
+int
+HslCardEticket::validityLength() const
 {
     return iPrivate->iValidityLength;
 }
 
-HslArea HslCardEticket::validityArea() const
+HslArea
+HslCardEticket::validityArea() const
 {
     return iPrivate->iValidityArea;
 }
 
-QString HslCardEticket::validityAreaName() const
+QString
+HslCardEticket::validityAreaName() const
 {
     return iPrivate->iValidityArea.name();
 }
 
-int HslCardEticket::ticketPrice() const
+int
+HslCardEticket::ticketPrice() const
 {
     return iPrivate->iTicketPrice;
 }
 
-int HslCardEticket::groupSize() const
+int
+HslCardEticket::groupSize() const
 {
     return iPrivate->iGroupSize;
 }
 
-bool HslCardEticket::extraZone() const
+bool
+HslCardEticket::extraZone() const
 {
     return iPrivate->iExtraZone;
 }
 
-int HslCardEticket::extensionFare() const
+int
+HslCardEticket::extensionFare() const
 {
     return iPrivate->iExtensionFare;
 }
 
-QDateTime HslCardEticket::validityStartTime() const
+QDateTime
+HslCardEticket::validityStartTime() const
 {
     return iPrivate->iValidityStartTime;
 }
 
-QDateTime HslCardEticket::validityEndTime() const
+QDateTime
+HslCardEticket::validityEndTime() const
 {
     return iPrivate->iValidityEndTime;
 }
 
-QDateTime HslCardEticket::validityEndTimeGroup() const
+QDateTime
+HslCardEticket::validityEndTimeGroup() const
 {
     return iPrivate->iValidityEndTimeGroup;
 }
 
-QDateTime HslCardEticket::boardingTime() const
+QDateTime
+HslCardEticket::boardingTime() const
 {
     return iPrivate->iBoardingTime;
 }
 
-int HslCardEticket::boardingVehicle() const
+int
+HslCardEticket::boardingVehicle() const
 {
     return iPrivate->iBoardingVehicle;
 }
 
-HslArea HslCardEticket::boardingArea() const
+HslArea
+HslCardEticket::boardingArea() const
 {
     return iPrivate->iBoardingArea;
 }
 
-QString HslCardEticket::boardingAreaName() const
+QString
+HslCardEticket::boardingAreaName() const
 {
     return iPrivate->iBoardingArea.name();
 }
 
-int HslCardEticket::secondsRemaining() const
+int
+HslCardEticket::secondsRemaining() const
 {
     return iPrivate->iSecondsRemaining;
 }
 
-void HslCardEticket::updateSecondsRemaining()
+void
+HslCardEticket::updateSecondsRemaining()
 {
     const int prevSecondsRemaining = iPrivate->iSecondsRemaining;
     iPrivate->updateSecondsRemaining();

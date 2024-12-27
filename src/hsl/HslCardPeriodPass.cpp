@@ -1,6 +1,6 @@
 /*
+ * Copyright (C) 2019-2024 Slava Monich <slava@monich.com>
  * Copyright (C) 2019-2020 Jolla Ltd.
- * Copyright (C) 2019-2023 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -8,21 +8,23 @@
  * modification, are permitted provided that the following conditions
  * are met:
  *
- *   1. Redistributions of source code must retain the above copyright
- *      notice, this list of conditions and the following disclaimer.
- *   2. Redistributions in binary form must reproduce the above copyright
- *      notice, this list of conditions and the following disclaimer in
- *      the documentation and/or other materials provided with the
- *      distribution.
- *   3. Neither the names of the copyright holders nor the names of its
- *      contributors may be used to endorse or promote products derived
- *      from this software without specific prior written permission.
+ *  1. Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *
+ *  2. Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer
+ *     in the documentation and/or other materials provided with the
+ *     distribution.
+ *
+ *  3. Neither the names of the copyright holders nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
  * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
  * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
  * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
@@ -39,7 +41,6 @@
 #include "TravelCard.h"
 #include "Util.h"
 
-#include <gutil_misc.h>
 #include <gutil_timenotify.h>
 
 #include "HarbourDebug.h"
@@ -74,9 +75,9 @@ class HslCardPeriodPass::Types
 {
 public:
     enum Signal {
-#define SIGNAL_ENUM_(Name,name) Signal##Name##Changed,
-    QUEUED_SIGNALS(SIGNAL_ENUM_)
-#undef SIGNAL_ENUM_
+        #define SIGNAL_ENUM_(Name,name) Signal##Name##Changed,
+        QUEUED_SIGNALS(SIGNAL_ENUM_)
+        #undef SIGNAL_ENUM_
         SignalCount
     };
 
@@ -301,7 +302,8 @@ public:
     gulong iTimeNotifyId;
 };
 
-HslCardPeriodPass::Private::Private(HslCardPeriodPass* aParent) :
+HslCardPeriodPass::Private::Private(
+    HslCardPeriodPass* aParent) :
     QObject(aParent),
     iQueuedSignals(0),
     iFirstQueuedSignal(SignalCount),
@@ -360,9 +362,9 @@ void
 HslCardPeriodPass::Private::emitQueuedSignals()
 {
     static const SignalEmitter emitSignal [] = {
-#define SIGNAL_EMITTER_(Name,name) &HslCardPeriodPass::name##Changed,
+        #define SIGNAL_EMITTER_(Name,name) &HslCardPeriodPass::name##Changed,
         QUEUED_SIGNALS(SIGNAL_EMITTER_)
-#undef SIGNAL_EMITTER_
+        #undef SIGNAL_EMITTER_
     };
     Q_STATIC_ASSERT(G_N_ELEMENTS(emitSignal) == SignalCount);
     if (iQueuedSignals) {
@@ -386,14 +388,14 @@ HslCardPeriodPass::Private::updateHexData(
     const QString aHexData)
 {
     const QByteArray hexData(aHexData.toLatin1());
-    GBytes* bytes = gutil_hex2bytes(hexData.constData(), hexData.size());
+    const QByteArray bytes(QByteArray::fromHex(hexData));
 
-    iHexData = aHexData;
     HDEBUG(hexData.constData());
-    if (bytes) {
-        GUtilData data;
+    iHexData = aHexData;
 
-        gutil_data_from_bytes(&data, bytes);
+    if (!bytes.isEmpty()) {
+        const GUtilData data = Util::toData(bytes);
+
         HDEBUG("  ProductCodeType1 =" << getInt(&data, 0, 1));
         HDEBUG("  ProductCode1 =" << getInt(&data, 1, 14));
         iValidityArea1 = getArea(&data, 1, 7, 2, 1);
@@ -432,7 +434,6 @@ HslCardPeriodPass::Private::updateHexData(
         HDEBUG("  BoardingDirection =" << getInt(&data, 32, 7, 1));
         HDEBUG("  BoardingAreaType =" << getInt(&data, 33, 0, 2));
         HDEBUG("  BoardingArea =" << getInt(&data, 33, 2, 6));
-        g_bytes_unref(bytes);
         updatePeriods();
     } else {
         HDEBUG("No valid period pass data");
@@ -561,10 +562,10 @@ HslCardPeriodPass::Private::updatePeriods()
 void
 HslCardPeriodPass::Private::systemTimeChanged(
     GUtilTimeNotify*,
-    void* aTicket)
+    void* aPrivate)
 {
     HDEBUG("System time changed");
-    ((Private*)aTicket)->refreshPeriods();
+    QTimer::singleShot(0, (Private*) aPrivate, SLOT(refreshPeriods()));
 }
 
 void

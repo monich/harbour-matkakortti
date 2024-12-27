@@ -37,7 +37,6 @@
  * any official policies, either expressed or implied.
  */
 
-#include "gutil_misc.h"
 #include "gutil_timenotify.h"
 
 #include "NysseCardTicketInfo.h"
@@ -65,9 +64,9 @@ class NysseCardTicketInfo::Private :
 
 public:
     enum Signal {
-#define SIGNAL_ENUM_(Name,name) Signal##Name##Changed,
+        #define SIGNAL_ENUM_(Name,name) Signal##Name##Changed,
         QUEUED_SIGNALS(SIGNAL_ENUM_)
-#undef  SIGNAL_ENUM_
+        #undef SIGNAL_ENUM_
         SignalCount
     };
 
@@ -141,9 +140,9 @@ void
 NysseCardTicketInfo::Private::emitQueuedSignals()
 {
     static const SignalEmitter emitSignal [] = {
-#define SIGNAL_EMITTER_(Name,name) &NysseCardTicketInfo::name##Changed,
+        #define SIGNAL_EMITTER_(Name,name) &NysseCardTicketInfo::name##Changed,
         QUEUED_SIGNALS(SIGNAL_EMITTER_)
-#undef SIGNAL_EMITTER_
+        #undef SIGNAL_EMITTER_
     };
     Q_STATIC_ASSERT(G_N_ELEMENTS(emitSignal) == SignalCount);
     if (iQueuedSignals) {
@@ -198,7 +197,7 @@ NysseCardTicketInfo::Private::updateHexData(
 
         bool valid = false;
         if (data[6] == 3) {
-            const QDateTime endDate(NysseUtil::toDateTime(Util::uint16be(data + 10), 0));
+            const QDateTime endDate(NysseUtil::toDateTime(Util::uint16be(data + 10)));
             HDEBUG("  EndDate =" << endDate);
             if (iEndDate != endDate) {
                 iEndDate = endDate;
@@ -224,7 +223,7 @@ NysseCardTicketInfo::Private::systemTimeChanged(
     void* aPrivate)
 {
     HDEBUG("System time changed");
-    QMetaObject::invokeMethod((Private*)aPrivate, "refreshDaysRemaining");
+    QTimer::singleShot(0, (Private*)aPrivate, SLOT(refreshDaysRemaining()));
 }
 
 void

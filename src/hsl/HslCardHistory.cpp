@@ -1,6 +1,6 @@
 /*
+ * Copyright (C) 2019-2024 Slava Monich <slava@monich.com>
  * Copyright (C) 2019-2020 Jolla Ltd.
- * Copyright (C) 2019-2020 Slava Monich <slava.monich@jolla.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -8,21 +8,23 @@
  * modification, are permitted provided that the following conditions
  * are met:
  *
- *   1. Redistributions of source code must retain the above copyright
- *      notice, this list of conditions and the following disclaimer.
- *   2. Redistributions in binary form must reproduce the above copyright
- *      notice, this list of conditions and the following disclaimer in
- *      the documentation and/or other materials provided with the
- *      distribution.
- *   3. Neither the names of the copyright holders nor the names of its
- *      contributors may be used to endorse or promote products derived
- *      from this software without specific prior written permission.
+ *  1. Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *
+ *  2. Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer
+ *     in the documentation and/or other materials provided with the
+ *     distribution.
+ *
+ *  3. Neither the names of the copyright holders nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
  * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
  * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
  * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
@@ -34,8 +36,6 @@
  * are those of the authors and should not be interpreted as representing
  * any official policies, either expressed or implied.
  */
-
-#include <gutil_misc.h>
 
 #include "HslCardHistory.h"
 #include "HslData.h"
@@ -58,23 +58,23 @@
 // HslCardHistory::ModelData
 // ==========================================================================
 
-class HslCardHistory::ModelData {
+class HslCardHistory::ModelData
+{
 public:
     typedef QList<ModelData*> List;
     enum Role {
-#define FIRST(X,x) FirstRole = Qt::UserRole, X##Role = FirstRole,
-#define ROLE(X,x) X##Role,
-#define LAST(X,x) X##Role, LastRole = X##Role
+        #define FIRST(X,x) FirstRole = Qt::UserRole, X##Role = FirstRole,
+        #define ROLE(X,x) X##Role,
+        #define LAST(X,x) X##Role, LastRole = X##Role
         MODEL_ROLES_(FIRST,ROLE,LAST)
-#undef FIRST
-#undef ROLE
-#undef LAST
+        #undef FIRST
+        #undef ROLE
+        #undef LAST
     };
 
-    ModelData(TransactionType aType, QDateTime aBoardingTime,
-        int aTicketPrice, int aGroupSize, int aRemainingValue);
+    ModelData(TransactionType, QDateTime, int, int, int);
 
-    QVariant get(Role aRole) const;
+    QVariant get(Role) const;
 
 public:
     TransactionType iTransactionType;
@@ -84,8 +84,11 @@ public:
     int iRemainingValue;
 };
 
-HslCardHistory::ModelData::ModelData(TransactionType aType,
-    QDateTime aBoardingTime, int aTicketPrice, int aGroupSize,
+HslCardHistory::ModelData::ModelData(
+    TransactionType aType,
+    QDateTime aBoardingTime,
+    int aTicketPrice,
+    int aGroupSize,
     int aRemainingValue) :
     iTransactionType(aType),
     iBoardingTime(aBoardingTime),
@@ -95,7 +98,9 @@ HslCardHistory::ModelData::ModelData(TransactionType aType,
 {
 }
 
-QVariant HslCardHistory::ModelData::get(Role aRole) const
+QVariant
+HslCardHistory::ModelData::get(
+    Role aRole) const
 {
     switch (aRole) {
     case TransactionTypeRole: return iTransactionType;
@@ -111,15 +116,16 @@ QVariant HslCardHistory::ModelData::get(Role aRole) const
 // HslCardHistory::Private
 // ==========================================================================
 
-class HslCardHistory::Private {
+class HslCardHistory::Private
+{
 public:
     enum { ENTRY_SIZE = 12 };
 
     Private();
     ~Private();
 
-    void setHexData(QString aHexData);
-    ModelData* dataAt(int aIndex) const;
+    void setHexData(QString);
+    ModelData* dataAt(int) const;
 
 public:
     QString iHexData;
@@ -127,25 +133,43 @@ public:
 };
 
 HslCardHistory::Private::Private()
-{
-}
+{}
 
 HslCardHistory::Private::~Private()
 {
     qDeleteAll(iData);
 }
 
-void HslCardHistory::Private::setHexData(QString aHexData)
+void
+HslCardHistory::Private::setHexData(
+    QString aHexData)
 {
-    iHexData = aHexData;
     QByteArray hexData(aHexData.toLatin1());
+    const QByteArray bytes(QByteArray::fromHex(hexData));
+
     HDEBUG(hexData.constData());
-    GBytes* bytes = gutil_hex2bytes(hexData.constData(), hexData.size());
+    iHexData = aHexData;
     qDeleteAll(iData);
     iData.clear();
-    if (bytes) {
-        GUtilData data;
-        gutil_data_from_bytes(&data, bytes);
+    if (!bytes.isEmpty()) {
+        const GUtilData data = Util::toData(bytes);
+
+        // History block layout (12 bytes each):
+        //
+        // +=========================================================+
+        // | Byte/Bit | Bit   | Entry | Description                  |
+        // | offset   | count | type  |                              |
+        // +==========+=======+=======+==============================+
+        // | 0/0      | 1     | uint  | Type (0 = check, 1 = charge) |
+        // | 0/1      | 14    | date  | Boarding date                |
+        // | 1/7      | 11    | time  | Boarding time                |
+        // | 3/2      | 14    | date  | Transfer end date            |
+        // | 5/0      | 11    | time  | Transfer end time            |
+        // | 6/3      | 14    | uint  | Ticket fare (cents)          |
+        // | 8/1      | 6     | uint  | Group size                   |
+        // | 8/7      | 20    | uint  | Remaining value (cents)      |
+        // | 11/3     | 5     | -     | Reserved                     |
+        // +=========================================================+
         HASSERT(!(data.size % ENTRY_SIZE));
         const int n = data.size / ENTRY_SIZE;
         HDEBUG(n << "history entries:");
@@ -170,11 +194,13 @@ void HslCardHistory::Private::setHexData(QString aHexData)
                 QDateTime(boardingDate, boardingTime, Util::FINLAND_TIMEZONE),
                 ticketPrice, groupSize, remainingValue));
         }
-        g_bytes_unref(bytes);
     }
 }
 
-inline HslCardHistory::ModelData* HslCardHistory::Private::dataAt(int aIndex) const
+inline
+HslCardHistory::ModelData*
+HslCardHistory::Private::dataAt(
+    int aIndex) const
 {
     if (aIndex >= 0 && aIndex < iData.count()) {
         return iData.at(aIndex);
@@ -187,73 +213,86 @@ inline HslCardHistory::ModelData* HslCardHistory::Private::dataAt(int aIndex) co
 // HslCardHistory
 // ==========================================================================
 
-HslCardHistory::HslCardHistory(QObject* aParent) :
+HslCardHistory::HslCardHistory(
+    QObject* aParent) :
     QAbstractListModel(aParent),
     iPrivate(new Private)
-{
-}
+{}
 
 HslCardHistory::~HslCardHistory()
 {
     delete iPrivate;
 }
 
-QString HslCardHistory::data() const
+QString
+HslCardHistory::data() const
 {
     return iPrivate->iHexData;
 }
 
-void HslCardHistory::setData(QString aData)
+void
+HslCardHistory::setData(
+    QString aData)
 {
-    QString data(aData.toLower());
+    const QString data(aData.toLower());
+
     if (iPrivate->iHexData != data) {
         const ModelData::List prevData(iPrivate->iData);
         const int prevCount = prevData.count();
+
         iPrivate->iData.clear();
         iPrivate->setHexData(data);
+
         // All this just to avoid resetting the entire model
         // which resets view position too.
         const ModelData::List newData(iPrivate->iData);
         const int count = iPrivate->iData.count();
+
         iPrivate->iData = prevData;
         if (count < prevCount) {
             beginRemoveRows(QModelIndex(), count, prevCount - 1);
             iPrivate->iData = newData;
             endRemoveRows();
             if (count > 0) {
-                QAbstractListModel::dataChanged(index(0), index(count - 1));
+                Q_EMIT dataChanged(index(0), index(count - 1));
             }
         } else if (count > prevCount) {
             beginInsertRows(QModelIndex(), prevCount, count - 1);
             iPrivate->iData = newData;
             endInsertRows();
             if (prevCount > 0) {
-                QAbstractListModel::dataChanged(index(0), index(prevCount - 1));
+                Q_EMIT dataChanged(index(0), index(prevCount - 1));
             }
         } else if (count > 0) {
             iPrivate->iData = newData;
-            QAbstractListModel::dataChanged(index(0), index(count - 1));
+            Q_EMIT dataChanged(index(0), index(count - 1));
         }
         qDeleteAll(prevData);
-        Q_EMIT dataChanged();
+        Q_EMIT historyChanged();
     }
 }
 
-QHash<int,QByteArray> HslCardHistory::roleNames() const
+QHash<int,QByteArray>
+HslCardHistory::roleNames() const
 {
     QHash<int,QByteArray> roles;
-#define ROLE(X,x) roles.insert(ModelData::X##Role, #x);
-MODEL_ROLES(ROLE)
-#undef ROLE
+    #define ROLE(X,x) roles.insert(ModelData::X##Role, #x);
+    MODEL_ROLES(ROLE)
+    #undef ROLE
     return roles;
 }
 
-int HslCardHistory::rowCount(const QModelIndex& aParent) const
+int
+HslCardHistory::rowCount(
+    const QModelIndex& aParent) const
 {
     return iPrivate->iData.count();
 }
 
-QVariant HslCardHistory::data(const QModelIndex& aIndex, int aRole) const
+QVariant
+HslCardHistory::data(
+    const QModelIndex& aIndex,
+    int aRole) const
 {
     ModelData* data = iPrivate->dataAt(aIndex.row());
     return data ? data->get((ModelData::Role)aRole) : QVariant();

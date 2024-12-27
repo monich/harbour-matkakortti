@@ -48,6 +48,8 @@
 #include "HslData.h"
 #include "Util.h"
 
+#include <QtQml/QtQml>
+
 #include "HarbourDebug.h"
 #include "HarbourUtil.h"
 

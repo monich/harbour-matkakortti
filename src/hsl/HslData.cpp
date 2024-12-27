@@ -1,6 +1,6 @@
 /*
+ * Copyright (C) 2019-2024 Slava Monich <slava@monich.com>
  * Copyright (C) 2019-2020 Jolla Ltd.
- * Copyright (C) 2019-2023 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -8,21 +8,23 @@
  * modification, are permitted provided that the following conditions
  * are met:
  *
- *   1. Redistributions of source code must retain the above copyright
- *      notice, this list of conditions and the following disclaimer.
- *   2. Redistributions in binary form must reproduce the above copyright
- *      notice, this list of conditions and the following disclaimer in
- *      the documentation and/or other materials provided with the
- *      distribution.
- *   3. Neither the names of the copyright holders nor the names of its
- *      contributors may be used to endorse or promote products derived
- *      from this software without specific prior written permission.
+ *  1. Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *
+ *  2. Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer
+ *     in the documentation and/or other materials provided with the
+ *     distribution.
+ *
+ *  3. Neither the names of the copyright holders nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
  * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
  * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
  * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
@@ -43,54 +45,80 @@
 const QDate HslData::START_DATE(1997, 1, 1);
 const QTime HslData::START_TIME(0, 0);
 
-HslData::HslData(QObject* aParent) :
+HslData::HslData(
+    QObject* aParent) :
     QObject(aParent)
 {
 }
 
-QObject* HslData::createSingleton(QQmlEngine*, QJSEngine*)
+QObject*
+HslData::createSingleton(
+    QQmlEngine*,
+    QJSEngine*)
 {
-    return new HslData;
+    return new HslData();
 }
 
-bool HslData::isValidDate(QDate aDate)
+bool
+HslData::isValidDate(
+    QDate aDate)
 {
     return aDate > START_DATE;
 }
 
-bool HslData::isValidPeriod(QDate aStart, QDate aEnd)
+bool
+HslData::isValidPeriod(
+    QDate aStart,
+    QDate aEnd)
 {
     return isValidDate(aStart) && isValidDate(aEnd) && aStart <= aEnd;
 }
 
-bool HslData::isValidTimePeriod(QDateTime aStart, QDateTime aEnd)
+bool
+HslData::isValidTimePeriod(
+    QDateTime aStart,
+    QDateTime aEnd)
 {
     return isValidDate(aStart.date()) && isValidDate(aEnd.date()) && aStart <= aEnd;
 }
 
-QDateTime HslData::startDateTime(QDate aDate)
+QDateTime
+HslData::startDateTime(
+    QDate aDate)
 {
     return QDateTime(aDate, QTime(0,0), Util::FINLAND_TIMEZONE);
 }
 
-QDateTime HslData::endDateTime(QDate aDate)
+QDateTime
+HslData::endDateTime(
+    QDate aDate)
 {
     return QDateTime(aDate, QTime(23,59,59,999), Util::FINLAND_TIMEZONE);
 }
 
-QString HslData::finnishDateString(const QDateTime aDateTime)
+QString
+HslData::finnishDateString(
+    const QDateTime aDateTime)
 {
     static const QString DATE_FORMAT("dd.MM.yyyy");
     return Util::finnishTime(aDateTime).toString(DATE_FORMAT);
 }
 
-uint HslData::getInt(const GUtilData* aData, uint aByteOffset,
-    uint aBitOffset, uint aCount)
+uint
+HslData::getInt(
+    const GUtilData* aData,
+    uint aByteOffset,
+    uint aBitOffset,
+    uint aCount)
 {
     return getInt(aData, 8 * aByteOffset + aBitOffset, aCount);
 }
 
-uint HslData::getInt(const GUtilData* aData, uint aOffset, uint aCount)
+uint
+HslData::getInt(
+    const GUtilData* aData,
+    uint aOffset,
+    uint aCount)
 {
     if (aData) {
         const gsize totalBits = aData->size * 8;
@@ -130,34 +158,55 @@ uint HslData::getInt(const GUtilData* aData, uint aOffset, uint aCount)
 
 // EN 1545-1, DateStamp (number of days since 1.1.1997)
 // DateStamp ::= BIT STRING(SIZE (14))
-QDate HslData::getDate(const GUtilData* aData, uint aByteOffset, uint aBitOffset)
+QDate
+HslData::getDate(
+    const GUtilData* aData,
+    uint aByteOffset,
+    uint aBitOffset)
 {
     return getDate(aData, 8 * aByteOffset + aBitOffset);
 }
 
-QDate HslData::getDate(const GUtilData* aData, uint aOffset)
+QDate
+HslData::getDate(
+    const GUtilData* aData,
+    uint aOffset)
 {
     return START_DATE.addDays(getInt(aData, aOffset, DATE_BITS));
 }
 
 // EN 1545-1, TimeStamp (number of minutes since 00:00)
 // TimeStamp ::= BIT STRING (SIZE(11))
-QTime HslData::getTime(const GUtilData* aData, uint aByteOffset, uint aBitOffset)
+QTime
+HslData::getTime(
+    const GUtilData* aData,
+    uint aByteOffset,
+    uint aBitOffset)
 {
     return getTime(aData, 8 * aByteOffset + aBitOffset);
 }
 
-QTime HslData::getTime(const GUtilData* aData, uint aOffset)
+QTime
+HslData::getTime(
+    const GUtilData* aData,
+    uint aOffset)
 {
     return START_TIME.addSecs(getInt(aData, aOffset, TIME_BITS) * 60);
 }
 
-HslArea::Type HslData::getAreaType(const GUtilData* aData, uint aByteOffset, uint aBitOffset)
+HslArea::Type
+HslData::getAreaType(
+    const GUtilData* aData,
+    uint aByteOffset,
+    uint aBitOffset)
 {
     return getAreaType(aData, 8 * aByteOffset + aBitOffset);
 }
 
-HslArea::Type HslData::getAreaType(const GUtilData* aData, uint aOffset)
+HslArea::Type
+HslData::getAreaType(
+    const GUtilData* aData,
+    uint aOffset)
 {
     // 0=Vyöhyke, 1=Ajoneuvo, 2=Uusi vyöhyke
     switch (getInt(aData, aOffset, 2)) {
@@ -168,15 +217,24 @@ HslArea::Type HslData::getAreaType(const GUtilData* aData, uint aOffset)
     }
 }
 
-HslArea HslData::getArea(const GUtilData* aData, uint aTypeByteOffset, uint aTypeBitOffset,
-    uint aAreaByteOffset, uint aAreaBitOffset)
+HslArea
+HslData::getArea(
+    const GUtilData* aData,
+    uint aTypeByteOffset,
+    uint aTypeBitOffset,
+    uint aAreaByteOffset,
+    uint aAreaBitOffset)
 {
     return getArea(aData,
         8 * aTypeByteOffset + aTypeBitOffset,
         8 * aAreaByteOffset + aAreaBitOffset);
 }
 
-HslArea HslData::getArea(const GUtilData* aData, uint aTypeOffset, uint aAreaOffset)
+HslArea
+HslData::getArea(
+    const GUtilData* aData,
+    uint aTypeOffset,
+    uint aAreaOffset)
 {
     HslArea::Type type = HslData::getAreaType(aData, aTypeOffset);
     if (type != HslArea::UnknownArea) {
