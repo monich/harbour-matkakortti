@@ -195,6 +195,64 @@ HslCardHistory::Private::setHexData(
                 ticketPrice, groupSize, remainingValue));
         }
     }
+
+    // New card readers have been introduced by HSL in 2024 which write
+    // history entries for multi-tickets slightly differently.
+    //
+    //   Old readers: TicketFare was the price of a single ticket, which
+    //   has to be multiplied by GroupSize to get the total price.
+    //
+    //   New readers: TicketFare is the total price. It has to be devided
+    //   by GroupSize in order to get the price of a single ticket.
+    //
+    // More or less all card readers have been replaced by the new ones
+    // by the end of 2024. But (roughly) between June and December 2024
+    // either card reader could be used, and there's no way to know exactly
+    // which one created the history entry. Some heuristics needs to be
+    // applied to those questionable history entries (and still, there's
+    // no guarantee that we get it right in every single case)
+
+    const int n = iData.size();
+    for (int i = 0; i < n; i++) {
+        ModelData* entry = iData.at(i);
+
+        // If TicketFare is actually the total price of the group trip,
+        // it must be divisible by the GroupSize
+        if (entry->iGroupSize > 1 && !(entry->iTicketPrice % entry->iGroupSize)) {
+            const QDate entryDate(entry->iBoardingTime.date());
+            static const QDate READER2_START_DATE(2024, 6, 1);
+            static const QDate READER1_END_DATE(2025, 1, 1);
+
+            if (entryDate > READER2_START_DATE) {
+                // Could be (and most likely is) a new card reader
+                bool reader2 = true;
+
+                if (entryDate < READER1_END_DATE) {
+                    // Could be either one
+                    if (i > 0) {
+                        // Check the previous entry if there is one
+                        const ModelData* prev = iData.at(i - 1);
+
+                        // Note that the balance could change (more money
+                        // added to the card) in between, in which case
+                        // this check would fail :(
+                        if (prev->iRemainingValue == entry->iRemainingValue +
+                            entry->iTicketPrice * entry->iGroupSize) {
+                            reader2 = false;
+                        }
+                    }
+                }
+
+                if (reader2) {
+                    HDEBUG("Fixing TicketFare for entry #" << (i + 1) <<
+                        entry->iTicketPrice << "=>" << (entry->iTicketPrice /
+                        entry->iGroupSize));
+                    // Fix the ticket price
+                    entry->iTicketPrice /= entry->iGroupSize;
+                }
+            }
+        }
+    }
 }
 
 inline
