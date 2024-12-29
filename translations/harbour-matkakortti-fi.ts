@@ -33,6 +33,16 @@
         <extracomment>Hint label</extracomment>
         <translation>Paina puhelin kiinni korttiin</translation>
     </message>
+    <message id="matkakortti-menu-share">
+        <source>Share</source>
+        <extracomment>Generic menu item, shares the content</extracomment>
+        <translation>Jaa</translation>
+    </message>
+    <message id="matkakortti-menu-copy_to_clipboard">
+        <source>Copy to clipboard</source>
+        <extracomment>Generic menu item, copies text to clipboard</extracomment>
+        <translation>Kopioi leikepöydälle</translation>
+    </message>
     <message id="matkakortti-card-header">
         <source>Travel card</source>
         <extracomment>Page title</extracomment>

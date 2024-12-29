@@ -33,6 +33,16 @@
         <extracomment>Hint label</extracomment>
         <translation>Поднесите карточку к NFC сенсору, обычно он на задней панели, но иногда, например на Xperia X, почему-то спереди</translation>
     </message>
+    <message id="matkakortti-menu-share">
+        <source>Share</source>
+        <extracomment>Generic menu item, shares the content</extracomment>
+        <translation>Поделиться</translation>
+    </message>
+    <message id="matkakortti-menu-copy_to_clipboard">
+        <source>Copy to clipboard</source>
+        <extracomment>Generic menu item, copies text to clipboard</extracomment>
+        <translation>Скопировать в буфер обмена</translation>
+    </message>
     <message id="matkakortti-card-header">
         <source>Travel card</source>
         <extracomment>Page title</extracomment>

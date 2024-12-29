@@ -162,10 +162,12 @@ INCLUDEPATH += \
 
 HEADERS += \
     $${HARBOUR_LIB_INCLUDE}/HarbourDebug.h \
+    $${HARBOUR_LIB_INCLUDE}/HarbourSystemInfo.h \
     $${HARBOUR_LIB_INCLUDE}/HarbourSystemTime.h \
     $${HARBOUR_LIB_INCLUDE}/HarbourUtil.h
 
 SOURCES += \
+    $${HARBOUR_LIB_SRC}/HarbourSystemInfo.cpp \
     $${HARBOUR_LIB_SRC}/HarbourSystemTime.cpp \
     $${HARBOUR_LIB_SRC}/HarbourUtil.cpp
 

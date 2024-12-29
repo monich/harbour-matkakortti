@@ -33,6 +33,16 @@
         <extracomment>Hint label</extracomment>
         <translation>请将手机放置于卡片之上</translation>
     </message>
+    <message id="matkakortti-menu-share">
+        <source>Share</source>
+        <extracomment>Generic menu item, shares the content</extracomment>
+        <translation>分享</translation>
+    </message>
+    <message id="matkakortti-menu-copy_to_clipboard">
+        <source>Copy to clipboard</source>
+        <extracomment>Generic menu item, copies text to clipboard</extracomment>
+        <translation>复制到剪切板</translation>
+    </message>
     <message id="matkakortti-card-header">
         <source>Travel card</source>
         <extracomment>Page title</extracomment>
