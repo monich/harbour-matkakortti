@@ -191,13 +191,14 @@ NysseCardTicketInfo::Private::updateHexData(
         const uint id1 = data[0];
         const uint id2 = data[48];
         const uint off = (id1 > id2 && (id1 - id2) <= 128) ? 0 : 48;
+        const uchar* block = data + off;
+        bool valid = false;
 
         HDEBUG("Block ids" << hex << id1 << "and" << id2 << "using the" <<
             (off ? "second" : "first") << "one");
 
-        bool valid = false;
-        if (data[6] == 3) {
-            const QDateTime endDate(NysseUtil::toDateTime(Util::uint16be(data + 10)));
+        if (block[6] == 3) {
+            const QDateTime endDate(NysseUtil::toDateTime(Util::uint16be(block + 10)));
             HDEBUG("  EndDate =" << endDate);
             if (iEndDate != endDate) {
                 iEndDate = endDate;
