@@ -31,7 +31,7 @@
     <message id="matkakortti-info-touch_hint">
         <source>Place the phone on the card</source>
         <extracomment>Hint label</extracomment>
-        <translation>Paina puhelin kiinni korttiin</translation>
+        <translation>Aseta kortti puhelinta vasten</translation>
     </message>
     <message id="matkakortti-menu-share">
         <source>Share</source>
@@ -96,12 +96,12 @@
     <message id="matkakortti-details-section-card_value">
         <source>Card value</source>
         <extracomment>Section header</extracomment>
-        <translation>Kortin arvo</translation>
+        <translation>Arvoa kortilla</translation>
     </message>
     <message id="matkakortti-details-loaded_value-label">
         <source>Last loaded value:</source>
         <extracomment>Label</extracomment>
-        <translation>Ladattu arvo:</translation>
+        <translation>Viimeisin ladattu arvo:</translation>
     </message>
     <message id="matkakortti-details-loading_time-label">
         <source>Loading time:</source>
@@ -126,7 +126,7 @@
     <message id="matkakortti-details-ticket-validity_length">
         <source>Validity time:</source>
         <extracomment>Label</extracomment>
-        <translation>Voimassaoloaika</translation>
+        <translation>Voimassaoloaika:</translation>
     </message>
     <message id="matkakortti-details-ticket-valid_from">
         <source>Valid from:</source>
@@ -151,7 +151,7 @@
     <message id="matkakortti-details-boarding_zone">
         <source>Boarding zone:</source>
         <extracomment>Label</extracomment>
-        <translation>Nousualue:</translation>
+        <translation>Nousuvyöhyke:</translation>
     </message>
     <message id="matkakortti-card-validity-valid">
         <source>Valid</source>
@@ -176,12 +176,12 @@
     <message id="matkakortti-details-card-issue_date">
         <source>Card issue date:</source>
         <extracomment>Label</extracomment>
-        <translation type="unfinished">Kortti myönnettiin:</translation>
+        <translation>Kortti myönnetty:</translation>
     </message>
     <message id="matkakortti-details-deposit-amount">
         <source>Deposit:</source>
         <extracomment>Label</extracomment>
-        <translation type="unfinished">Talletus:</translation>
+        <translation>Talletus:</translation>
     </message>
     <message id="matkakortti-history-section-previous_journeys">
         <source>Previous journeys</source>
@@ -191,7 +191,7 @@
     <message id="matkakortti-history-transaction_type">
         <source>Season ticket or boarding</source>
         <extracomment>Label (transaction type)</extracomment>
-        <translation>Kausimatka tai nousu</translation>
+        <translation>Kausilippu tai vaihto</translation>
     </message>
     <message id="matkakortti-history-remaining_balance">
         <source>Remaining balance:</source>
