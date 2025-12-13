@@ -1,5 +1,12 @@
 ## Travel card reader for Sailfish OS
 
+**IMPORTANT NOTE!** Roughly since November 2025, Helsinki public transport
+validators stopped updating the information stored on the cards. Meaning that
+this app can no longer read anything useful from the HSL cards (not even the
+balance) because there's nothing useful there to read. Everything these days
+is done over the Internet (when it works) and stored somewhere on some server
+in some sort of a database. Your data don't belong to you anymore.
+
 ![icon](icons/86x86/harbour-matkakortti.png)
 
 Application for reading [Helsinki](https://www.hsl.fi/en/changecard) and
